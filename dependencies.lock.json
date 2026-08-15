@@ -47,7 +47,21 @@
     "DinoMod_permission_status": "BLOCKED - Requires upstream maintainer written permission or license clearance before redistribution. All bridge code is DinoPad-owned and must remain compatible with upstream source.",
     "Dinosaur Planet ROM": "December 2000 prototype, MD5 49f7bb346ade39d1915c22e090ffd748 - user-supplied, never tracked",
     "toolchain": {
-      "note": "Recorded at first resolved build"
+      "recorded": "2026-08-15T19:10:00Z",
+      "host": {
+        "xcode": "26.6 (Build 17F113)",
+        "apple_clang": "21.0.0",
+        "cmake": "3.27.1",
+        "ninja": "1.13.2",
+        "python": "3.13.0 (Homebrew; system 3.8 too old for recomp_rom_patcher.py)",
+        "arch": "arm64"
+      },
+      "mips_clang": {
+        "source": "https://github.com/LT-Schmiddy/n64recomp-clang",
+        "release": "release-22.1.8",
+        "asset": "Darwin-arm64-ClangEssentialsAndN64Recomp-ClangVersion22.1.8-MipsOnly.tar.xz",
+        "purpose": "MIPS-targeting clang + ld.lld for the recompiled patch library (host clang has no MIPS backend)"
+      }
     }
   }
 }

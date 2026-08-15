@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-15T19:05:00Z
-Current commit: 5500d28
+Last updated: 2026-08-15T19:15:00Z
+Current commit: a4089e1
 Current phase: Phase 0 - Repository and documentation bootstrap
-Active goal: Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate base recomp output privately
+Active goal: Port the DinoPad Apple CMake layer and compile the smallest macOS arm64 runtime target
 
 ## Green
 
@@ -17,8 +17,12 @@ Active goal: Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate bas
 - scripts/bootstrap.sh, scripts/check-repo-safety.sh, scripts/report-size.sh, scripts/runtime-guard.sh added and verified.
 - docs/ARCHITECTURE.md written from direct inventory of pinned PaperPad and dino-recomp sources.
 - docs/BUILDING.md and docs/TESTING.md written from upstream build guides and PaperPad evidence discipline.
+- N64Recomp/RSPRecomp/OfflineModRecomp/RecompModMerger/RecompModTool built on Apple Silicon from pinned source (build-tools/).
+- MIPS Clang toolchain (n64recomp-clang release-22.1.8, Darwin-arm64) fetched and verified; patches ELF builds.
+- Base AOT generation green: 219 RecompiledFuncs files, rsp/aspMain.cpp, RecompiledPatches (2561 funcs) all in ignored generated/.
 - Key architecture finding: dino-recomp renderer already maps Metal on __APPLE__; src/runtime/gfx.cpp create_window() is the first macOS blocker (static_assert on Apple).
 - Private supported ROM present; MD5 verified as 49f7bb346ade39d1915c22e090ffd748 (path never exposed publicly).
+- Commits: 96f8377, 7c42e58, 26f75f9, 5500d28, a4089e1.
 - Commits: 96f8377, 7c42e58, 26f75f9, 5500d28.
 - Commits: 96f8377 (docs bootstrap), 7c42e58 (upstream pins), 26f75f9 (scripts).
 
@@ -26,7 +30,8 @@ Active goal: Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate bas
 
 - No build, runtime, or gameplay evidence exists yet.
 - docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/KNOWN_ISSUES.md, docs/UI_PARITY.md, docs/PLAYTEST_MATRIX.md not yet written.
-- No host-tool build (N64Recomp/RSPRecomp) or AOT generation attempted on Apple Silicon yet.
+- No DinoPad app build exists yet; generated C has not been compiled into a runtime.
+- scripts/apply-patches.sh, scripts/build-macos-app.sh, and the DinoPad Apple CMake layer not yet written.
 - macOS first frame blocked until create_window() Apple adapter is implemented.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
 
@@ -37,7 +42,8 @@ Active goal: Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate bas
 ./scripts/check-repo-safety.sh                      # PASS: 8/8 checks
 ./scripts/runtime-guard.sh macos sleep 4            # PASS: acquire -> run -> cleanup -> release
 scripts/runtime-guard.sh macos echo should-not-run  # PASS: rejected while lock held (rc=1)
-./scripts/report-size.sh                            # PASS: tracked 73.1 KiB / 5 files
+./scripts/build-tools.sh                            # PASS: 5 host tools + MIPS clang
+./scripts/generate-base.sh                          # PASS: 219 funcs + RSP + 2561 patch funcs
 md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090ffd748 (private, untracked)
 ```
 
@@ -47,6 +53,7 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 - Repository safety audit green (2026-08-15).
 - Runtime guard acquire/reject/release verified (2026-08-15).
 - Source inventory for Apple port recorded in docs/ARCHITECTURE.md (2026-08-15).
+- Base AOT generation verified (2026-08-15): docs/evidence/2026-08-15/base-aot/.
 - Private ROM fingerprint verified (2026-08-15).
 - No DinoPad build exists yet; no runtime has ever been launched.
 
@@ -65,10 +72,10 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate base recomp output privately.
+1. Port the DinoPad Apple CMake layer and compile the smallest macOS arm64 runtime target (generated C + N64ModernRuntime + RT64).
 2. Write docs/UPSTREAM.md (pins, patch strategy, compatibility matrix) and docs/KNOWN_ISSUES.md.
-3. Add DinoPad Apple CMake layer and macOS app target; bring up RT64 Metal first frame.
+3. Bring up RT64 Metal and render the first frame on macOS.
 
 ## Selected next goal
 
-Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate base recomp output privately.
+Port the DinoPad Apple CMake layer and compile the smallest macOS arm64 runtime target.
