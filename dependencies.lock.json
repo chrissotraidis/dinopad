@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "resolved": "2026-08-15T00:00:00Z",
+  "resolved": "2026-08-15T18:35:00Z",
   "entries": [
     {
       "name": "PaperPad",
@@ -14,28 +14,37 @@
       "name": "dino-recomp",
       "url": "https://github.com/DinosaurPlanetRecomp/dino-recomp.git",
       "ref": "v0.3.0",
-      "commit": "",
+      "commit": "725b2ede9cacc57968e0a028efed8df9235ba483",
       "license_file": "COPYING",
-      "purpose": "Base Dinosaur Planet N64 recompilation engine for arm64 static builds"
+      "purpose": "Base Dinosaur Planet N64 recompilation engine for arm64 static builds",
+      "submodules": {
+        "lib/N64ModernRuntime": "bf7c4e144d249686a3af42baa61968274326609c",
+        "lib/N64Recomp": "8b46781e7d248ce24e235a60fc83cd7dafd56325",
+        "lib/RmlUi": "7a06f27db04fe5d13a5dacc19b2b4544673a4eca",
+        "lib/SDL_GameControllerDB": "7988b5e84c31616200ee2ffd2347386c6b3165a8",
+        "lib/SlotMap": "b8ac8ebd89aa1cd18f20ce6e4ad1cac716f1933f",
+        "lib/dino-recomp-decomp-bridge": "fa1bb2ff62e31f73ebfb814de49f01a8759dc58f",
+        "lib/freetype-windows-binaries": "74f3de184253d7c314cb34444cc1bbabf276142f",
+        "lib/lunasvg": "4166d0cccfc059b39d5ecfc372524375e59448f9",
+        "lib/rt64": "e017b11119a970ee578ba6b7b8b0175fb97a925b"
+      }
     },
     {
       "name": "dinomod-enhanced-recompiled",
       "url": "https://github.com/EoinODoodles/dinomod-enhanced-recompiled.git",
       "ref": "v0.9.3",
-      "commit": "",
+      "commit": "d79e86be2304cba75216b0b98e9fb53ee99b7500",
       "license_file": "",
-      "purpose": "Progression restoration mod - read-only until permission/license clearance"
+      "purpose": "Progression restoration mod - read-only until permission/license clearance",
+      "submodules": {
+        "lib/dino-recomp-decomp-bridge": "07528ff82ff1c6dae5098e2cb5c667b22ebb32b5",
+        "lib/dino-recomp-mod-api": "15144c77da56309de2489f234dad21a2dbc6e40f"
+      }
     }
   ],
   "notes": {
     "DinoMod_permission_status": "BLOCKED - Requires upstream maintainer written permission or license clearance before redistribution. All bridge code is DinoPad-owned and must remain compatible with upstream source.",
     "Dinosaur Planet ROM": "December 2000 prototype, MD5 49f7bb346ade39d1915c22e090ffd748 - user-supplied, never tracked",
-    "submodule_pins": {
-      "dino-recomp": {
-        "recursive": true,
-        "pinned_at_tag": "v0.3.0"
-      }
-    },
     "toolchain": {
       "note": "Recorded at first resolved build"
     }
