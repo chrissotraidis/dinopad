@@ -97,11 +97,21 @@ mkdir -p ref
 clone_or_verify "PaperPad" "ref/paperpad"
 clone_or_verify "dino-recomp" "ref/dino-recomp"
 clone_or_verify "dinomod-enhanced-recompiled" "ref/dinomod-enhanced-recompiled"
+clone_or_verify "SDL2" "ref/SDL2"
+
+# Disable push URLs recursively for every nested reference repository.
+while IFS= read -r gitdir; do
+  repo="$(dirname "$gitdir")"
+  git -C "$repo" remote set-url --push origin DISABLED 2>/dev/null || true
+done < <(find ref -name .git -type d 2>/dev/null)
 
 echo "== Reference push URLs =="
-for d in ref/paperpad ref/dino-recomp ref/dinomod-enhanced-recompiled; do
+for d in ref/paperpad ref/dino-recomp ref/dinomod-enhanced-recompiled ref/SDL2; do
   echo "$d: $(git -C "$d" remote get-url --push origin)"
 done
+
+echo "== Maintained patch series =="
+scripts/apply-patches.sh
 
 echo "== Repository safety audit =="
 scripts/check-repo-safety.sh

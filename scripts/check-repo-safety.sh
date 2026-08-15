@@ -80,22 +80,61 @@ while IFS= read -r f; do
 done < <(git ls-files --others --exclude-standard)
 pass "untracked non-ignored files are clean"
 
-# 8. Reference checkouts: clean worktrees and disabled push URLs.
-for d in ref/paperpad ref/dino-recomp ref/dinomod-enhanced-recompiled; do
-  if [ -d "$d/.git" ]; then
-    dirty="$(git -C "$d" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
-    if [ "$dirty" -ne 0 ]; then
-      fail "reference checkout is dirty: $d"
-    fi
-    push_url="$(git -C "$d" remote get-url --push origin 2>/dev/null)"
-    if [ "$push_url" != "DISABLED" ]; then
-      fail "reference push URL not disabled: $d (push = ${push_url:-none})"
-    fi
-  else
-    fail "missing reference checkout: $d"
+# 8. Reference checkouts: only applied patches + whitelisted generated-output
+# symlinks may touch a checkout; push URLs must be disabled. Submodule repos
+# are verified inside their own repositories against their own patch sets.
+check_ref_repo() {
+  local repo_dir="$1" name
+  name="$(basename "$repo_dir")"
+  if [ ! -d "$repo_dir/.git" ] && [ ! -f "$repo_dir/.git" ]; then
+    fail "missing reference checkout: $repo_dir"
+    return
   fi
-done
-pass "reference checkouts present, clean, and push-disabled"
+  # Untracked files: only the generated-output symlinks are permitted.
+  while IFS= read -r f; do
+    case "$f" in
+      RecompiledFuncs|RecompiledPatches) ;;
+      *) fail "untracked file in reference checkout: $repo_dir/$f";;
+    esac
+  done < <(git -C "$repo_dir" ls-files --others --exclude-standard 2>/dev/null)
+  # Modified tracked files must be covered by an applied DinoPad patch set
+  # (submodule gitlinks are verified inside the submodule itself).
+  patched_files="$(grep '^diff --git ' "$ROOT"/patches/"$name"/*.patch 2>/dev/null \
+    | sed -E 's|^diff --git a/(.*) b/.*|\1|')"
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    if [ -d "$repo_dir/$f/.git" ] || [ -f "$repo_dir/$f/.git" ]; then
+      continue  # submodule; checked recursively
+    fi
+    case " $patched_files " in
+      *" $f "*) ;;
+      *) fail "modified file not covered by a maintained patch: $repo_dir/$f";;
+    esac
+  done < <(git -C "$repo_dir" diff --name-only 2>/dev/null)
+  # Verify the patch set is currently applied.
+  for patch in "$ROOT"/patches/"$name"/*.patch; do
+    [ -f "$patch" ] || continue
+    if git -C "$repo_dir" apply --check "$patch" >/dev/null 2>&1; then
+      fail "patch not applied: $patch"
+    elif git -C "$repo_dir" apply -R --check "$patch" >/dev/null 2>&1; then
+      : # applied
+    else
+      fail "patch neither applies nor reverse-applies: $patch"
+    fi
+  done
+  push_url="$(git -C "$repo_dir" remote get-url --push origin 2>/dev/null)"
+  if [ "$push_url" != "DISABLED" ]; then
+    fail "reference push URL not disabled: $repo_dir (push = ${push_url:-none})"
+  fi
+  echo "OK:   reference checkout verified: $repo_dir"
+}
+
+check_ref_repo ref/paperpad
+check_ref_repo ref/SDL2
+while IFS= read -r gitdir; do
+  check_ref_repo "$(dirname "$gitdir")"
+done < <(find ref/dino-recomp ref/dinomod-enhanced-recompiled -name .git \( -type d -o -type f \) 2>/dev/null | sort)
+pass "reference checkouts verified (patches applied, push-disabled)"
 
 if [ "$failures" -eq 0 ]; then
   echo "RESULT: repository safety checks clean"

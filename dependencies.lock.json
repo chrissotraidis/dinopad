@@ -41,6 +41,14 @@
         "lib/dino-recomp-decomp-bridge": "07528ff82ff1c6dae5098e2cb5c667b22ebb32b5",
         "lib/dino-recomp-mod-api": "15144c77da56309de2489f234dad21a2dbc6e40f"
       }
+    },
+    {
+      "name": "SDL2",
+      "url": "https://github.com/libsdl-org/SDL.git",
+      "ref": "release-2.32.10",
+      "commit": "5d249570393f7a37e037abf22cd6012a4cc56a71",
+      "license_file": "LICENSE.txt",
+      "purpose": "Native SDL2 2.32.10 static build for macOS window/audio/input (avoids Homebrew sdl2-compat shim)"
     }
   ],
   "notes": {

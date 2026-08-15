@@ -17,6 +17,7 @@ endif()
 get_filename_component(DINOPAD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 set(DINO_RECOMP "${DINOPAD_ROOT}/ref/dino-recomp")
 set(DINOPAD_AOT "${DINOPAD_ROOT}/generated/aot")
+set(DINOPAD_SDL2_BUILD "${DINOPAD_ROOT}/build-macos-sdl2")
 
 # Reproducible builds: do not embed the builder's absolute checkout path.
 add_compile_options(
@@ -67,3 +68,151 @@ target_include_directories(dinopad_rsp PRIVATE
     ${DINOPAD_RECOMP_INCLUDE_DIRS}
     "${DINOPAD_AOT}/RecompiledFuncs")
 target_compile_options(dinopad_rsp PRIVATE -fno-strict-aliasing)
+
+# ---- SDL2 (static, built by scripts/build-sdl2.sh) ------------------------
+if (NOT EXISTS "${DINOPAD_SDL2_BUILD}/libSDL2.a")
+    message(FATAL_ERROR
+        "SDL2 static library missing at ${DINOPAD_SDL2_BUILD}. "
+        "Run scripts/build-sdl2.sh first.")
+endif()
+add_library(dinopad_sdl2 STATIC IMPORTED)
+set_target_properties(dinopad_sdl2 PROPERTIES
+    IMPORTED_LOCATION "${DINOPAD_SDL2_BUILD}/libSDL2.a"
+    INTERFACE_INCLUDE_DIRECTORIES "${DINOPAD_ROOT}/ref/SDL2/include")
+
+# ---- Renderer and UI dependency stack (pinned dino-recomp submodules) -----
+set(RT64_STATIC TRUE CACHE BOOL "Build RT64 as a static library" FORCE)
+if (APPLE)
+    set(RT64_SDL_WINDOW_VULKAN FALSE CACHE BOOL "Use SDL windows for RT64 Vulkan" FORCE)
+endif()
+add_compile_definitions(HLSL_CPU)
+set(LUNASVG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(RMLUI_SVG_PLUGIN ON CACHE BOOL "" FORCE)
+set(RMLUI_TESTS_ENABLED OFF CACHE BOOL "" FORCE)
+
+add_subdirectory("${DINO_RECOMP}/lib/rt64" "${CMAKE_BINARY_DIR}/rt64")
+add_subdirectory("${DINO_RECOMP}/lib/lunasvg")
+add_subdirectory("${DINO_RECOMP}/lib/RmlUi")
+target_compile_definitions(rmlui_core PRIVATE LUNASVG_BUILD_STATIC)
+add_subdirectory("${DINO_RECOMP}/lib/N64ModernRuntime")
+
+# ---- DinoPad runtime: pinned dino-recomp sources (launcher UI included) ---
+set(DINOPAD_RUNTIME_SOURCES
+    "${DINO_RECOMP}/src/config/config.cpp"
+    "${DINO_RECOMP}/src/input/controls.cpp"
+    "${DINO_RECOMP}/src/input/input.cpp"
+    "${DINO_RECOMP}/src/runtime/audio.cpp"
+    "${DINO_RECOMP}/src/runtime/gfx.cpp"
+    "${DINO_RECOMP}/src/runtime/mods.cpp"
+    "${DINO_RECOMP}/src/runtime/overlays.cpp"
+    "${DINO_RECOMP}/src/runtime/patches.cpp"
+    "${DINO_RECOMP}/src/runtime/preload.cpp"
+    "${DINO_RECOMP}/src/runtime/rom_patcher.cpp"
+    "${DINO_RECOMP}/src/runtime/rsp.cpp"
+    "${DINO_RECOMP}/src/runtime/support.cpp"
+    "${DINO_RECOMP}/src/runtime/threads.cpp"
+    "${DINO_RECOMP}/src/recomp_api/common.cpp"
+    "${DINO_RECOMP}/src/recomp_api/debug.cpp"
+    "${DINO_RECOMP}/src/recomp_api/dll.cpp"
+    "${DINO_RECOMP}/src/recomp_api/fastcopy.cpp"
+    "${DINO_RECOMP}/src/recomp_api/func_8001B4F0_hack.cpp"
+    "${DINO_RECOMP}/src/recomp_api/general_api.cpp"
+    "${DINO_RECOMP}/src/recomp_api/os_ai.cpp"
+    "${DINO_RECOMP}/src/recomp_api/os_sp.cpp"
+    "${DINO_RECOMP}/src/recomp_api/recomp_data_api.cpp"
+    "${DINO_RECOMP}/src/debug_ui/backend.cpp"
+    "${DINO_RECOMP}/src/debug_ui/debug_ui.cpp"
+    "${DINO_RECOMP}/src/renderer/hooks.cpp"
+    "${DINO_RECOMP}/src/renderer/renderer.cpp"
+    "${DINO_RECOMP}/src/ui/ui_api.cpp"
+    "${DINO_RECOMP}/src/ui/ui_api_events.cpp"
+    "${DINO_RECOMP}/src/ui/ui_api_images.cpp"
+    "${DINO_RECOMP}/src/ui/ui_color_hack.cpp"
+    "${DINO_RECOMP}/src/ui/ui_config.cpp"
+    "${DINO_RECOMP}/src/ui/ui_config_sub_menu.cpp"
+    "${DINO_RECOMP}/src/ui/ui_elements.cpp"
+    "${DINO_RECOMP}/src/ui/ui_launcher.cpp"
+    "${DINO_RECOMP}/src/ui/ui_mod_details_panel.cpp"
+    "${DINO_RECOMP}/src/ui/ui_mod_installer.cpp"
+    "${DINO_RECOMP}/src/ui/ui_mod_menu.cpp"
+    "${DINO_RECOMP}/src/ui/ui_prompt.cpp"
+    "${DINO_RECOMP}/src/ui/ui_renderer.cpp"
+    "${DINO_RECOMP}/src/ui/ui_rml_hacks.cpp"
+    "${DINO_RECOMP}/src/ui/ui_state.cpp"
+    "${DINO_RECOMP}/src/ui/ui_utils.cpp"
+    "${DINO_RECOMP}/src/ui/util/hsv.cpp")
+
+add_library(dinopad_runtime STATIC ${DINOPAD_RUNTIME_SOURCES})
+target_include_directories(dinopad_runtime PUBLIC
+    ${DINOPAD_RECOMP_INCLUDE_DIRS}
+    "${DINO_RECOMP}/src"
+    "${DINO_RECOMP}/lib/concurrentqueue"
+    "${DINO_RECOMP}/lib/RmlUi/Include"
+    "${DINO_RECOMP}/lib/RmlUi/Backends"
+    "${DINO_RECOMP}/lib/rt64/src"
+    "${DINO_RECOMP}/lib/rt64/src/contrib"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/hlslpp/include"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/imgui"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/dxc/inc"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/Vulkan-Headers/include"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/D3D12MemoryAllocator/include"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/VulkanMemoryAllocator/include"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/nativefiledialog-extended/src/include"
+    "${DINO_RECOMP}/lib/promptfont"
+    "${DINO_RECOMP}/lib/GamepadMotionHelpers"
+    "${DINO_RECOMP}/lib/SlotMap/slot_map"
+    "${DINO_RECOMP}/lib/rt64/src/rhi"
+    "${DINO_RECOMP}/lib/rt64/src/render"
+    "${CMAKE_BINARY_DIR}/rt64/src"
+    "${CMAKE_BINARY_DIR}/shaders"
+    "${CMAKE_CURRENT_BINARY_DIR}"
+    "${DINOPAD_AOT}/RecompiledFuncs")
+
+# Replicate the upstream UI shader generation for the pinned recomp UI.
+# build_*_shader() resolves DXC in the caller scope, so the DXC setup from the
+# pinned dino-recomp CMakeLists (upstream duplicates it for the same reason)
+# must be repeated here.
+set (DXC_COMMON_OPTS "-I${DINO_RECOMP}/src")
+set (DXC_DXIL_OPTS "-Wno-ignored-attributes")
+set (DXC_SPV_OPTS "-spirv" "-fspv-target-env=vulkan1.0" "-fvk-use-dx-layout")
+set (DXC_PS_OPTS "${DXC_COMMON_OPTS}" "-E" "PSMain" "-T ps_6_0" "-D DYNAMIC_RENDER_PARAMS")
+set (DXC_VS_OPTS "${DXC_COMMON_OPTS}" "-E" "VSMain" "-T vs_6_0" "-D DYNAMIC_RENDER_PARAMS" "-fvk-invert-y")
+if (APPLE)
+    set (DXC "DYLD_LIBRARY_PATH=${DINO_RECOMP}/lib/rt64/src/contrib/dxc/lib/arm64" "${DINO_RECOMP}/lib/rt64/src/contrib/dxc/bin/arm64/dxc-macos")
+endif()
+build_vertex_shader(dinopad_runtime "ref/dino-recomp/shaders/InterfaceVS.hlsl" "shaders/InterfaceVS.hlsl")
+build_pixel_shader(dinopad_runtime "ref/dino-recomp/shaders/InterfacePS.hlsl" "shaders/InterfacePS.hlsl")
+
+target_compile_options(dinopad_runtime PUBLIC
+    -fno-strict-aliasing
+    -fms-extensions
+    # Upstream is built with MSVC, which permits narrowing in braced init
+    # lists; clang rejects it in the pinned UI sources (Apple portability).
+    -Wno-c++11-narrowing)
+
+target_link_libraries(dinopad_runtime PUBLIC
+    rt64
+    plume
+    nfd
+    libzstd_static
+    rmlui_core
+    lunasvg
+    ultramodern
+    librecomp
+    dinopad_base
+    dinopad_patches
+    dinopad_rsp
+    dinopad_sdl2)
+
+if (APPLE)
+    target_link_libraries(dinopad_runtime PUBLIC
+        "-framework Cocoa"
+        "-framework Metal"
+        "-framework QuartzCore"
+        "-framework IOKit"
+        "-framework CoreVideo"
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework ForceFeedback"
+        "-framework Carbon")
+endif()
