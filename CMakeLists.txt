@@ -4,6 +4,10 @@ project(DinoPad LANGUAGES C CXX)
 
 set(DINOPAD_VERSION "0.1.0")
 
+if (APPLE)
+    enable_language(OBJCXX)
+endif()
+
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -46,7 +50,8 @@ set(DINOPAD_AOT_COMPILE_OPTIONS
 
 # Base recompiled game code (N64Recomp output, ROM-derived, private).
 file(GLOB DINOPAD_FUNC_C_SOURCES "${DINOPAD_AOT}/RecompiledFuncs/*.c")
-add_library(dinopad_base STATIC ${DINOPAD_FUNC_C_SOURCES})
+file(GLOB DINOPAD_FUNC_CXX_SOURCES "${DINOPAD_AOT}/RecompiledFuncs/*.cpp")
+add_library(dinopad_base STATIC ${DINOPAD_FUNC_C_SOURCES} ${DINOPAD_FUNC_CXX_SOURCES})
 target_include_directories(dinopad_base PRIVATE
     ${DINOPAD_RECOMP_INCLUDE_DIRS}
     "${DINOPAD_AOT}/RecompiledFuncs")
@@ -79,6 +84,9 @@ add_library(dinopad_sdl2 STATIC IMPORTED)
 set_target_properties(dinopad_sdl2 PROPERTIES
     IMPORTED_LOCATION "${DINOPAD_SDL2_BUILD}/libSDL2.a"
     INTERFACE_INCLUDE_DIRECTORIES "${DINOPAD_ROOT}/ref/SDL2/include")
+# Force find_package(SDL2) in dependency subdirectories (e.g. RmlUi backends)
+# to resolve to our static SDL2 build instead of the Homebrew sdl2-compat shim.
+set(SDL2_DIR "${DINOPAD_SDL2_BUILD}" CACHE PATH "SDL2 CMake package config directory")
 
 # ---- Renderer and UI dependency stack (pinned dino-recomp submodules) -----
 set(RT64_STATIC TRUE CACHE BOOL "Build RT64 as a static library" FORCE)
@@ -113,6 +121,7 @@ set(DINOPAD_RUNTIME_SOURCES
     "${DINO_RECOMP}/src/runtime/threads.cpp"
     "${DINO_RECOMP}/src/recomp_api/common.cpp"
     "${DINO_RECOMP}/src/recomp_api/debug.cpp"
+    "${DINO_RECOMP}/src/recomp_api/debug_ui_api.cpp"
     "${DINO_RECOMP}/src/recomp_api/dll.cpp"
     "${DINO_RECOMP}/src/recomp_api/fastcopy.cpp"
     "${DINO_RECOMP}/src/recomp_api/func_8001B4F0_hack.cpp"
@@ -140,6 +149,20 @@ set(DINOPAD_RUNTIME_SOURCES
     "${DINO_RECOMP}/src/ui/ui_rml_hacks.cpp"
     "${DINO_RECOMP}/src/ui/ui_state.cpp"
     "${DINO_RECOMP}/src/ui/ui_utils.cpp"
+    "${DINO_RECOMP}/src/ui/core/ui_context.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_button.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_clickable.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_container.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_element.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_image.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_label.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_radio.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_scroll_container.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_slider.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_span.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_style.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_text_input.cpp"
+    "${DINO_RECOMP}/src/ui/elements/ui_toggle.cpp"
     "${DINO_RECOMP}/src/ui/util/hsv.cpp")
 
 add_library(dinopad_runtime STATIC ${DINOPAD_RUNTIME_SOURCES})
@@ -196,11 +219,16 @@ target_link_libraries(dinopad_runtime PUBLIC
     nfd
     libzstd_static
     rmlui_core
+    rmlui_debugger
     lunasvg
     ultramodern
     librecomp
-    dinopad_base
+    # Order matters: generated functions are weak symbols, and the linker keeps
+    # the first definition. The recompiled patch library must precede the base
+    # game code so that patched functions (e.g. dll_load, init_dll_system)
+    # replace their base counterparts (upstream links PatchesLib first).
     dinopad_patches
+    dinopad_base
     dinopad_rsp
     dinopad_sdl2)
 
@@ -214,5 +242,58 @@ if (APPLE)
         "-framework CoreAudio"
         "-framework AudioToolbox"
         "-framework ForceFeedback"
-        "-framework Carbon")
+        "-framework Carbon"
+        "-framework CoreHaptics"
+        "-framework GameController")
+endif()
+
+# ---- DinoPad macOS executable (base port; first Metal frame) --------------
+add_executable(DinoPad
+    "${DINO_RECOMP}/src/main.cpp"
+    "${DINO_RECOMP}/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp"
+    "${DINOPAD_ROOT}/src/app/dinopad_support.mm")
+
+target_include_directories(DinoPad PRIVATE
+    ${DINOPAD_RECOMP_INCLUDE_DIRS}
+    "${DINO_RECOMP}/src"
+    "${DINO_RECOMP}/lib/concurrentqueue"
+    "${DINO_RECOMP}/lib/RmlUi/Include"
+    "${DINO_RECOMP}/lib/RmlUi/Backends"
+    "${DINO_RECOMP}/lib/rt64/src"
+    "${DINO_RECOMP}/lib/rt64/src/contrib"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/hlslpp/include"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/imgui"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/dxc/inc"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/Vulkan-Headers/include"
+    "${DINO_RECOMP}/lib/rt64/src/contrib/nativefiledialog-extended/src/include"
+    "${DINO_RECOMP}/lib/promptfont"
+    "${DINO_RECOMP}/lib/GamepadMotionHelpers"
+    "${DINO_RECOMP}/lib/SlotMap/slot_map"
+    "${DINO_RECOMP}/lib/rt64/src/rhi"
+    "${DINO_RECOMP}/lib/rt64/src/render"
+    "${CMAKE_BINARY_DIR}/shaders"
+    "${DINOPAD_AOT}/RecompiledFuncs")
+
+target_compile_options(DinoPad PRIVATE
+    -fno-strict-aliasing
+    -fms-extensions)
+
+target_link_libraries(DinoPad PRIVATE
+    dinopad_runtime
+    dinopad_sdl2)
+
+if (APPLE)
+    target_link_libraries(DinoPad PRIVATE
+        "-framework Cocoa"
+        "-framework Metal"
+        "-framework QuartzCore"
+        "-framework IOKit"
+        "-framework CoreVideo"
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework ForceFeedback"
+        "-framework Carbon"
+        "-framework CoreHaptics"
+        "-framework GameController"
+        "-framework Foundation")
 endif()

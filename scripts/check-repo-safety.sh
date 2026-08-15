@@ -99,8 +99,8 @@ check_ref_repo() {
   done < <(git -C "$repo_dir" ls-files --others --exclude-standard 2>/dev/null)
   # Modified tracked files must be covered by an applied DinoPad patch set
   # (submodule gitlinks are verified inside the submodule itself).
-  patched_files="$(grep '^diff --git ' "$ROOT"/patches/"$name"/*.patch 2>/dev/null \
-    | sed -E 's|^diff --git a/(.*) b/.*|\1|')"
+  patched_files="$(grep -h '^diff --git ' "$ROOT"/patches/"$name"/*.patch 2>/dev/null \
+    | sed -E 's|^diff --git a/(.*) b/.*|\1|' | tr '\n' ' ')"
   while IFS= read -r f; do
     [ -n "$f" ] || continue
     if [ -d "$repo_dir/$f/.git" ] || [ -f "$repo_dir/$f/.git" ]; then

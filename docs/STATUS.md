@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-15T20:15:00Z
-Current commit: 0e1f9af
-Current phase: Phase 0 - Repository and documentation bootstrap
-Active goal: Link the DinoPad macOS executable (main + RT64 context) and render the first Metal frame
+Last updated: 2026-08-15T21:00:00Z
+Current commit: (pending first-frame commit)
+Current phase: Phase 2 - Apple Silicon macOS base build
+Active goal: Reach the title screen and verify a stable audio loop on macOS
 
 ## Green
 
@@ -23,6 +23,8 @@ Active goal: Link the DinoPad macOS executable (main + RT64 context) and render 
 - DinoPad CMake layer compiles the base game code, recompiled patches, and audio RSP into arm64 static libraries (build-macos/).
 - Complete runtime stack compiles for macOS arm64: RT64 Metal (plume), RmlUi/lunasvg, N64ModernRuntime, NFD, SDL2 static, and all pinned dino-recomp sources (libdinopad_runtime.a).
 - Apple window adapter (SDL Metal) and hlslpp fix applied as replayable patches; apply-patches.sh and check-repo-safety.sh verify patch state.
+- DinoPad macOS executable links and renders the first Metal frame: the game boots to the GAME SELECT screen on arm64 macOS (2026-08-15).
+- Boot blockers resolved: weak-symbol link order (patches before base) and imgui debug overlay disabled on Apple (no Metal backend).
 - Key architecture finding: dino-recomp renderer already maps Metal on __APPLE__; src/runtime/gfx.cpp create_window() is the first macOS blocker (static_assert on Apple).
 - Private supported ROM present; MD5 verified as 49f7bb346ade39d1915c22e090ffd748 (path never exposed publicly).
 - Commits: 96f8377, 7c42e58, 26f75f9, 5500d28, a4089e1, 215b71f, 66f1e69, 0d1e7ea, 0e1f9af.
@@ -34,8 +36,9 @@ Active goal: Link the DinoPad macOS executable (main + RT64 context) and render 
 
 - No build, runtime, or gameplay evidence exists yet.
 - docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/KNOWN_ISSUES.md, docs/UI_PARITY.md, docs/PLAYTEST_MATRIX.md not yet written.
-- No DinoPad executable exists yet; no window/first frame.
-- scripts/build-macos-app.sh not yet written.
+- Title screen and gameplay not yet reached/validated; audio, input, and saves unverified on macOS.
+- RmlUi launcher not exercised on Metal (--skip-launcher used).
+- scripts/build-macos-app.sh (app bundle + auto ROM staging) not yet written.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
 
 ## Last successful commands
@@ -51,6 +54,8 @@ cmake -S . -B build-macos -G Ninja -DCMAKE_BUILD_TYPE=Release   # PASS
 cmake --build build-macos --parallel 4               # PASS: full runtime stack static libs (arm64)
 ./scripts/apply-patches.sh                           # PASS: idempotent patch series
 ./scripts/check-repo-safety.sh                       # PASS: patches applied, push URLs disabled
+cmake --build build-macos --target DinoPad           # PASS: arm64 executable
+./build-macos/DinoPad --skip-launcher                # PASS: boots to GAME SELECT, stable 45s+
 md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090ffd748 (private, untracked)
 ```
 
@@ -63,6 +68,7 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 - Base AOT generation verified (2026-08-15): docs/evidence/2026-08-15/base-aot/.
 - macOS arm64 compile of base AOT verified (2026-08-15): docs/evidence/2026-08-15/macos-base-compile/.
 - macOS arm64 compile of the full runtime stack verified (2026-08-15): docs/evidence/2026-08-15/macos-runtime-compile/.
+- macOS first Metal frame verified (2026-08-15): docs/evidence/2026-08-15/macos-first-frame/ (GAME SELECT screenshot).
 - Private ROM fingerprint verified (2026-08-15).
 - No DinoPad build exists yet; no runtime has ever been launched.
 
@@ -81,10 +87,10 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Link the DinoPad macOS executable (DinoPad main + RT64 context) and render the first Metal frame.
-2. Write docs/UPSTREAM.md (pins, patch strategy, compatibility matrix) and docs/KNOWN_ISSUES.md.
-3. Reach the title screen and verify the audio loop on macOS.
+1. Reach the title screen and verify a stable audio loop on macOS.
+2. Verify keyboard/controller input and reach controllable gameplay on macOS.
+3. Verify saves (Flashram) persist across relaunch on macOS.
 
 ## Selected next goal
 
-Link the DinoPad macOS executable (DinoPad main + RT64 context) and render the first Metal frame.
+Reach the title screen and verify a stable audio loop on macOS.

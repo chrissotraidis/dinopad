@@ -58,6 +58,18 @@ Desktop-only upstream (Windows/Linux; macOS support issue open). Verified Apple-
 - Audio uses SDL audio devices at 48 kHz; RSP audio microcode configs live under `rsp/`; game patches are MIPS assembly compiled to an ELF (`patches/`) and recompiled to C through `patches.toml` (RecompPatcher).
 - AOT generation is ROM-derived and must stay private (`generated/`), following the plan's no-ROM-derived-source-in-Git rule.
 
+### 4.4 Critical build invariant: weak-symbol link order
+
+The N64Recomp output declares every generated function with `RECOMP_FUNC` =
+`extern inline __attribute__((weak,noinline))` on Clang. The base game code and
+the recompiled patch library therefore both define the same symbols
+(e.g. `dll_load`, `dll_load_deferred`, `init_dll_system`), and the linker keeps
+the FIRST definition. The patch library MUST be linked before the base library
+(upstream: `PatchesLib RecompiledFuncs`). With the base first, the patch
+replacements are dead code and the game's DLL loading never registers overlays
+with the runtime, causing `Failed to find function at 0x...` boot crashes.
+This was the macOS boot blocker fixed on 2026-08-15.
+
 ### 4.2 DinoMod Enhanced v0.9.3 = `d79e86be2304cba75216b0b98e9fb53ee99b7500`
 
 - Contains MIPS mod sources, `dino.datasyms_extra.toml`, `mod.ld`, assets, and `tools/`; two submodules (`dino-recomp-decomp-bridge`, `dino-recomp-mod-api`).
