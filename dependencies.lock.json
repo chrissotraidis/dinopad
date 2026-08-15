@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "resolved": "2026-08-15T00:00:00Z",
+  "entries": [
+    {
+      "name": "PaperPad",
+      "url": "https://github.com/chrissotraidis/paperpad.git",
+      "ref": "644945d4bc4facbbd8ecda8cdfd37ae64e7993fa",
+      "commit": "644945d4bc4facbbd8ecda8cdfd37ae64e7993fa",
+      "license_file": "RIGHTS_AND_LICENSES.md",
+      "purpose": "Primary Apple shell reference for UI, touch controls, and architecture patterns"
+    },
+    {
+      "name": "dino-recomp",
+      "url": "https://github.com/DinosaurPlanetRecomp/dino-recomp.git",
+      "ref": "v0.3.0",
+      "commit": "",
+      "license_file": "COPYING",
+      "purpose": "Base Dinosaur Planet N64 recompilation engine for arm64 static builds"
+    },
+    {
+      "name": "dinomod-enhanced-recompiled",
+      "url": "https://github.com/EoinODoodles/dinomod-enhanced-recompiled.git",
+      "ref": "v0.9.3",
+      "commit": "",
+      "license_file": "",
+      "purpose": "Progression restoration mod - read-only until permission/license clearance"
+    }
+  ],
+  "notes": {
+    "DinoMod_permission_status": "BLOCKED - Requires upstream maintainer written permission or license clearance before redistribution. All bridge code is DinoPad-owned and must remain compatible with upstream source.",
+    "Dinosaur Planet ROM": "December 2000 prototype, MD5 49f7bb346ade39d1915c22e090ffd748 - user-supplied, never tracked",
+    "submodule_pins": {
+      "dino-recomp": {
+        "recursive": true,
+        "pinned_at_tag": "v0.3.0"
+      }
+    },
+    "toolchain": {
+      "note": "Recorded at first resolved build"
+    }
+  }
+}
