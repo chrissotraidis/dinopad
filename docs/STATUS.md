@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-15T18:40:00Z
-Current commit: 7c42e58
+Last updated: 2026-08-15T18:55:00Z
+Current commit: 26f75f9
 Current phase: Phase 0 - Repository and documentation bootstrap
-Active goal: Inventory PaperPad Apple-specific sources/patches and Dino Recompiled desktop-only assumptions; write docs/ARCHITECTURE.md
+Active goal: Write docs/BUILDING.md and docs/TESTING.md from PaperPad patterns
 
 ## Green
 
@@ -15,13 +15,16 @@ Active goal: Inventory PaperPad Apple-specific sources/patches and Dino Recompil
 - ref/dino-recomp at v0.3.0 = 725b2ede9cacc57968e0a028efed8df9235ba483 with all 9 recursive submodules pinned; push URL disabled.
 - ref/dinomod-enhanced-recompiled at v0.9.3 = d79e86be2304cba75216b0b98e9fb53ee99b7500 with 2 submodules initialized; push URL disabled.
 - scripts/bootstrap.sh, scripts/check-repo-safety.sh, scripts/report-size.sh, scripts/runtime-guard.sh added and verified.
+- docs/ARCHITECTURE.md written from direct inventory of pinned PaperPad and dino-recomp sources.
+- Key architecture finding: dino-recomp renderer already maps Metal on __APPLE__; src/runtime/gfx.cpp create_window() is the first macOS blocker (static_assert on Apple).
 - Private supported ROM present; MD5 verified as 49f7bb346ade39d1915c22e090ffd748 (path never exposed publicly).
-- Commits: 96f8377 (docs bootstrap), 7c42e58 (upstream pins).
+- Commits: 96f8377 (docs bootstrap), 7c42e58 (upstream pins), 26f75f9 (scripts).
 
 ## Red / blocked
 
 - No build, runtime, or gameplay evidence exists yet.
-- docs/ARCHITECTURE.md, docs/BUILDING.md, docs/TESTING.md, docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/KNOWN_ISSUES.md not yet written.
+- docs/BUILDING.md, docs/TESTING.md, docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/KNOWN_ISSUES.md, docs/UI_PARITY.md not yet written.
+- macOS first frame blocked until create_window() Apple adapter is implemented.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
 
 ## Last successful commands
@@ -40,6 +43,7 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 - Reference checkouts resolved and push-disabled (2026-08-15): PaperPad 644945d..., dino-recomp 725b2ed..., dinomod d79e86b...
 - Repository safety audit green (2026-08-15).
 - Runtime guard acquire/reject/release verified (2026-08-15).
+- Source inventory for Apple port recorded in docs/ARCHITECTURE.md (2026-08-15).
 - Private ROM fingerprint verified (2026-08-15).
 - No DinoPad build exists yet; no runtime has ever been launched.
 
@@ -58,10 +62,10 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Inventory PaperPad Apple-specific sources/patches and Dino Recompiled desktop-only assumptions; write docs/ARCHITECTURE.md.
-2. Write docs/BUILDING.md and docs/TESTING.md from PaperPad patterns.
+1. Write docs/BUILDING.md and docs/TESTING.md from PaperPad patterns.
+2. Write docs/UPSTREAM.md (pins, patch strategy, compatibility matrix) and docs/KNOWN_ISSUES.md.
 3. Build N64Recomp/RSP host tools on Apple Silicon; generate base recomp output privately.
 
 ## Selected next goal
 
-Inventory PaperPad Apple-specific sources/patches and Dino Recompiled desktop-only assumptions; write docs/ARCHITECTURE.md.
+Write docs/BUILDING.md and docs/TESTING.md from PaperPad patterns.
