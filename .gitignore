@@ -17,6 +17,7 @@ generated/**/*
 
 # Build directories
 /build-macos/
+/build/
 /Branches/
 /build-*/
 **/.cmake_*
