@@ -1,7 +1,7 @@
 # DinoPad Status
 
 Last updated: 2026-08-15T21:00:00Z
-Current commit: (pending first-frame commit)
+Current commit: 4ef33ef
 Current phase: Phase 2 - Apple Silicon macOS base build
 Active goal: Reach the title screen and verify a stable audio loop on macOS
 
