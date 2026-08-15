@@ -1,7 +1,7 @@
 # DinoPad Status
 
-Last updated: 2026-08-15T20:05:00Z
-Current commit: 66f1e69
+Last updated: 2026-08-15T20:15:00Z
+Current commit: 0e1f9af
 Current phase: Phase 0 - Repository and documentation bootstrap
 Active goal: Link the DinoPad macOS executable (main + RT64 context) and render the first Metal frame
 
@@ -25,7 +25,8 @@ Active goal: Link the DinoPad macOS executable (main + RT64 context) and render 
 - Apple window adapter (SDL Metal) and hlslpp fix applied as replayable patches; apply-patches.sh and check-repo-safety.sh verify patch state.
 - Key architecture finding: dino-recomp renderer already maps Metal on __APPLE__; src/runtime/gfx.cpp create_window() is the first macOS blocker (static_assert on Apple).
 - Private supported ROM present; MD5 verified as 49f7bb346ade39d1915c22e090ffd748 (path never exposed publicly).
-- Commits: 96f8377, 7c42e58, 26f75f9, 5500d28, a4089e1.
+- Commits: 96f8377, 7c42e58, 26f75f9, 5500d28, a4089e1, 215b71f, 66f1e69, 0d1e7ea, 0e1f9af.
+- Incident resolved: spirv-cross build output (build/) was briefly tracked; removed and /build/ ignored (0e1f9af).
 - Commits: 96f8377, 7c42e58, 26f75f9, 5500d28.
 - Commits: 96f8377 (docs bootstrap), 7c42e58 (upstream pins), 26f75f9 (scripts).
 
