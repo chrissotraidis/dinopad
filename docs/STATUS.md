@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-15T18:55:00Z
-Current commit: 26f75f9
+Last updated: 2026-08-15T19:05:00Z
+Current commit: 5500d28
 Current phase: Phase 0 - Repository and documentation bootstrap
-Active goal: Write docs/BUILDING.md and docs/TESTING.md from PaperPad patterns
+Active goal: Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate base recomp output privately
 
 ## Green
 
@@ -16,14 +16,17 @@ Active goal: Write docs/BUILDING.md and docs/TESTING.md from PaperPad patterns
 - ref/dinomod-enhanced-recompiled at v0.9.3 = d79e86be2304cba75216b0b98e9fb53ee99b7500 with 2 submodules initialized; push URL disabled.
 - scripts/bootstrap.sh, scripts/check-repo-safety.sh, scripts/report-size.sh, scripts/runtime-guard.sh added and verified.
 - docs/ARCHITECTURE.md written from direct inventory of pinned PaperPad and dino-recomp sources.
+- docs/BUILDING.md and docs/TESTING.md written from upstream build guides and PaperPad evidence discipline.
 - Key architecture finding: dino-recomp renderer already maps Metal on __APPLE__; src/runtime/gfx.cpp create_window() is the first macOS blocker (static_assert on Apple).
 - Private supported ROM present; MD5 verified as 49f7bb346ade39d1915c22e090ffd748 (path never exposed publicly).
+- Commits: 96f8377, 7c42e58, 26f75f9, 5500d28.
 - Commits: 96f8377 (docs bootstrap), 7c42e58 (upstream pins), 26f75f9 (scripts).
 
 ## Red / blocked
 
 - No build, runtime, or gameplay evidence exists yet.
-- docs/BUILDING.md, docs/TESTING.md, docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/KNOWN_ISSUES.md, docs/UI_PARITY.md not yet written.
+- docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/KNOWN_ISSUES.md, docs/UI_PARITY.md, docs/PLAYTEST_MATRIX.md not yet written.
+- No host-tool build (N64Recomp/RSPRecomp) or AOT generation attempted on Apple Silicon yet.
 - macOS first frame blocked until create_window() Apple adapter is implemented.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
 
@@ -62,10 +65,10 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Write docs/BUILDING.md and docs/TESTING.md from PaperPad patterns.
+1. Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate base recomp output privately.
 2. Write docs/UPSTREAM.md (pins, patch strategy, compatibility matrix) and docs/KNOWN_ISSUES.md.
-3. Build N64Recomp/RSP host tools on Apple Silicon; generate base recomp output privately.
+3. Add DinoPad Apple CMake layer and macOS app target; bring up RT64 Metal first frame.
 
 ## Selected next goal
 
-Write docs/BUILDING.md and docs/TESTING.md from PaperPad patterns.
+Build N64Recomp/RSPRecomp host tools on Apple Silicon; generate base recomp output privately.
