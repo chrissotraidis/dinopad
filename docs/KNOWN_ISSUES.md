@@ -6,6 +6,25 @@ This file tracks issues observed in the DinoPad port or its pinned upstream
 baseline. Every entry is tied to dated evidence. Entries are ordered by
 severity within each section.
 
+## Automation / input delivery
+
+### `osascript` keystrokes go to the frontmost app, not the DinoPad window
+
+**Status:** Confirmed (2026-08-16, macOS); worked around in all sessions.
+
+`osascript` System Events `key down/up` delivers keystrokes to whatever
+application is frontmost. When the agent host (Codex) was frontmost, session
+16's scripted A/WASD presses never reached the game: the game sat at GAME
+SELECT for the whole session and the `[dinopad-in]` log stayed empty. The fix
+is `.goal-loop/scratch-title-audio/sendkey.sh`, which first sets the DinoPad
+process frontmost via System Events, then sends the held key. All subsequent
+sessions (17-19) deliver input reliably. This is test-harness behavior, not a
+game defect; the iOS shell will deliver input directly through the app, so
+this finding applies to macOS smoke automation only.
+
+Evidence: session 16 (no input reached the game, GAME SELECT unchanged),
+sessions 17-19 (input delivered, gameplay responsive).
+
 ## Renderer / runtime
 
 ### RT64 Metal: "RenderPool in Metal is not implemented currently"

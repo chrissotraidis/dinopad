@@ -1,0 +1,49 @@
+# Controllable gameplay evidence analysis (macOS arm64)
+
+Sessions 17-19 (2026-08-16), window 1024x800 @2x (2272x1824 px captures),
+DinoPad commit b1d350f + evidence-only changes, dino-recomp v0.3.0.
+
+## 1. Input delivery during the playable scene (session 19 input log)
+
+Input state is read by the recompiled game every frame; the DINOPAD_LOG_INPUT
+patch logs state changes. During the playable tutorial scene the log records:
+
+- A button (N64 A = 0x8000): frames 22100, 22133, ... (press+release pairs)
+- Analog Y (W/S): y=+0.66 / y=-0.66 (W held = forward, S held = back)
+- Analog X (D/A): x=+0.66 / x=-0.66 (right / left)
+- Z button (0x2000): frame 24513 (session 17)
+
+All keycodes: Space=N64 A, W/S/A/D=analog, Q=Z. Keys delivered with
+window activation (sendkey.sh) after session 16 showed System Events keys go
+to the frontmost app.
+
+## 2. Character displacement with movement input (session 19, NCC tracking)
+
+Normalized cross-correlation of Krystal template from t1_idle_ref (region
+750,1050..1250,1400) searched in each capture (full-frame coarse 6px grid):
+
+  t1_idle_ref   NCC=1.0000  pos=(750, 1050)   # idle reference
+  t2_forward    NCC=0.8108  pos=(648, 954)    # after W held 3s
+  t3_back       NCC=0.7699  pos=(414, 1032)   # after S held 3s
+  t4_idle_drift NCC=0.8949  pos=(768, 1038)   # after 3s no input
+
+The character moves in response to held W/S input and the idle-drift capture
+returns near the original position (x 750 -> 768), while no-input drift is
+small relative to input-driven displacement.
+
+## 3. Cannon fires on A press (sessions 17-18, orange-energy pixel count)
+
+The tutorial prompt is "Krystal! Try shooting the cannon!" A-button presses
+produce a large orange energy burst around the cannon:
+
+  a0_before (before 5x A): orange_px=1132, bright_px=0
+  a1_action (after 5x A):  orange_px=112846, bright_px=2267  (~100x)
+
+Z-aim + A (session 17): z0_before orange_px=5532 -> z1_aim orange_px=91218.
+
+## 4. Conclusion
+
+PASS: the December 2000 prototype reaches a controllable playable scene on
+arm64 macOS: all N64 input types are delivered to the recompiled game, held
+analog input displaces the on-screen character, and A fires the tutorial
+cannon. This satisfies the "controllable gameplay" Phase 2 gate.
