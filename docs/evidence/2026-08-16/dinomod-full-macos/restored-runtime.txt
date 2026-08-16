@@ -1,0 +1,29 @@
+Failed to preload executable!
+SVG plugin initialised.
+Loaded font face 'rmlui-debugger-font' [regular] from 'memory'.
+Loaded font face 'rmlui-debugger-font' [italic] from 'memory'.
+Loaded font face 'PriskaSerif-NotThatFat' [weight=500] from '<repo>/build-macos/assets/DinoFont.otf'.
+Loaded font face 'LatoLatin' [regular] from '<repo>/build-macos/assets/LatoLatin-Regular.ttf'.
+Loaded font face 'LatoLatin' [italic] from '<repo>/build-macos/assets/LatoLatin-Italic.ttf'.
+Loaded font face 'LatoLatin' [bold] from '<repo>/build-macos/assets/LatoLatin-Bold.ttf'.
+Loaded font face 'LatoLatin' [italic, bold] from '<repo>/build-macos/assets/LatoLatin-BoldItalic.ttf'.
+Loaded font face 'Noto Emoji' [regular] from '<repo>/build-macos/assets/NotoEmoji-Regular.ttf'.
+Loaded font face 'PromptFont' [regular] from '<repo>/build-macos/assets/promptfont/promptfont.ttf'.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+[reasset] WARN: Map 2 contains a duplicate object UID 0x3419C (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 4 contains a duplicate object UID 0x417F1 (obj ID: 0xD4)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 11 contains a duplicate object UID 0x30AE9 (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 19 contains a duplicate object UID 0x1A51 (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x2CD9 (obj ID: 0x589)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x30011 (obj ID: 0x11)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x30012 (obj ID: 0x11)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 38 contains a duplicate object UID 0x1F4B (obj ID: 0x26)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!

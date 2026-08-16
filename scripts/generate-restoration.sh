@@ -8,6 +8,9 @@
 #   2. Run RecompModTool to produce mod_syms.bin, mod_binary.bin, mod.json,
 #      and the .nrm package.
 #   3. Run OfflineModRecomp to emit C that DinoPad can compile statically.
+#   4. On macOS, compile the emitted C into the runtime's diagnostic offline
+#      dylib format for the full replacement/hook feasibility test. This is
+#      not the iOS production packaging path.
 #
 # Outputs go under .goal-loop/dinomod-aot/ (ignored, private). Nothing in this
 # script downloads or distributes game data or DinoMod source; it consumes the
@@ -86,6 +89,23 @@ echo "== Running OfflineModRecomp =="
     "$MOD_REPO/lib/dino-recomp-decomp-bridge/dino.syms.toml" \
     "$OUT_DIR/dinomod_enhanced.c"
 
+# 5. Build N64ModernRuntime's macOS offline-mod developer format. The package
+# filename suffix selects the precompiled code handle, avoiding live/JIT
+# recompilation while the production static bridge is brought up separately.
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    echo "== Building macOS offline AOT library =="
+    clang -dynamiclib -O2 -target arm64-apple-macos \
+        -I include \
+        -I "$MOD_REPO/../dino-recomp/lib/N64Recomp/include" \
+        "$OUT_DIR/dinomod_enhanced.c" \
+        -Wl,-install_name,@rpath/dinomod_enhanced.offline.dylib \
+        -o "$OUT_DIR/dinomod_enhanced.offline.dylib"
+    cp "$OUT_DIR/dinomod_enhanced.nrm" "$OUT_DIR/dinomod_enhanced.offline.nrm"
+fi
+
 echo "== Done =="
 ls -la "$OUT_DIR"
 shasum -a 256 "$OUT_DIR/dinomod_enhanced.nrm" "$OUT_DIR/mod_syms.bin" "$OUT_DIR/dinomod_enhanced.c"
+if [[ -f "$OUT_DIR/dinomod_enhanced.offline.dylib" ]]; then
+    shasum -a 256 "$OUT_DIR/dinomod_enhanced.offline.dylib"
+fi

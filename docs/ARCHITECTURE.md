@@ -105,6 +105,10 @@ flowchart LR
 - The game thread runs the statically recompiled game loop and N64-shaped memory/scheduler services.
 - Audio is produced on the audio thread and pushed to the device queue; PaperPad's `synchronous-audio-tasks` patch and audio headroom behavior are the reference for avoiding underruns.
 - Rendering runs in RT64's Metal pipeline; PaperPad's patches (`ios-metal-main-thread`, worker/drawable lifetime fixes) are the reference for iOS Metal ownership.
+- DinoPad's RT64/Plume lifetime patches stop and join presentation/workload
+  workers before Metal resources are destroyed, scope Apple worker
+  autoreleases, and balance encoder ownership. The macOS native-close
+  regression exercises this ordering five times per focused smoke.
 - UI events (menu, picker, share sheet) must pause safely and clear held input before presentation, per the plan.
 
 ## 6. Renderer ownership
@@ -180,7 +184,10 @@ macOS arm64 (base frame -> title -> gameplay -> audio/input/save) -> static Dino
 ## 13. Risks
 
 - `create_window()` static-assert on Apple is the first macOS blocker (adapter needed).
-- RT64 iOS Metal ownership patches must be re-derived for the dino-planet RT64 fork (PaperPad patches apply to a Paper-Mario-era fork; expect conflicts).
-- DinoMod offline recompilation feasibility is unproven (formal experiments, plan section 7.3).
+- Remaining RT64 iOS Metal ownership and UIKit patches must be re-derived for
+  the dino-planet fork; worker-autorelease and Plume ownership subsets are now
+  ported and macOS regression-tested.
+- Full DinoMod offline AOT feasibility is proven on macOS; the production
+  static handle with no dynamic library or writable executable segment remains.
 - DinoMod redistribution clearance unresolved (release gate only).
 - Disk pressure (28 GiB free at bootstrap) before full AOT generation.

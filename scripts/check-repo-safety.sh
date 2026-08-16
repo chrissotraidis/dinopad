@@ -80,7 +80,20 @@ while IFS= read -r f; do
 done < <(git ls-files --others --exclude-standard)
 pass "untracked non-ignored files are clean"
 
-# 8. Reference checkouts: only applied patches + whitelisted generated-output
+# 8. The dependency lock records the exact maintained patch set.
+expected_patch_checksum="$(python3 -c 'import json; print(json.load(open("dependencies.lock.json"))["notes"]["patch_set"]["sha256"])' 2>/dev/null)"
+expected_patch_count="$(python3 -c 'import json; print(json.load(open("dependencies.lock.json"))["notes"]["patch_set"]["file_count"])' 2>/dev/null)"
+actual_patch_count="$(find patches -type f -name '*.patch' | wc -l | tr -d ' ')"
+actual_patch_checksum="$(find patches -type f -name '*.patch' | LC_ALL=C sort | while IFS= read -r patch; do shasum -a 256 "$patch"; done | shasum -a 256 | awk '{print $1}')"
+if [ -z "$expected_patch_checksum" ] || [ "$actual_patch_checksum" != "$expected_patch_checksum" ]; then
+  fail "patch-set checksum mismatch: expected ${expected_patch_checksum:-missing}, actual $actual_patch_checksum"
+elif [ "$actual_patch_count" != "$expected_patch_count" ]; then
+  fail "patch-set file count mismatch: expected $expected_patch_count, actual $actual_patch_count"
+else
+  pass "patch-set lock matches ($actual_patch_count files, sha256 $actual_patch_checksum)"
+fi
+
+# 9. Reference checkouts: only applied patches + whitelisted generated-output
 # symlinks may touch a checkout; push URLs must be disabled. Submodule repos
 # are verified inside their own repositories against their own patch sets.
 check_ref_repo() {

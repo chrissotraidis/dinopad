@@ -148,6 +148,24 @@ RELOC (mod-local) and REF_RELOC (base-game) relocation semantics plus the
 sign-extended gpr address convention, with no live recompilation. Evidence:
 `docs/evidence/2026-08-16/dinomod-invoke/`.
 
+Full offline AOT load result (goal 22, 2026-08-16): the pinned package loaded
+through N64ModernRuntime's precompiled macOS `.offline.nrm` developer path,
+resolving the complete 920-function module with 294 replacements and 42 hooks.
+The first run found an arm64 correctness bug: the runtime writes a 16-byte
+replacement trampoline, while two generated leaf functions were linked only
+four bytes apart. `-falign-functions=16` now protects every generated entry
+point; `tools/check_patchable_aot.py` verified 11,162 linked AOT functions with
+zero misalignment. The fixed build visibly restores the rolling-demo title
+flow, while a same-build run with the mod disabled skips directly to Game
+Select. Evidence: `docs/evidence/2026-08-16/dinomod-full-macos/`.
+
+This remains a feasibility bridge, not production static integration. The
+macOS offline path loads a `.dylib` and arm64 macOS requires its patchable game
+segment to begin writable/executable. iOS must instead use a DinoPad-owned
+static code handle/dispatch path with no dynamic code loading and no writable
+executable segment. `scripts/generate-restoration.sh` now reproduces the
+macOS offline artifacts while keeping all generated code and assets ignored.
+
 If offline conversion proves incomplete during live binding (goal 21), fall
 back to a generic static bridge or ship Prototype-only until solved (plan
 risk table).
@@ -183,7 +201,10 @@ Restored and Prototype modes must not share saves:
 ## 9. Open questions / blockers
 
 1. Maintainer permission or license (BLOCKED for public Restored).
-2. OfflineModRecomp completeness for this mod: compile/link ABI gate passed (2026-08-16); one import bound and one mod function executed correctly (goal 21, 2026-08-16). Replacements/hooks/events binding into the game runtime remains (goal 22).
+2. Production static code handle: full macOS offline AOT loading, replacements,
+   hooks, assets, and visible behavior passed (goal 22, 2026-08-16). Replacing
+   the developer-only dynamic handle and writable-code trampolines with a
+   DinoPad-owned static/iOS-safe dispatch bridge remains (goal 23).
 3. Asset patch redistribution (ROM-derived content rules; build from baserom
    privately, ship only legally distributable derived assets).
 4. Whether "DinoMod Enhanced" branding is permitted in the app UI.

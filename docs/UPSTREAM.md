@@ -54,8 +54,16 @@ Ordered, numbered, replayable with `scripts/apply-patches.sh`:
 Additional patch: `patches/hlslpp/0001-scalar-labs.patch` (hlslpp scalar
 platform header fix required by the pinned RT64/hlslpp combination on Apple).
 
-Patch-set checksum is recorded by `scripts/check-repo-safety.sh` and in the
-repository safety audit evidence.
+Nested upstream patches applied by checkout basename:
+
+| Patch | File(s) | Why it exists | Upstream semantic preserved? |
+|---|---|---|---|
+| `patches/rt64/0001-metal-worker-autorelease-lifetime.patch` | RT64 application, queues, worker threads | Stops/joins Metal workers before dependent resources and scopes Apple autoreleases; fixes the `RT64 Present` shutdown crash | Yes (lifetime/Apple ownership fix) |
+| `patches/plume/0001-metal-ownership-balance.patch` | `plume_metal.cpp` | Balances Metal encoder ownership and avoids over-releasing autoreleased Objective-C objects | Yes (Metal ownership fix) |
+
+The eight-file patch set is locked in `dependencies.lock.json` at SHA-256
+`62b0ddd8974cccc131090cdb0fad0ab2ea733bc68c09874a6de9d9e2ff083fbb`.
+`scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested
 
@@ -64,7 +72,9 @@ Each patch is applied to the pinned checkout, then:
 1. `cmake --build build-macos --target DinoPad` (macOS arm64 compile).
 2. `scripts/runtime-guard.sh macos scripts/smoke-macos.sh` (boot -> GAME
    SELECT -> save load -> playable scene -> input -> clean shutdown).
-3. Targeted evidence sessions for behavior (title/audio, gameplay input, save
+3. `scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5`
+   (native close -> status 0 -> no new crash report).
+4. Targeted evidence sessions for behavior (title/audio, gameplay input, save
    persistence, app bundle).
 
 Patch state is verified by `scripts/check-repo-safety.sh` before every commit

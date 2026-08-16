@@ -1,0 +1,54 @@
+diff --git a/plume_metal.cpp b/plume_metal.cpp
+index a5f30a3..b21cef1 100644
+--- a/plume_metal.cpp
++++ b/plume_metal.cpp
+@@ -1196,8 +1196,6 @@ namespace plume {
+         // Create texture with configured descriptor and alignment
+         MTL::TextureDescriptor *descriptor = MTL::TextureDescriptor::textureBufferDescriptor(pixelFormat, width, options, usage);
+         this->texture = buffer->mtl->newTexture(descriptor, 0, bytesPerRow);
+-
+-        descriptor->release();
+     }
+ 
+     MetalBufferFormattedView::~MetalBufferFormattedView() {
+@@ -1332,7 +1330,6 @@ namespace plume {
+     }
+ 
+     MetalShader::~MetalShader() {
+-        functionName->release();
+         library->release();
+         if (debugName) {
+             debugName->release();
+@@ -2238,8 +2235,6 @@ namespace plume {
+     }
+ 
+     MetalCommandList::~MetalCommandList() {
+-        mtl->release();
+-
+         for (auto& fenceSet : fences) {
+             for (auto* fence : fenceSet) {
+                 fence->release();
+@@ -2283,7 +2278,6 @@ namespace plume {
+ 
+     void MetalCommandList::commit() {
+         mtl->commit();
+-        mtl->release();
+         mtl = nullptr;
+     }
+ 
+@@ -3550,6 +3544,7 @@ namespace plume {
+ 
+         if (activeBlitEncoder == nullptr) {
+             activeBlitEncoder = mtl->blitCommandEncoder(device->sharedBlitDescriptor);
++            activeBlitEncoder->retain();
+             activeBlitEncoder->setLabel(MTLSTR("Copy Blit Encoder"));
+ 
+             startedEncoding = true;
+@@ -3576,6 +3571,7 @@ namespace plume {
+ 
+         if (activeResolveComputeEncoder == nullptr) {
+             activeResolveComputeEncoder = mtl->computeCommandEncoder(MTL::DispatchTypeConcurrent);
++            activeResolveComputeEncoder->retain();
+             activeResolveComputeEncoder->setLabel(MTLSTR("Resolve Texture Encoder"));
+             activeResolveComputeEncoder->setComputePipelineState(device->resolveTexturePipelineState);
+ 

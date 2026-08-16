@@ -45,6 +45,12 @@ endif()
 
 set(DINOPAD_AOT_COMPILE_OPTIONS
     -fno-strict-aliasing
+    # N64ModernRuntime installs arm64 mod replacement trampolines by writing
+    # 16 bytes at the start of a generated function. Tiny generated functions
+    # can otherwise be only four bytes apart, allowing one replacement to
+    # overwrite the next function. Keep every patchable AOT entry point on a
+    # 16-byte boundary so each trampoline owns its complete write range.
+    -falign-functions=16
     -Wno-unused-variable
     -Wno-implicit-function-declaration)
 
@@ -281,6 +287,22 @@ target_compile_options(DinoPad PRIVATE
 target_link_libraries(DinoPad PRIVATE
     dinopad_runtime
     dinopad_sdl2)
+
+if (APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    # The N64ModernRuntime mod system patches base-game code at runtime
+    # (replacement jumps via patch_func). On arm64 macOS, dyld requires the
+    # __TEXT segment to be r-x and forces maxprot == initprot, so mprotect
+    # cannot make code pages writable. Link the executable's code into a
+    # dedicated __GAME segment that permits writes so mod replacements and
+    # hooks can be installed. Apple's arm64 linker forces maxprot == initprot,
+    # so the macOS feasibility target must start this segment rwx; the runtime
+    # still switches each touched page back to r-x after its trampoline write.
+    # The iOS production path will use static dispatch and must not rely on a
+    # writable executable segment.
+    target_link_options(DinoPad PRIVATE
+        "-Wl,-rename_section,__TEXT,__text,__GAME,__text"
+        "-Wl,-segprot,__GAME,rwx,rwx")
+endif()
 
 if (APPLE)
     target_link_libraries(DinoPad PRIVATE

@@ -59,6 +59,12 @@
   "notes": {
     "DinoMod_permission_status": "BLOCKED - Requires upstream maintainer written permission or license clearance before redistribution. All bridge code is DinoPad-owned and must remain compatible with upstream source.",
     "Dinosaur Planet ROM": "December 2000 prototype, MD5 49f7bb346ade39d1915c22e090ffd748 - user-supplied, never tracked",
+    "patch_set": {
+      "recorded": "2026-08-16T17:30:00Z",
+      "file_count": 8,
+      "sha256": "62b0ddd8974cccc131090cdb0fad0ab2ea733bc68c09874a6de9d9e2ff083fbb",
+      "algorithm": "SHA-256 of the sorted shasum -a 256 output for every patches/**/*.patch file"
+    },
     "toolchain": {
       "recorded": "2026-08-15T19:10:00Z",
       "host": {

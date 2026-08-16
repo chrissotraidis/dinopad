@@ -27,6 +27,16 @@ Run with:
 ctest --test-dir <build-dir> --output-on-failure
 ```
 
+After linking a macOS target that supports runtime mod replacements, verify
+that every generated arm64 entry point owns the runtime's complete 16-byte
+trampoline range:
+
+```sh
+tools/check_patchable_aot.py build-macos/DinoPad \
+  generated/aot/RecompiledFuncs/funcs.h \
+  generated/aot/RecompiledPatches/funcs.h
+```
+
 ### Automated smoke
 
 `scripts/smoke-macos.sh` / `scripts/smoke-ios.sh` verify, when a private ROM/fixture exists:
@@ -43,6 +53,15 @@ ctest --test-dir <build-dir> --output-on-failure
 10. clean shutdown.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
+
+The macOS Metal teardown regression has a shorter focused smoke. It repeatedly
+closes the native window through the SDL quit path and fails on a nonzero exit,
+a lingering DinoPad process, or a new CrashReporter entry:
+
+```sh
+scripts/runtime-guard.sh macos \
+  scripts/smoke-graceful-shutdown-macos.sh 5
+```
 
 ### Visual tests
 
@@ -80,6 +99,7 @@ Each evidence README records: commit, upstream pins, target and OS, build comman
 
 ```sh
 scripts/runtime-guard.sh macos scripts/smoke-macos.sh
+scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

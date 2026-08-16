@@ -27,6 +27,20 @@ sessions 17-19 (input delivered, gameplay responsive).
 
 ## Renderer / runtime
 
+### Resolved: RT64 Present worker crashed while draining its autorelease pool
+
+**Status:** Fixed and regression-checked (2026-08-16, macOS).
+
+An orderly launcher-window close could crash in `objc_release` on the
+`RT64 Present` thread while the graphics thread destroyed `PresentQueue`.
+RT64 now stops its present/workload queues before dependent Metal resources,
+uses explicit autorelease pools on Apple worker threads, and makes queue
+shutdown idempotent. Plume's Metal backend now balances encoder ownership and
+does not release autoreleased descriptors, function names, or command buffers.
+The rebuilt app passed five consecutive native closes with status 0 and no new
+DiagnosticReports entry. Evidence:
+`docs/evidence/2026-08-16/macos-graceful-shutdown/`.
+
 ### RT64 Metal: "RenderPool in Metal is not implemented currently"
 
 **Status:** Known RT64 upstream note; not fatal.
@@ -102,6 +116,30 @@ hidden within a storm." The misspelling is in the December 2000 prototype
 assets and is preserved as-is (evidence: 2026-08-16 opening-subtitle.png).
 
 ## Build / tooling
+
+### macOS offline mod patching requires a writable executable game segment
+
+**Status:** Known feasibility-only limitation (2026-08-16).
+
+N64ModernRuntime's macOS offline-mod developer path installs arm64 replacement
+trampolines by rewriting generated function entry points. The Apple arm64
+linker forces a segment's maximum protection to equal its initial protection,
+so DinoPad's current macOS feasibility target places generated code in an
+`rwx` `__GAME` segment and restores touched pages to `r-x` after patching. This
+is not the production iOS design and must not be carried to the device target.
+The production bridge will statically dispatch to linked replacements without
+runtime code writes. Evidence: `docs/evidence/2026-08-16/dinomod-full-macos/`.
+
+### Resolved: 16-byte arm64 trampoline overwrote adjacent AOT function
+
+**Status:** Fixed and regression-checked (2026-08-16).
+
+The first full DinoMod offline load crashed because the four-byte
+`__dll60_dll_60_update2` leaf function was immediately followed by
+`__dll60_dll_60_draw`; the runtime's 16-byte trampoline for the first function
+overwrote the second. All generated AOT functions now compile with 16-byte
+alignment. `tools/check_patchable_aot.py` checks the linked binary and reports
+11,162 patchable functions, zero misaligned.
 
 ### Default macOS window exceeds small screens
 
