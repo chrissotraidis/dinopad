@@ -1,0 +1,13 @@
+Failed to preload executable!
+SVG plugin initialised.
+Loaded font face 'rmlui-debugger-font' [regular] from 'memory'.
+Loaded font face 'rmlui-debugger-font' [italic] from 'memory'.
+Loaded font face 'PriskaSerif-NotThatFat' [weight=500] from '<build>/assets/DinoFont.otf'.
+Loaded font face 'LatoLatin' [regular] from '<build>/assets/LatoLatin-Regular.ttf'.
+Loaded font face 'LatoLatin' [italic] from '<build>/assets/LatoLatin-Italic.ttf'.
+Loaded font face 'LatoLatin' [bold] from '<build>/assets/LatoLatin-Bold.ttf'.
+Loaded font face 'LatoLatin' [italic, bold] from '<build>/assets/LatoLatin-BoldItalic.ttf'.
+Loaded font face 'Noto Emoji' [regular] from '<build>/assets/NotoEmoji-Regular.ttf'.
+Loaded font face 'PromptFont' [regular] from '<build>/assets/promptfont/promptfont.ttf'.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!

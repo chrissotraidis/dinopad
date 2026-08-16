@@ -1,0 +1,53 @@
+diff --git a/src/debug_ui/backend.cpp b/src/debug_ui/backend.cpp
+index 0de9c02..a01c63f 100644
+--- a/src/debug_ui/backend.cpp
++++ b/src/debug_ui/backend.cpp
+@@ -89,8 +89,13 @@ static RT64::UserConfiguration::GraphicsAPI get_graphics_api() {
+ bool is_open() { return b_is_open; }
+ bool in_ui_frame() { return b_in_ui_frame; }
+ 
+-void begin() {
+-    if (!dino_imgui_ctx->Initialized) return;
++void begin() {
++#if defined(__APPLE__)
++    // The imgui debug overlay has no Metal backend (see set_render_hooks).
++    // Keep the per-tick entry points inert so the game loop continues.
++    return;
++#endif
++    if (!dino_imgui_ctx->Initialized) return;
+ 
+     if (!b_is_open) {
+         // Still process the event queue but don't send any to ImGui
+@@ -162,8 +167,11 @@ void begin() {
+     ImGui::NewFrame();
+ }
+ 
+-void end() {
+-    if (b_in_ui_frame) {
++void end() {
++#if defined(__APPLE__)
++    return;
++#endif
++    if (b_in_ui_frame) {
+         assert(dino_imgui_ctx->Initialized);
+         
+         ImGui::Render();
+@@ -350,8 +358,15 @@ static void rt64_deinit_hook() {
+     ImGui::SetCurrentContext(prev_ctx);
+ }
+ 
+-void set_render_hooks() {
+-    dino::renderer::add_hook(rt64_init_hook, rt64_draw_hook, rt64_deinit_hook);
+-}
++void set_render_hooks() {
++#if defined(__APPLE__)
++    // The pinned imgui debug overlay only implements D3D12/Vulkan backends and
++    // dereferences the Vulkan device even when the renderer chose Metal.
++    // Disable the overlay on Apple; the RmlUi launcher UI registers its own
++    // render hooks and is unaffected.
++#else
++    dino::renderer::add_hook(rt64_init_hook, rt64_draw_hook, rt64_deinit_hook);
++#endif
++}
+ 
+ }

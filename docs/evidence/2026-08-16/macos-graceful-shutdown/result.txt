@@ -1,0 +1,7 @@
+graceful-shutdown smoke: PASS
+runs: 5/5 exited with status 0
+new DinoPad crash reports: 0 (count 10 -> 10)
+remaining DinoPad processes: 0
+booted Simulators after runtime-guard cleanup: 0
+binary UUID: 518D4053-884A-30D3-8F92-03F55F840391
+cycle-start commit: 8205112

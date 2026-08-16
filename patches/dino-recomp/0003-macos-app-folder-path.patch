@@ -1,0 +1,68 @@
+diff --git a/src/config/config.cpp b/src/config/config.cpp
+index b6735bd..3b50d17 100644
+--- a/src/config/config.cpp
++++ b/src/config/config.cpp
+@@ -36,6 +36,25 @@ constexpr int rr_manual_default       = 60;
+ constexpr bool developer_mode_default = false;
+ 
+ static bool is_steam_deck = false;
++static SessionProfile session_profile = SessionProfile::Restored;
++
++void set_session_profile(SessionProfile profile) {
++    session_profile = profile;
++}
++
++SessionProfile get_session_profile() {
++    return session_profile;
++}
++
++std::string_view get_session_profile_name() {
++    switch (session_profile) {
++        case SessionProfile::Restored:
++            return "Restored";
++        case SessionProfile::Prototype:
++            return "Prototype";
++    }
++    return "Restored";
++}
+ 
+ ultramodern::renderer::WindowMode wm_default() {
+     return is_steam_deck ? ultramodern::renderer::WindowMode::Fullscreen : ultramodern::renderer::WindowMode::Windowed;
+@@ -141,7 +160,12 @@ void input_field_from_json(const nlohmann::json& j, dino::input::InputField& fie
+     j.at("input_id").get_to(field.input_id);
+ }
+ 
+-std::filesystem::path get_app_folder_path() {
++std::filesystem::path get_data_folder_path() {
++   if (const char* override_path = getenv("DINOPAD_DATA_ROOT");
++       override_path != nullptr && override_path[0] != '\0') {
++       return std::filesystem::path{override_path};
++   }
++
+    // directly check for portable.txt (windows and native linux binary)    
+    if (std::filesystem::exists("portable.txt")) {
+        return std::filesystem::current_path();
+@@ -173,11 +197,23 @@ std::filesystem::path get_app_folder_path() {
+    if (homedir != nullptr) {
+        recomp_dir = std::filesystem::path{homedir} / (std::u8string{u8".config/"} + std::u8string{program_id});
+    }
++#elif defined(__APPLE__)
++   // DinoPad: Application Support/DinoPad (PaperPad-style app-container path).
++   // Upstream has no Apple branch and returns an empty path, which puts config
++   // and saves in the process working directory.
++   const char *apple_home = getenv("HOME");
++   if (apple_home != nullptr) {
++       recomp_dir = std::filesystem::path{apple_home} / "Library/Application Support" / "DinoPad";
++   }
+ #endif
+ 
+     return recomp_dir;
+ }
+ 
++std::filesystem::path get_app_folder_path() {
++    return get_data_folder_path() / "Profiles" / get_session_profile_name();
++}
++
+ bool read_json(std::ifstream input_file, nlohmann::json& json_out) {
+     if (!input_file.good()) {
+         return false;

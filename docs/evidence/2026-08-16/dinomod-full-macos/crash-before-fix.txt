@@ -1,0 +1,28 @@
+First full-mod attempt, before 16-byte AOT function alignment:
+
+Exception Type: EXC_BAD_ACCESS (SIGBUS)
+Exception Subtype: KERN_PROTECTION_FAILURE at 0x0000000380000000
+Triggered by Thread: [Game] MAIN
+
+Relevant frames:
+  rcp_clear_screen + 572
+  mod_func_168 + 388
+  menu_update2 + 140
+  game_tick + 1484
+
+Register x2 identified mod_func_168; its generated MIPS comment range starts
+at 0x8388BCA4, which maps to __dll60_dll_60_draw. menu_update2 should have
+called the neighboring __dll60_dll_60_update2. In the pre-fix binary:
+
+  __dll60_dll_60_update2  0x000000010126bac8
+  __dll60_dll_60_draw     0x000000010126bacc
+  distance: 4 bytes
+
+N64ModernRuntime writes a 16-byte arm64 replacement trampoline, so patching
+update2 overwrote draw. After -falign-functions=16:
+
+  __dll60_dll_60_update2  0x00000001012782b0
+  __dll60_dll_60_draw     0x00000001012782c0
+  distance: 16 bytes
+
+The full mod then completed the same boot path without this crash.

@@ -1,0 +1,60 @@
+Failed to preload executable!
+[dinopad-audio] SDL device opened (id=2, 48000 Hz, 2 ch)
+[dinopad-audio] dumping float32 stereo PCM to <repo>/.goal-loop/scratch-title-audio/audio-session14.pcm
+SVG plugin initialised.
+Loaded font face 'rmlui-debugger-font' [regular] from 'memory'.
+Loaded font face 'rmlui-debugger-font' [italic] from 'memory'.
+Loaded font face 'PriskaSerif-NotThatFat' [weight=500] from '<repo>/build-macos/assets/DinoFont.otf'.
+Loaded font face 'LatoLatin' [regular] from '<repo>/build-macos/assets/LatoLatin-Regular.ttf'.
+Loaded font face 'LatoLatin' [italic] from '<repo>/build-macos/assets/LatoLatin-Italic.ttf'.
+Loaded font face 'LatoLatin' [bold] from '<repo>/build-macos/assets/LatoLatin-Bold.ttf'.
+Loaded font face 'LatoLatin' [italic, bold] from '<repo>/build-macos/assets/LatoLatin-BoldItalic.ttf'.
+Loaded font face 'Noto Emoji' [regular] from '<repo>/build-macos/assets/NotoEmoji-Regular.ttf'.
+Loaded font face 'PromptFont' [regular] from '<repo>/build-macos/assets/promptfont/promptfont.ttf'.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!
+[dinopad-in] frame=1 buttons=0x0000 x=0.00 y=0.00
+[dinopad-audio] t=5027ms queued=18744 bytes buffer=33514 us dumped=1592160
+[dinopad-audio] t=10028ms queued=18864 bytes buffer=34196 us dumped=3511728
+[dinopad-in] frame=612 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=641 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=773 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=802 buttons=0x0000 x=0.00 y=0.00
+[dinopad-audio] t=15029ms queued=24720 bytes buffer=67438 us dumped=5434512
+[dinopad-in] frame=993 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=1021 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1152 buttons=0x8000 x=0.00 y=0.00
+[dinopad-audio] t=20061ms queued=23816 bytes buffer=62306 us dumped=7366920
+[dinopad-in] frame=1182 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1229 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=1258 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1307 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=1336 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1384 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=1415 buttons=0x0000 x=0.00 y=0.00
+[dinopad-audio] t=25063ms queued=23088 bytes buffer=58174 us dumped=9283272
+[dinopad-in] frame=1462 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=1491 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1558 buttons=0x0000 x=0.00 y=-0.66
+[dinopad-in] frame=1589 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1630 buttons=0x0000 x=0.00 y=-0.66
+[dinopad-in] frame=1660 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1700 buttons=0x0000 x=0.00 y=-0.66
+[dinopad-in] frame=1730 buttons=0x0000 x=0.00 y=0.00
+[dinopad-audio] t=30065ms queued=21632 bytes buffer=49909 us dumped=11202840
+[dinopad-in] frame=1790 buttons=0x0000 x=0.66 y=0.00
+[dinopad-in] frame=1822 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1884 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=1914 buttons=0x0000 x=0.00 y=0.00
+[dinopad-audio] t=35096ms queued=21352 bytes buffer=48319 us dumped=13135248
+[dinopad-in] frame=2247 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=2277 buttons=0x0000 x=0.00 y=0.00
+[dinopad-audio] t=40097ms queued=19896 bytes buffer=40054 us dumped=15054816
+[dinopad-audio] t=45098ms queued=22536 bytes buffer=55040 us dumped=16974384
+[dinopad-audio] t=50128ms queued=21632 bytes buffer=49909 us dumped=18906792
+[dinopad-audio] t=55128ms queued=20176 bytes buffer=41643 us dumped=20826360
+[dinopad-audio] t=60132ms queued=21936 bytes buffer=51634 us dumped=22749144
+[dinopad-audio] t=65162ms queued=25128 bytes buffer=69754 us dumped=24681552
+[dinopad-audio] t=70163ms queued=20456 bytes buffer=43233 us dumped=26597904
+[dinopad-audio] t=75164ms queued=22720 bytes buffer=56085 us dumped=28520688
+[dinopad-audio] t=80195ms queued=21816 bytes buffer=50953 us dumped=30453096

@@ -1,0 +1,25 @@
+Triggered by Thread: 31  RT64 Present
+Exception Type:    EXC_BAD_ACCESS (SIGSEGV)
+Exception Subtype: KERN_INVALID_ADDRESS
+Termination Reason: Namespace SIGNAL, Code 11, Segmentation fault: 11
+
+Thread 0 (main):
+  std::__1::thread::join()
+  ultramodern::join_event_threads()
+
+Gfx Thread:
+  std::__1::thread::join()
+  RT64::PresentQueue::~PresentQueue()
+  RT64::Application::end()
+  gfx_thread_func(...)
+
+Thread 31 Crashed: RT64 Present
+  objc_release
+  AutoreleasePoolPage::releaseUntil(...)
+  objc_autoreleasePoolPop
+  AutoreleasePoolPage::HotPageDealloc::dtor_(...)
+  _pthread_tsd_cleanup
+  _pthread_exit
+
+Source: user-supplied macOS crash report, 2026-08-16. Process identifiers,
+binary addresses, user paths, UUIDs, and unrelated system threads omitted.

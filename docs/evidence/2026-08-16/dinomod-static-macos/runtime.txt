@@ -1,0 +1,13 @@
+Failed to preload executable!
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+Using statically linked code for mod dinomod_enhanced
+
+STATIC RESTORATION RESULT: PASS (460 linked functions; no dynamic dependency)
+runtime-guard: command finished with rc=0
+runtime-guard: cleanup: 0 booted Simulators
+runtime-guard: cleanup: no DinoPad process
+runtime-guard: lock released
+
+Raw font and asset diagnostics were omitted because they contain machine-local
+paths. Known duplicate-object ReAsset warnings were also omitted; they match
+the prior passing full-mod feasibility run.

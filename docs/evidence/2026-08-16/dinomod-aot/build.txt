@@ -1,0 +1,5 @@
+build command:
+  make (PATH=build-tools/toolchains/mips-clang/nrs_bin) in ref/dinomod-enhanced-recompiled/dinomod_enhanced
+  build-tools/RecompModTool dinomod_enhanced/mod.toml .goal-loop/dinomod-aot
+  build-tools/OfflineModRecomp mod_syms.bin mod_binary.bin dino.syms.toml dinomod_enhanced.c
+  clang -c -O2 -target arm64-apple-macos -I include -I ref/dino-recomp/lib/N64Recomp/include dinomod_enhanced.c

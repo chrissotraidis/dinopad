@@ -1,0 +1,11 @@
+DinoPad Mach-O: arm64
+linked mod_func_N symbols: 460
+static dispatch source: 3334 lines
+dispatch table: 294 replacements, 42 hook callbacks, 35 hook slots, 328 wrappers
+__TEXT maxprot: 0x00000005
+__TEXT initprot: 0x00000005
+__GAME segment: absent
+DinoMod/offline dynamic dependency: absent
+dinomod_static_dispatch.c sha256: baf6f95086403159e2250166bfe980322536f8f83bc784332d6a8232b4f6e3f7
+dinomod_enhanced.c sha256: 62f59e8f0ba355645b2c3885baf022148b4c865e0609f6637fa1e82569be61c1
+DinoPad sha256: f9e1cbf3617bbdac1b83d9cdbaaf4a2575d92eb252b38392c0b76f606044cff6

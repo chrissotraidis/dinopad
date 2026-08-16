@@ -1,0 +1,4 @@
+# Unified diff context lines contain a required single-space prefix. Do not
+# report those structural lines as trailing-whitespace errors when a maintained
+# patch file is first added or updated.
+*.patch whitespace=-blank-at-eol,-blank-at-eof

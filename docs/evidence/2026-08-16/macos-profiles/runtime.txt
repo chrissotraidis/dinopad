@@ -1,0 +1,20 @@
+Restored session:
+DinoPad profile: Restored (namespace=Profiles/Restored)
+Using statically linked code for mod dinomod_enhanced
+Static restoration dispatch enabled (294 replacements; 35 hook slots; no runtime code writes)
+Prototype save remained unchanged during Restored session.
+
+Prototype session:
+DinoPad profile: Prototype (namespace=Profiles/Prototype)
+Static handle marker: absent
+Static dispatch activation marker: absent
+Restored save remained unchanged during Prototype session.
+
+Isolation fixture hashes (disposable files):
+Restored before: 2b98f730314b1cdfd81b90210f9767b2d156c583e1329cc19b3b00d0833ec9ed
+Restored after both sessions: 2b98f730314b1cdfd81b90210f9767b2d156c583e1329cc19b3b00d0833ec9ed
+Prototype before: fca1f4cca614308b4762c9a20c96cb3d5d2683f62ef3e83630b529283c737659
+Prototype after its own session: 52586aa622538b7cd741b1077cbf6a9092ec32e0f18ce33f73b1d87b0fb3b64e
+
+PROFILE RESULT: PASS (Restored default-capable; Prototype explicit; saves/config isolated)
+runtime-guard cleanup: zero booted Simulators; no DinoPad process.

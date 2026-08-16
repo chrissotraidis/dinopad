@@ -1,0 +1,93 @@
+{
+  "version": "1.0",
+  "resolved": "2026-08-15T18:35:00Z",
+  "entries": [
+    {
+      "name": "PaperPad",
+      "url": "https://github.com/chrissotraidis/paperpad.git",
+      "ref": "644945d4bc4facbbd8ecda8cdfd37ae64e7993fa",
+      "commit": "644945d4bc4facbbd8ecda8cdfd37ae64e7993fa",
+      "license_file": "RIGHTS_AND_LICENSES.md",
+      "purpose": "Primary Apple shell reference for UI, touch controls, and architecture patterns"
+    },
+    {
+      "name": "dino-recomp",
+      "url": "https://github.com/DinosaurPlanetRecomp/dino-recomp.git",
+      "ref": "v0.3.0",
+      "commit": "725b2ede9cacc57968e0a028efed8df9235ba483",
+      "license_file": "COPYING",
+      "purpose": "Base Dinosaur Planet N64 recompilation engine for arm64 static builds",
+      "recursive": true,
+      "submodules": {
+        "lib/N64ModernRuntime": "bf7c4e144d249686a3af42baa61968274326609c",
+        "lib/N64Recomp": "8b46781e7d248ce24e235a60fc83cd7dafd56325",
+        "lib/RmlUi": "7a06f27db04fe5d13a5dacc19b2b4544673a4eca",
+        "lib/SDL_GameControllerDB": "7988b5e84c31616200ee2ffd2347386c6b3165a8",
+        "lib/SlotMap": "b8ac8ebd89aa1cd18f20ce6e4ad1cac716f1933f",
+        "lib/dino-recomp-decomp-bridge": "fa1bb2ff62e31f73ebfb814de49f01a8759dc58f",
+        "lib/freetype-windows-binaries": "74f3de184253d7c314cb34444cc1bbabf276142f",
+        "lib/lunasvg": "4166d0cccfc059b39d5ecfc372524375e59448f9",
+        "lib/rt64": "e017b11119a970ee578ba6b7b8b0175fb97a925b"
+      }
+    },
+    {
+      "name": "dinomod-enhanced-recompiled",
+      "url": "https://github.com/EoinODoodles/dinomod-enhanced-recompiled.git",
+      "ref": "v0.9.3",
+      "commit": "d79e86be2304cba75216b0b98e9fb53ee99b7500",
+      "license_file": "",
+      "purpose": "Progression restoration mod - read-only until permission/license clearance",
+      "submodules": {
+        "lib/dino-recomp-decomp-bridge": {
+          "commit": "07528ff82ff1c6dae5098e2cb5c667b22ebb32b5",
+          "nested_submodules": {
+            "dinosaur-planet": "6615627aa2fefbcf82b652880d6db64aba3f1609"
+          }
+        },
+        "lib/dino-recomp-mod-api": "15144c77da56309de2489f234dad21a2dbc6e40f"
+      }
+    },
+    {
+      "name": "SDL2",
+      "url": "https://github.com/libsdl-org/SDL.git",
+      "ref": "release-2.32.10",
+      "commit": "5d249570393f7a37e037abf22cd6012a4cc56a71",
+      "license_file": "LICENSE.txt",
+      "purpose": "Native SDL2 2.32.10 static build for macOS window/audio/input (avoids Homebrew sdl2-compat shim)"
+    }
+  ],
+  "notes": {
+    "DinoMod_permission_status": "BLOCKED - Requires upstream maintainer written permission or license clearance before redistribution. All bridge code is DinoPad-owned and must remain compatible with upstream source.",
+    "Dinosaur Planet ROM": "December 2000 prototype, MD5 49f7bb346ade39d1915c22e090ffd748 - user-supplied, never tracked",
+    "patch_set": {
+      "recorded": "2026-08-16T19:30:00Z",
+      "file_count": 20,
+      "sha256": "f01b4ff2c74190171d37b7821a34f0af221675bf6edd9a371b4d9c05c3bfdbe4",
+      "algorithm": "SHA-256 of the sorted shasum -a 256 output for every patches/**/*.patch file"
+    },
+    "toolchain": {
+      "recorded": "2026-08-15T19:10:00Z",
+      "host": {
+        "xcode": "26.6 (Build 17F113)",
+        "apple_clang": "21.0.0",
+        "cmake": "3.27.1",
+        "ninja": "1.13.2",
+        "python": "3.13.0 (Homebrew; system 3.8 too old for recomp_rom_patcher.py)",
+        "arch": "arm64"
+      },
+      "mips_clang": {
+        "source": "https://github.com/LT-Schmiddy/n64recomp-clang",
+        "release": "release-22.1.8",
+        "asset": "Darwin-arm64-ClangEssentialsAndN64Recomp-ClangVersion22.1.8-MipsOnly.tar.xz",
+        "purpose": "MIPS-targeting clang + ld.lld for the recompiled patch library (host clang has no MIPS backend)"
+      }
+    },
+    "mod_build_prerequisites": {
+      "recorded": "2026-08-16T16:00:00Z",
+      "xdelta3": "3.2.0 (brew install xdelta) - mod asset pipeline",
+      "python_venv": ".goal-loop/dinomod-venv (Python 3.13, PyYAML/toml/pylibyaml) - mod tools",
+      "mips_toolchain": "build-tools/toolchains/mips-clang/nrs_bin (n64recomp-clang 22.1.8)",
+      "replay_script": "scripts/generate-restoration.sh"
+    }
+  }
+}

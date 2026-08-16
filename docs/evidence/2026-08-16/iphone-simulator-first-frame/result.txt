@@ -1,0 +1,1 @@
+IOS FIRST-FRAME RESULT: PASS (arm64 app; ROM-free bundle; live 20s; screenshot; no crash)

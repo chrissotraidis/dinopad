@@ -1,0 +1,59 @@
+# Git data
+.DS_Store
+._*
+
+# Reference (pinned sources) - DO NOT EDIT
+ref/
+ref/**/bin/
+ref/**/cmake_build_dir*/
+ref/output/
+
+# Generated and build outputs  
+build-macos/
+build-ios-simulator/
+build-ios-device/
+generated/
+generated/**/*
+
+# Build directories
+/build-macos/
+/build/
+/Branches/
+/build-*/
+**/.cmake_*
+**/CMakeCache.txt
+**/CMakeFiles/
+
+# Private fixtures and data
+private-fixtures/
+private-fixtures/**
+data/
+data/**
+
+# Logging
+logs/
+logs/**/*
+*.log
+**.log
+tmp/
+tmp/**/*
+**/*.tmp
+
+# Runtime lock state
+.goal-loop/
+.goal-loop/**
+
+# Packages (release binaries live in GitHub Releases, not Git)
+*.ipa
+
+# VCS data
+.git/
+.git/hooks/
+.git/index
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

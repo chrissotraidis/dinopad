@@ -1,0 +1,11 @@
+diff --git a/src/apple/rt64_apple.mm b/src/apple/rt64_apple.mm
+index 9ef49c6..31d737d 100644
+--- a/src/apple/rt64_apple.mm
++++ b/src/apple/rt64_apple.mm
+@@ -1,6 +1,5 @@
+ #include "rt64_apple.h"
+ 
+-#import <AppKit/AppKit.h>
+ #import <Foundation/Foundation.h>
+ 
+ const char* GetHomeDirectory() {

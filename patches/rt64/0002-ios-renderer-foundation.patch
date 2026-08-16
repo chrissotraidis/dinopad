@@ -1,0 +1,189 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -111,6 +111,12 @@ set(ANDROID_ABI arm64-v8a)
+ 
+ # For DXC
+ set (DXC_COMMON_OPTS "-I${PROJECT_SOURCE_DIR}/src")
++if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
++    # Apple mobile GPUs and Simulator expose at most 16 samplers per shader.
++    # RT64's optional native-sampler fast path declares 18 combinations; use
++    # the renderer's accurate software addressing/filtering path on iOS.
++    list(APPEND DXC_COMMON_OPTS "-D" "RT64_DISABLE_NATIVE_SAMPLERS=1")
++endif()
+ set (DXC_DXIL_OPTS "-Wno-ignored-attributes")
+ set (DXC_SPV_OPTS "-spirv" "-fspv-target-env=vulkan1.0" "-fvk-use-dx-layout")
+ set (DXC_LB_OPTS "${DXC_COMMON_OPTS}" "-D" "LIBRARY" "-T" "lib_6_3")
+@@ -142,6 +148,11 @@ function(build_shader_dxil_impl TARGETOBJ FILENAME TARGET_NAME OUTNAME)
+ endfunction()
+ 
+ function(build_shader_msl_impl TARGETOBJ FILENAME TARGET_NAME OUTNAME)
++    if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
++        set(RT64_METAL_SDK "${CMAKE_OSX_SYSROOT}")
++    else()
++        set(RT64_METAL_SDK "macosx")
++    endif()
+     add_custom_command(OUTPUT ${OUTNAME}.spv
+             COMMAND ${DXC} ${DXC_SPV_OPTS} ${ARGN} ${FILENAME} /Fo ${OUTNAME}.spv
+             DEPENDS ${FILENAME})
+@@ -150,10 +161,10 @@ function(build_shader_msl_impl TARGETOBJ FILENAME TARGET_NAME OUTNAME)
+             COMMAND spirv_cross_msl ${OUTNAME}.spv ${OUTNAME}.metal
+             DEPENDS ${OUTNAME}.spv spirv_cross_msl)
+     add_custom_command(OUTPUT ${OUTNAME}.ir
+-            COMMAND xcrun -sdk macosx metal -o ${OUTNAME}.ir -c ${OUTNAME}.metal $<$<CONFIG:Debug>:-frecord-sources>
++            COMMAND xcrun -sdk ${RT64_METAL_SDK} metal -o ${OUTNAME}.ir -c ${OUTNAME}.metal $<$<CONFIG:Debug>:-frecord-sources>
+             DEPENDS ${OUTNAME}.metal)
+     add_custom_command(OUTPUT ${OUTNAME}.metallib
+-            COMMAND xcrun -sdk macosx metallib ${OUTNAME}.ir -o ${OUTNAME}.metallib
++            COMMAND xcrun -sdk ${RT64_METAL_SDK} metallib ${OUTNAME}.ir -o ${OUTNAME}.metallib
+             DEPENDS ${OUTNAME}.ir)
+     add_custom_command(OUTPUT ${OUTNAME}.metal.c
+             COMMAND file_to_c ${OUTNAME}.metallib ${TARGET_NAME}BlobMSL ${OUTNAME}.metal.c ${OUTNAME}.metal.h
+@@ -287,7 +298,9 @@ if (WIN32)
+     set(SDL2_LIBRARIES "SDL2" "SDL2main")
+     link_directories("${PROJECT_SOURCE_DIR}/src/contrib/mupen64plus-win32-deps/SDL2-2.26.3/lib/x64")
+ else()
+-    find_package(SDL2 REQUIRED)
++    if (NOT SDL2_INCLUDE_DIRS OR NOT SDL2_LIBRARIES)
++        find_package(SDL2 REQUIRED)
++    endif()
+ endif()
+ 
+ message(STATUS "${SDL2_INCLUDE_DIRS} ${SDL2_LIBRARIES}")
+diff --git a/src/render/rt64_render_target.cpp b/src/render/rt64_render_target.cpp
+index 8a847b6..86196d0 100644
+--- a/src/render/rt64_render_target.cpp
++++ b/src/render/rt64_render_target.cpp
+@@ -6,6 +6,10 @@
+ 
+ #include <algorithm>
+ 
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
++
+ #include "gbi/rt64_f3d.h"
+ #include "shared/rt64_fb_common.h"
+ #include "shared/rt64_render_target_copy.h"
+@@ -17,8 +21,15 @@
+ 
+ namespace RT64 {
+     // RenderTarget
+-    
++
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++    // iOS Metal (including Simulator) can reject 2D textures wider than 8192.
++    // Keep RT64's shared sizing clamp aligned with that backend limit so a
++    // transient oversized framebuffer cannot abort inside Metal validation.
++    const long RenderTarget::MaxDimension = 0x2000L;
++#else
+     const long RenderTarget::MaxDimension = 0x4000L;
++#endif
+ 
+     RenderTarget::RenderTarget(uint32_t addressForName, Framebuffer::Type type, const RenderMultisampling &multisampling, bool usesHDR) {
+         this->addressForName = addressForName;
+@@ -512,4 +523,4 @@ namespace RT64 {
+     RenderFormat RenderTarget::depthBufferFormat() {
+         return RenderFormat::D32_FLOAT;
+     }
+-};
+\ No newline at end of file
++};
+diff --git a/src/render/rt64_shader_library.cpp b/src/render/rt64_shader_library.cpp
+--- a/src/render/rt64_shader_library.cpp
++++ b/src/render/rt64_shader_library.cpp
+@@ -8,6 +8,10 @@
+ #include "shared/rt64_render_target_copy.h"
+ #include "shared/rt64_rsp_vertex_test_z.h"
+ 
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
++
+ #include "shaders/FbChangesClearCS.hlsl.spirv.h"
+ #include "shaders/FbChangesDrawColorPS.hlsl.spirv.h"
+ #include "shaders/FbChangesDrawDepthPS.hlsl.spirv.h"
+@@ -853,7 +857,11 @@ namespace RT64 {
+             postProcess.pipeline = device->createGraphicsPipeline(pipelineDesc);
+         }
+         
+-        // Raytracing debug.
++        // Raytracing debug. Simulator Metal supports fewer argument buffers
++        // than this optional visualization pipeline requires. Normal rendering
++        // does not use it, so avoid creating a pipeline that is guaranteed to
++        // fail while keeping it available on macOS and physical devices.
++#if !defined(__APPLE__) || !TARGET_OS_SIMULATOR
+         {
+             FramebufferRendererDescriptorCommonSet descriptorCommonSet(samplerLibrary, deviceCapabilities.raytracing);
+             FramebufferRendererDescriptorTextureSet descriptorTextureSet;
+@@ -877,6 +885,7 @@ namespace RT64 {
+             pipelineDesc.multisampling = multisampling;
+             debug.pipeline = device->createGraphicsPipeline(pipelineDesc);
+         }
++#endif
+ 
+         // RSP Vertex Test Z.
+         {
+diff --git a/src/shaders/TextureSampler.hlsli b/src/shaders/TextureSampler.hlsli
+--- a/src/shaders/TextureSampler.hlsli
++++ b/src/shaders/TextureSampler.hlsli
+@@ -111,6 +111,11 @@ float4 clampWrapMirrorSample(const RDPTile rdpTile, const GPUTile gpuTile, float
+ static const float LowPrecision = 128.0f;
+ 
+ float4 sampleTextureNative(Texture2D texture, uint nativeSampler, int2 texelBaseInt, float2 textureSize) {
++#if defined(RT64_DISABLE_NATIVE_SAMPLERS)
++    // Mobile Metal uses the RDP-compatible software sampling path below. Keep
++    // this helper sampler-free so DXC removes all 18 immutable sampler slots.
++    return texture.Load(int3(texelBaseInt, 0));
++#else
+     // Transform to native coordinate. Half pixel offset is required to reach the desired texel.
+     float2 nativeUVCoord = (float2(texelBaseInt) + 0.5f) / textureSize;
+             
+@@ -136,6 +141,7 @@ float4 sampleTextureNative(Texture2D texture, uint nativeSampler, int2 texelBase
+         default:
+             return texture.SampleLevel(gNearestClampClampSampler, nativeUVCoord, 0.0f);
+     }
++#endif
+ }
+ 
+ float4 sampleTextureLevel(const RDPTile rdpTile, const GPUTile gpuTile, bool filterBilerp, bool filterAverage, bool linearFiltering, float2 uvCoord, uint tlut, bool canDecodeTMEM, uint mipLevel, bool usesHDR) {
+@@ -147,7 +153,11 @@ float4 sampleTextureLevel(const RDPTile rdpTile, const GPUTile gpuTile, bool fil
+     int2 texelBaseInt = floor(uvCoord);
+     bool filtering = or(filterBilerp, linearFiltering);
+     float4 samples[4];
++#if defined(RT64_DISABLE_NATIVE_SAMPLERS)
++    const uint nativeSampler = NATIVE_SAMPLER_NONE;
++#else
+     const uint nativeSampler = rdpTile.nativeSampler;
++#endif
+     bool gpuTileUsesTMEM = canDecodeTMEM && gpuTileFlagRawTMEM(gpuTile.flags);
+     if ((nativeSampler == NATIVE_SAMPLER_NONE) || gpuTileUsesTMEM) {
+ #if USE_FOR_LOOPS
+@@ -261,7 +271,11 @@ float4 sampleTexture(OtherMode otherMode, RenderFlags renderFlags, float2 inputU
+     const uint tlut = otherMode.textLUT();
+     const bool canDecodeTMEM = renderFlagCanDecodeTMEM(renderFlags);
+     const bool usesHDR = renderFlagUsesHDR(renderFlags);
++#if defined(RT64_DISABLE_NATIVE_SAMPLERS)
++    const uint nativeSampler = NATIVE_SAMPLER_NONE;
++#else
+     const uint nativeSampler = rdpTile.nativeSampler;
++#endif
+     const bool flagHasMipmaps = gpuTileFlagHasMipmaps(gpuTile.flags);
+     uint numRDPSamples = 0;
+     uint RDPMipLevels[2];
+@@ -285,6 +299,7 @@ float4 sampleTexture(OtherMode otherMode, RenderFlags renderFlags, float2 inputU
+             numRDPSamples = 2;
+         }
+         else {
++#if !defined(RT64_DISABLE_NATIVE_SAMPLERS)
+             // Must normalize the texture coordinate and the derivatives.
+             float2 nativeUVCoord = uvCoord / gpuTile.textureDimensions.xy;
+             float2 originalSize = gpuTile.textureDimensions.xy / gpuTile.tcScale;
+@@ -313,6 +328,7 @@ float4 sampleTexture(OtherMode otherMode, RenderFlags renderFlags, float2 inputU
+                 default:
+                     return texture.SampleGrad(gLinearClampClampSampler, nativeUVCoord, ddxUVxNorm, ddxUVyNorm);
+             }
++#endif
+         }
+     }
+     else {
