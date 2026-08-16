@@ -61,8 +61,8 @@
     "Dinosaur Planet ROM": "December 2000 prototype, MD5 49f7bb346ade39d1915c22e090ffd748 - user-supplied, never tracked",
     "patch_set": {
       "recorded": "2026-08-16T19:30:00Z",
-      "file_count": 19,
-      "sha256": "10564d78e309105ab6f84e2a71130c0052f3355a881a08373a5fe17452fcf3ad",
+      "file_count": 20,
+      "sha256": "f01b4ff2c74190171d37b7821a34f0af221675bf6edd9a371b4d9c05c3bfdbe4",
       "algorithm": "SHA-256 of the sorted shasum -a 256 output for every patches/**/*.patch file"
     },
     "toolchain": {

@@ -45,13 +45,14 @@ Ordered, numbered, replayable with `scripts/apply-patches.sh`:
 
 | Patch | File(s) | Why it exists | Upstream semantic preserved? |
 |---|---|---|---|
-| 0001-macos-sdl-metal-window.patch | src/runtime/gfx.cpp | Ports the PaperPad macOS window path: RT64 needs the NSWindow + CAMetalLayer as WindowHandle{window, view} | Yes (Apple-only branch) |
+| 0001-macos-sdl-metal-window.patch | src/runtime/gfx.cpp | Ports the PaperPad Apple Metal-window path: RT64 receives the native window + CAMetalLayer; iOS attaches DinoPad's touch overlay after SDL creates its UIKit window | Yes (Apple-only branch) |
 | 0002-disable-imgui-debug-overlay-on-apple.patch | src/debug_ui/backend.cpp | The pinned imgui debug overlay has no Metal backend and dereferences a Vulkan device; disabling on Apple keeps the game loop alive. The RmlUi launcher registers its own UI | Yes (Apple-only) |
 | 0003-macos-app-folder-path.patch | src/config/config.cpp | Adds PaperPad-style Apple data root plus mode-scoped config roots and a disposable-root test override | Yes (Apple-only path; profile policy is DinoPad-specific) |
-| 0004-input-debug-log.patch | src/input/controls.cpp | Env-gated (`DINOPAD_LOG_INPUT=1`) input state logging for smoke tests/evidence; disabled by default | Yes (off by default) |
+| 0004-input-debug-log.patch | src/input/controls.cpp | Env-gated (`DINOPAD_LOG_INPUT=1`) input logging plus the iOS-only merge of DinoPad touch snapshots into the normal N64 poll result | Yes (logging off by default; touch branch iOS-only) |
 | 0005-audio-debug-log.patch | src/runtime/audio.cpp | Env-gated (`DINOPAD_LOG_AUDIO=1`, `DINOPAD_AUDIO_DUMP=<path>`) audio diagnostics; disabled by default | Yes (off by default) |
 | 0006-session-profiles.patch | main/config/mod registration | Adds Restored-default and explicit Prototype session selection; Prototype disables mod scanning/registration | DinoPad product policy |
 | 0007-ios-ui-platform-guards.patch | desktop RmlUi state/config/mod menu | Leaves the uninitialized desktop UI inert while UIKit owns the iOS shell; avoids desktop folder commands and null model access | Yes (iOS-only shell boundary) |
+| 0008-ios-touch-input-bridge.patch | src/input/input.cpp | Reports physical-controller add/remove state to the UIKit overlay; CoreSimulator's synthetic controller is filtered in the DinoPad-owned bridge | Yes (iOS-only UI/input handoff) |
 
 Additional patch: `patches/hlslpp/0001-scalar-labs.patch` (hlslpp scalar
 platform header fix required by the pinned RT64/hlslpp combination on Apple).
@@ -72,8 +73,8 @@ Nested upstream patches applied by checkout basename:
 | `patches/N64ModernRuntime/0004-no-dynamic-code.patch` | runtime CMake/mod loader | Excludes LiveRecomp/SLJIT and makes live handles inert for mobile no-code-generation builds | Yes (opt-in build mode) |
 | `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
-The nineteen-file patch set is locked in `dependencies.lock.json` at SHA-256
-`10564d78e309105ab6f84e2a71130c0052f3355a881a08373a5fe17452fcf3ad`.
+The twenty-file patch set is locked in `dependencies.lock.json` at SHA-256
+`f01b4ff2c74190171d37b7821a34f0af221675bf6edd9a371b4d9c05c3bfdbe4`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested

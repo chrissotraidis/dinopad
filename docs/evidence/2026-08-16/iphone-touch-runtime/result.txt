@@ -1,0 +1,9 @@
+IOS TOUCH PAUSE-POINT RESULT: PARTIAL PASS
+
+PASS: ROM-free arm64 app, live 90 seconds, overlay attached, A/Z/Start/C-left
+delivered through the actual N64 poll, persistent menu opened and hid gameplay
+controls, screenshot captured privately, no crash, clean guarded shutdown.
+
+OPEN: analog and full digital matrix, multi-touch, lifecycle round trip,
+controller handoff, complete menu/settings/layout/diagnostics, Restored mobile
+package and gameplay, save/relaunch, and 10-minute Phase 5 smoke.

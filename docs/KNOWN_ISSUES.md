@@ -8,6 +8,26 @@ severity within each section.
 
 ## Automation / input delivery
 
+### iOS touch smoke is not yet deterministic
+
+**Status:** Open test debt (2026-08-16, iPhone Simulator).
+
+Digital touch delivery was verified through Computer Use coordinates and the
+actual `[dinopad-in]` runtime log, but Simulator-window coordinates depend on
+window scale/chrome. Analog drag did not produce a logged axis transition before
+the pause point. Add a release-inert deterministic injection boundary or pure
+input harness before treating the full touch matrix as regression-protected.
+
+### `smoke-ios.sh` can wait on its console child after an early failure
+
+**Status:** Open harness defect (2026-08-16).
+
+A two-second diagnostic run raced the process-liveness check. The failure path
+waited for `simctl launch --console` without first terminating the app/child and
+needed runtime-guard interruption. Default 20/90-second green runs terminate
+normally. Add a trap that always terminates the bundle and console child before
+returning failure.
+
 ### `osascript` keystrokes go to the frontmost app, not the DinoPad window
 
 **Status:** Confirmed (2026-08-16, macOS); worked around in all sessions.
@@ -26,6 +46,20 @@ Evidence: session 16 (no input reached the game, GAME SELECT unchanged),
 sessions 17-19 (input delivered, gameplay responsive).
 
 ## Renderer / runtime
+
+### iOS 26.5 headless Simulator preserves a portrait raw framebuffer
+
+**Status:** Simulator limitation; physical-device verification required.
+
+Both DinoPad and the pinned PaperPad Simulator app declare only landscape
+orientations and set SDL's landscape hint, yet `simctl io screenshot` returns a
+1206x2622 portrait raw framebuffer containing rotated landscape content. The
+Simulator CLI exposes no orientation operation and rejects arbitrary landscape
+screen geometry. Its GUI toolbar rotates the virtual hardware, but Metal frames
+can appear black to Computer Use capture during transitions. Temporary UIWindow,
+delegate, and public scene-geometry experiments did not change the headless raw
+capture and were removed. Do not use private orientation APIs; validate final
+presentation on physical iPhone/iPad.
 
 ### Resolved: RT64 Present worker crashed while draining its autorelease pool
 

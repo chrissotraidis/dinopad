@@ -133,9 +133,9 @@ check_ref_repo() {
   # Verify the patch set is currently applied.
   for patch in "$ROOT"/patches/"$name"/*.patch; do
     [ -f "$patch" ] || continue
-    if git -C "$repo_dir" apply --check "$patch" >/dev/null 2>&1; then
+    if git -C "$repo_dir" apply --check --ignore-space-change "$patch" >/dev/null 2>&1; then
       fail "patch not applied: $patch"
-    elif git -C "$repo_dir" apply -R --check "$patch" >/dev/null 2>&1; then
+    elif git -C "$repo_dir" apply -R --check --ignore-space-change "$patch" >/dev/null 2>&1; then
       : # applied
     else
       fail "patch neither applies nor reverse-applies: $patch"

@@ -337,6 +337,8 @@ add_executable(DinoPad ${DINOPAD_APP_SOURCES})
 
 set_source_files_properties("${DINOPAD_ROOT}/src/app/dinopad_home.mm"
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+set_source_files_properties("${DINOPAD_ROOT}/apple/app/ios_main.mm"
+    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 
 target_include_directories(DinoPad PRIVATE
     ${DINOPAD_RECOMP_INCLUDE_DIRS}

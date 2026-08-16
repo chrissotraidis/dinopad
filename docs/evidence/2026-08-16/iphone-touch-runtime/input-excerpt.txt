@@ -1,0 +1,9 @@
+[dinopad-touch] overlay attached (phone)
+[dinopad-in] frame=1 buttons=0x0000 x=0.00 y=0.00
+[dinopad-in] frame=1978 buttons=0x8000 x=0.00 y=0.00
+[dinopad-in] frame=1982 buttons=0xA000 x=0.00 y=0.00
+[dinopad-in] frame=1984 buttons=0x2000 x=0.00 y=0.00
+[dinopad-in] frame=1985 buttons=0x3002 x=0.00 y=0.00
+[dinopad-in] frame=1988 buttons=0x1002 x=0.00 y=0.00
+[dinopad-in] frame=1991 buttons=0x0000 x=0.00 y=0.00
+

@@ -1,0 +1,39 @@
+diff --git a/src/input/input.cpp b/src/input/input.cpp
+index b9ae5e3..e5bd025 100644
+--- a/src/input/input.cpp
++++ b/src/input/input.cpp
+@@ -12,6 +12,13 @@
+ #include "ui/recomp_ui.h"
+ 
+ #include "controls.hpp"
++
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#if TARGET_OS_IPHONE
++extern "C" void dinopad_set_physical_controller_connected(int connected);
++#endif
++#endif
+ 
+ constexpr float axis_threshold = 0.5f;
+ 
+@@ -151,6 +158,9 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+                     SDL_GameControllerSetSensorEnabled(controller, SDL_SensorType::SDL_SENSOR_GYRO, SDL_TRUE);
+                     SDL_GameControllerSetSensorEnabled(controller, SDL_SensorType::SDL_SENSOR_ACCEL, SDL_TRUE);
+                 }
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++                dinopad_set_physical_controller_connected(1);
++#endif
+             }
+         }
+         break;
+@@ -160,6 +170,10 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+             SDL_ControllerDeviceEvent* controller_event = &event->cdevice;
+             printf("Controller removed: %d\n", controller_event->which);
+             InputState.controller_states.erase(controller_event->which);
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++            dinopad_set_physical_controller_connected(
++                InputState.controller_states.empty() ? 0 : 1);
++#endif
+         }
+         break;
+     case SDL_EventType::SDL_QUIT: {
