@@ -94,6 +94,15 @@ handoffs into their expected runtime profiles:
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
 ```
 
+The native-import smoke drives the real AppKit file picker. It first selects a
+fingerprint-modified 64 MiB ROM and requires visible rejection with no staged
+copy, then selects a private v64 byte-swapped fixture and requires normalized
+z64 magic plus the exact supported MD5:
+
+```sh
+scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh
+```
+
 ### Visual tests
 
 - App shell, safe areas, touch layout, `•••` menu, settings, error states, title/gameplay rendering sanity.
@@ -135,6 +144,7 @@ scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
+scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

@@ -152,6 +152,9 @@ flowchart TD
   Prototype action with an archival warning, and private ROM replacement.
   Selecting either mode enters the same profile API used by automation; the
   upstream Rml launcher is bypassed.
+- The native importer accepts z64/v64/n64 byte order, normalizes to big-endian,
+  verifies the exact 64 MiB prototype MD5, writes atomically, excludes the
+  private copy from backups, and never stages rejected input.
 - Both profiles are compiled into one binary. At session start DinoPad registers the restoration module (hooks, replacements, events, config, assets) only for Restored Adventure; Prototype Mode starts with registration disabled.
 - The engine boundary defaults to Restored, accepts explicit
   `--profile restored|prototype`, and rejects unknown values before runtime

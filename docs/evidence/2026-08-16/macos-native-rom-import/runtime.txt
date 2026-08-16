@@ -1,0 +1,9 @@
+Invalid fixture: 64 MiB z64 with one payload byte modified
+Result: visibly rejected; destination dino.z64 absent
+Valid fixture: supported private ROM converted to v64 byte order
+Stored magic: 80371240
+Stored MD5: 49f7bb346ade39d1915c22e090ffd748
+Marker: DinoPad ROM import accepted (December 2000 prototype)
+Result: native home reached
+NATIVE IMPORT RESULT: PASS (invalid rejected; v64 normalized; exact MD5 stored; home reached)
+runtime-guard cleanup: zero booted Simulators; no DinoPad process

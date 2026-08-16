@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-16T20:10:00Z
-Current commit: 1a650f9 (this cycle's implementation follows)
+Last updated: 2026-08-16T20:35:00Z
+Current commit: 615e9cc (this cycle's implementation follows)
 Current phase: Phase 4 - Native Apple shell
-Active goal: Goal 24b - verify native document-picker ROM import end-to-end, including byte-swapped input and rejection
+Active goal: Goal 26a - configure the first iPhone Simulator arm64 app target from the pinned PaperPad shell and DinoPad runtime
 
 ## Green
 
@@ -39,6 +39,7 @@ Active goal: Goal 24b - verify native document-picker ROM import end-to-end, inc
 - Production static replacement/hook dispatch green on macOS (2026-08-16): `tools/generate_static_dispatch.py` emits 328 wrappers for all 294 replacements and 42 hook callbacks / 35 slots. N64ModernRuntime validates conflicts but skips `patch_func` and unpatch writes for the static handle. The same arm64 binary renders the restored title when the ordinary package is present and falls back to Prototype Game Select when absent. Its `__TEXT` is immutable `r-x`, the former `__GAME` segment is absent, all 460 mod functions are linked, and there is no DinoMod dynamic dependency. Evidence: docs/evidence/2026-08-16/dinomod-static-dispatch-macos/.
 - Restored/Prototype session profiles and isolation green on macOS (2026-08-16): Restored is the default, `--profile restored|prototype` is deterministic, and invalid values fail before initialization. Shared ROM/package data is separated from per-profile configs, mod configs, and FlashRAM. A disposable-root smoke with distinct 128 KiB sentinel saves proved no cross-mode writes; Restored visibly enabled static dispatch, while Prototype disabled all mod scanning/registration and reached Game Select. Evidence: docs/evidence/2026-08-16/macos-profiles/.
 - Native macOS setup/home and profile handoff green (2026-08-16): a DinoPad-owned AppKit boundary precedes SDL, presents a ROM-free first-run setup screen, makes Restored Adventure the primary action, requires an explicit archival warning for Prototype, and offers ROM replacement. A guarded disposable-root smoke verified setup Quit, native Prototype -> base Game Select with no restoration, and native Restored -> PRESS START with static no-write dispatch. Evidence: docs/evidence/2026-08-16/macos-native-home/.
+- Native document-picker ROM import green on macOS (2026-08-16): the real AppKit picker visibly rejected a fingerprint-modified 64 MiB z64 without staging it, then accepted a private v64 byte-swapped supported ROM, normalized it to `80371240`, atomically stored MD5 `49f7bb346ade39d1915c22e090ffd748`, and advanced to the native home. Evidence: docs/evidence/2026-08-16/macos-native-rom-import/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
 - docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch inventory (dino-recomp 0001-0006, N64ModernRuntime 0001-0003, hlslpp, RT64, Plume), locked twelve-file patch-set checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
@@ -73,6 +74,7 @@ scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh  # PASS
 scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh    # PASS: same binary, base fallback, Game Select
 scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh            # PASS: explicit profiles + config/save isolation
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh         # PASS: native setup/home + both profile handoffs
+scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh   # PASS: invalid rejection + v64 normalization/import
 scripts/runtime-guard.sh macos scripts/smoke-macos.sh   # PASS: 22/22 automated smoke checks
 scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5  # PASS: 5/5, no new crash report
 scripts/runtime-guard.sh macos bash <session>        # PASS: full restored and prototype comparison sessions
@@ -85,6 +87,7 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 ## Current evidence
 
 - Native macOS setup/home + warned Prototype/primary Restored handoffs (2026-08-16): docs/evidence/2026-08-16/macos-native-home/.
+- Native AppKit picker rejection + byte-swapped import (2026-08-16): docs/evidence/2026-08-16/macos-native-rom-import/.
 - Deterministic profiles + save/config isolation (2026-08-16): docs/evidence/2026-08-16/macos-profiles/.
 - Static no-write dispatch + same-binary Restored/Prototype fallback (2026-08-16): docs/evidence/2026-08-16/dinomod-static-dispatch-macos/.
 - Statically linked DinoMod code + no-dylib restored boot (2026-08-16): docs/evidence/2026-08-16/dinomod-static-macos/.
@@ -122,17 +125,22 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Drive the native document picker end-to-end with valid z64/v64/n64 input and invalid-ROM rejection.
-2. Reuse the setup/home/runtime boundary in the first iPhone Simulator arm64 target.
-3. Add the persistent menu and touch-control groundwork before iPad layout verification.
+1. Reuse the setup/home/runtime boundary in the first iPhone Simulator arm64 target.
+2. Port the persistent menu and complete N64 touch-control bridge.
+3. Verify independent iPhone/iPad layouts and lifecycle behavior.
 
 ## Selected next goal
 
-Goal 24b: exercise the AppKit document picker and native normalizer through the
-real UI. Acceptance requires importing the private supported ROM into an empty
-disposable root, proving the stored normalized fingerprint, exercising at
-least one byte-swapped form, and visibly rejecting an invalid file without
-leaving a staged ROM.
+Goal 26a: configure and compile the first iPhone Simulator arm64 app target.
+Acceptance requires a UIKit/SDL entry shell, the pinned static base and
+restoration code, Metal renderer linkage without JIT/runtime code loading, a
+ROM-free `.app`, and a clean Simulator shutdown. Runtime UI validation follows
+as the next smallest goal after the build is green.
+
+Goal 24b outcome: the real AppKit picker rejected a modified 64 MiB ROM without
+staging it, accepted a private v64 fixture, normalized it to z64, stored the
+exact supported fingerprint atomically, and advanced to the native home.
+Evidence: docs/evidence/2026-08-16/macos-native-rom-import/.
 
 Goal 24a outcome: DinoPad's native AppKit setup/home precedes runtime startup,
 makes Restored the primary action, warns before Prototype, and hands both
