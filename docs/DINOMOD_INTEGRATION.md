@@ -11,7 +11,10 @@ Compatibility pair: Dino Recompiled **v0.3.0** + DinoMod Enhanced **v0.9.3**.
 | DinoMod source pinned and read-only | DONE (ref/dinomod-enhanced-recompiled @ v0.9.3) |
 | DinoMod manifest (`mod.toml`) inventoried | DONE (this document) |
 | Toolchain for AOT conversion built | DONE (build-tools/OfflineModRecomp, RecompModTool, RecompModMerger, n64recomp-clang) |
-| Restored mode integrated into DinoPad | NOT STARTED (technical work follows; release gate first) |
+| Mod ELF + .nrm + mod symbols built | DONE (2026-08-16, private; MIPS-II ELF 42,997,184 B; .nrm 4 files, zip-tested) |
+| OfflineModRecomp emitted C | DONE (2026-08-16: 6,979,048 B; 920 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks) |
+| Emitted C compiles on arm64 + ABI harness | DONE (2026-08-16: 0 warnings; 13/13 harness checks) |
+| Restored mode integrated into DinoPad | NOT STARTED (next: bind imports, invoke one hook on macOS; release gate still required) |
 | **Maintainer permission / license** | **BLOCKED** - release gate; no public Restored binary/source integration without it |
 
 ## 2. Hard policy gate (from the plan)
@@ -84,20 +87,55 @@ The bridge must provide hooks/replacements/events registration, asset patch
 contribution, generated config schema, enable/disable per session, version
 reporting, and separate save namespaces (restored vs prototype).
 
-## 5. Offline-mod-recomp feasibility notes
+## 5. Offline-mod-recomp feasibility results (2026-08-16)
 
 The plan treats OfflineModRecomp as the leading feasibility path but not an
 assumed production solution ("primarily intended for debugging" in its source
-description). It must be validated:
+description). The formal feasibility experiment has now been run; results:
 
-- Build the pinned DinoMod ELF (needs the baserom for asset extraction;
-  baserom is private).
-- Run OfflineModRecomp and inspect the generated C for correctness.
-- If offline conversion is incomplete, fall back to a generic static bridge
-  or ship Prototype-only until solved (plan risk table).
+- The pinned DinoMod v0.9.3 ELF builds with the pinned n64recomp-clang MIPS
+  toolchain (42,997,184 B, MIPS-II, statically linked). The mod's asset
+  pipeline requires the private baserom FST (`tools/extract.py`) plus xdelta3
+  and Python 3.9+ (PyYAML, toml, pylibyaml); see prerequisites below.
+- `RecompModTool dinomod_enhanced/mod.toml <out>` produces a valid .nrm
+  (mod_syms.bin + mod_binary.bin + mod.json + thumb.png; zip integrity OK).
+- `OfflineModRecomp <mod_syms.bin> <mod_binary.bin> <dino.syms.toml> <out.c>`
+  emits 6,979,048 B of C: 920 mod functions, 37 imports, 2,346 reference
+  symbols, 294 replacements, 42 hooks (all in the mod symbol file).
+- The emitted C compiles cleanly on arm64 macOS (0 warnings, -O2) against the
+  DinoPad-owned `include/mod_recomp.h` ABI header and links into
+  `tools/mod_aot_harness.c`, which passes 13/13 ABI checks.
 
-This is a formal feasibility experiment, scheduled as the next restoration
-milestone after the Apple shell port; it is not yet exercised.
+ABI findings recorded for the bridge:
+
+- OfflineModRecomp emits the runtime bindings (`get_function`,
+  `cop0_status_write/read`, `switch_error`, `do_break`) as function-pointer
+  globals, while recomp.h declares them as functions. `mod_recomp.h` renames
+  the recomp.h declarations out of the way during the include.
+- `REF_RELOC_HI16/LO16` index the base-game `reference_section_addresses`
+  table (runtime-populated), not the mod-local `section_addresses` array.
+- The .nrm symbol file carries 294 replacements + 42 hooks; the emitted C
+  alone does not encode the hook/replacement tables, so the DinoPad bridge
+  must read mod_syms.bin (or the .nrm) at build time and generate the binding
+  tables alongside the compiled C.
+- `section_addresses` in the emitted C is sized to the mod context's single
+  merged section; the mod symbol file's section list is the authoritative
+  table for runtime section placement.
+
+Prerequisites added to the build environment (documented for reproducibility):
+
+- `xdelta3` (brew install xdelta) - mod asset pipeline.
+- Python 3.9+ venv at `.goal-loop/dinomod-venv` with PyYAML, toml, pylibyaml.
+- MIPS clang toolchain at `build-tools/toolchains/mips-clang/nrs_bin`.
+- Nested decomp submodule `lib/dino-recomp-decomp-bridge/dinosaur-planet` at
+  `6615627aa2fefbcf82b652880d6db64aba3f1609` (push URL disabled).
+
+Replayable script: `scripts/generate-restoration.sh`. Evidence:
+`docs/evidence/2026-08-16/dinomod-aot/`.
+
+If offline conversion proves incomplete during live binding (goal 21), fall
+back to a generic static bridge or ship Prototype-only until solved (plan
+risk table).
 
 ## 6. Restoration settings bridge
 
@@ -130,7 +168,7 @@ Restored and Prototype modes must not share saves:
 ## 9. Open questions / blockers
 
 1. Maintainer permission or license (BLOCKED for public Restored).
-2. OfflineModRecomp completeness for this mod (needs validation run).
+2. OfflineModRecomp completeness for this mod: compile/link ABI gate passed (2026-08-16); live import binding + one-hook invocation remains (goal 21).
 3. Asset patch redistribution (ROM-derived content rules; build from baserom
    privately, ship only legally distributable derived assets).
 4. Whether "DinoMod Enhanced" branding is permitted in the app UI.

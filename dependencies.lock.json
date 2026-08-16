@@ -38,7 +38,12 @@
       "license_file": "",
       "purpose": "Progression restoration mod - read-only until permission/license clearance",
       "submodules": {
-        "lib/dino-recomp-decomp-bridge": "07528ff82ff1c6dae5098e2cb5c667b22ebb32b5",
+        "lib/dino-recomp-decomp-bridge": {
+          "commit": "07528ff82ff1c6dae5098e2cb5c667b22ebb32b5",
+          "nested_submodules": {
+            "dinosaur-planet": "6615627aa2fefbcf82b652880d6db64aba3f1609"
+          }
+        },
         "lib/dino-recomp-mod-api": "15144c77da56309de2489f234dad21a2dbc6e40f"
       }
     },
@@ -70,6 +75,13 @@
         "asset": "Darwin-arm64-ClangEssentialsAndN64Recomp-ClangVersion22.1.8-MipsOnly.tar.xz",
         "purpose": "MIPS-targeting clang + ld.lld for the recompiled patch library (host clang has no MIPS backend)"
       }
+    },
+    "mod_build_prerequisites": {
+      "recorded": "2026-08-16T16:00:00Z",
+      "xdelta3": "3.2.0 (brew install xdelta) - mod asset pipeline",
+      "python_venv": ".goal-loop/dinomod-venv (Python 3.13, PyYAML/toml/pylibyaml) - mod tools",
+      "mips_toolchain": "build-tools/toolchains/mips-clang/nrs_bin (n64recomp-clang 22.1.8)",
+      "replay_script": "scripts/generate-restoration.sh"
     }
   }
 }

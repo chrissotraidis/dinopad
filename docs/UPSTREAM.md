@@ -19,7 +19,13 @@ SDL_GameControllerDB, SlotMap, dino-recomp-decomp-bridge,
 freetype-windows-binaries, lunasvg, rt64.
 
 DinoMod Enhanced v0.9.3 submodules: dino-recomp-decomp-bridge,
-dino-recomp-mod-api.
+dino-recomp-mod-api. The decomp bridge's nested `dinosaur-planet` submodule is
+pinned at `6615627aa2fefbcf82b652880d6db64aba3f1609` and is required for the
+mod's MIPS ELF build (decomp headers); push URL disabled.
+
+Mod build prerequisites (added 2026-08-16 for the AOT feasibility run):
+`xdelta3` (brew install xdelta), Python 3.9+ venv with PyYAML/toml/pylibyaml,
+and the pinned n64recomp-clang MIPS toolchain under `build-tools/toolchains/`.
 
 Supported ROM: December 2000 Dinosaur Planet prototype, MD5
 `49f7bb346ade39d1915c22e090ffd748` (user-supplied, never tracked).

@@ -1,0 +1,5 @@
+commit e2918b4eac527d94de68b7df9941a1bc73a52553 Add ROM byte-order normalizer and fingerprint validator with tests
+upstream pins:
+  dinomod-enhanced-recompiled v0.9.3 = d79e86be2304cba75216b0b98e9fb53ee99b7500
+  nested dino-recomp-decomp-bridge/dinosaur-planet = 6615627aa2fefbcf82b652880d6db64aba3f1609
+  N64Recomp (dino-recomp submodule) = 8b46781e7d248ce24e235a60fc83cd7dafd56325

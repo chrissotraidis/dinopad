@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-16T11:00:00Z
+Last updated: 2026-08-16T16:00:00Z
 Current commit: 0e03822 (this cycle's evidence + docs follow)
-Current phase: Phase 2 - Apple Silicon macOS base build
-Active goal: Port the PaperPad Apple shell ROM setup/normalization pieces (Phase 4)
+Current phase: Phase 3 - Static DinoMod on macOS (technical AOT gate; release gate separate)
+Active goal: Goal 21 - bind one DinoMod import and invoke one safe exported function/hook on macOS (goal 20, offline-mod-recomp PoC, passed this cycle)
 
 ## Green
 
@@ -32,6 +32,7 @@ Active goal: Port the PaperPad Apple shell ROM setup/normalization pieces (Phase
 - Controllable gameplay verified on macOS (2026-08-16): the playable tutorial scene ("Krystal! Try shooting the cannon!") responds to input end-to-end. All input types delivered to the recompiled game during gameplay (analog WASD x/y ±0.66, A=0x8000, Z=0x2000 in the [dinopad-in] log); held W displaces the on-screen character and S returns it (NCC tracking: t1 750,1050 -> W -> t2 648,954 -> S -> t3 414,1032 -> idle -> t4 768,1038); A-presses fire the tutorial cannon (orange energy pixels 1,132 -> 112,846, ~100x). Evidence: docs/evidence/2026-08-16/macos-gameplay/.
 - tools/normalize_rom.py added and green (2026-08-16): plan-listed ROM byte-order normalizer + fingerprint validator (z64/v64/n64 detection, big-endian normalization, supported MD5 check) with 16/16 self-tests; real private ROM validated (ALREADY, z64, MD5 ok); wired into scripts/build-macos-app.sh ROM staging. Evidence: docs/evidence/2026-08-16/macos-rom-normalizer/.
 - docs/DINOMOD_INTEGRATION.md written (2026-08-16): package inventory, mod.toml config schema summary, AOT path and toolchain status, offline-mod-recomp feasibility notes, settings bridge, save namespace isolation, compatibility pair, and the maintainer-permission gate.
+- Offline-mod-recomp proof of concept green (2026-08-16): pinned DinoMod v0.9.3 ELF built (MIPS-II, 42,997,184 B) with n64recomp-clang; RecompModTool produced a zip-tested .nrm (mod_syms.bin 201,008 B, mod_binary.bin 42,711,744 B, mod.json, thumb.png); OfflineModRecomp emitted 6,979,048 B of C (920 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks); the C compiles on arm64 macOS with 0 warnings against the new DinoPad-owned include/mod_recomp.h and links into tools/mod_aot_harness.c passing 13/13 ABI checks. Evidence: docs/evidence/2026-08-16/dinomod-aot/. Replayable via scripts/generate-restoration.sh.
 - docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch series inventory (0001-0005 + hlslpp), test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
@@ -101,10 +102,12 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Port the PaperPad Apple shell (Phase 4): native ROM import/validation UI on macOS + touch overlay groundwork.
-2. Verify physical controller input on macOS once a pad is connected (externally blocked).
+1. Bind one DinoMod import and invoke one safe exported function/hook on macOS against a live runtime context (plan goal 21), using mod_syms.bin's 294 replacements/42 hooks as the binding table source.
+2. Port the PaperPad Apple shell (Phase 4): native ROM import/validation UI on macOS + touch overlay groundwork.
 3. Start the iPhone Simulator build (Phase 5) after the Apple shell milestone.
 
 ## Selected next goal
 
-Port the PaperPad Apple shell (Phase 4): native ROM import/validation UI on macOS + touch overlay groundwork.
+Goal 21: bind one DinoMod import and invoke one safe exported function/hook on macOS (live runtime context), validating the hook/replacement binding tables generated from mod_syms.bin. The AOT C now compiles and links (goal 20); the remaining unknown is live execution semantics.
+
+Goal 20 outcome summary (this cycle): the offline-mod-recomp proof of concept passed end to end. Pinned DinoMod v0.9.3 built a MIPS-II ELF, RecompModTool produced a zip-tested .nrm, OfflineModRecomp emitted 6,979,048 B of C (920 functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks), the C compiles on arm64 with 0 warnings against the new include/mod_recomp.h, and tools/mod_aot_harness.c passes 13/13 ABI checks. Evidence: docs/evidence/2026-08-16/dinomod-aot/. Replayable via scripts/generate-restoration.sh.
