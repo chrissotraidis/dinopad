@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-16T18:20:00Z
-Current commit: e2df107 (this cycle's implementation follows)
-Current phase: Phase 3 - Static DinoMod on macOS (technical AOT gate; release gate separate)
-Active goal: Goal 23c - add deterministic Restored/Prototype selection and isolated save/config namespaces
+Last updated: 2026-08-16T19:10:00Z
+Current commit: 6575fb7 (this cycle's implementation follows)
+Current phase: Phase 4 - Native Apple shell
+Active goal: Goal 24a - port the smallest native ROM setup/home boundary on macOS, then reuse it for iOS
 
 ## Green
 
@@ -37,8 +37,9 @@ Active goal: Goal 23c - add deterministic Restored/Prototype selection and isola
 - Full DinoMod offline AOT load green on macOS (2026-08-16): N64ModernRuntime's precompiled `.offline.nrm` path resolves the complete 460-function module with 294 replacements and 42 hooks; no live recompiler. Restored mode visibly restores the rolling-demo `PRESS START` and Start/Options/Language title screens, while a same-build run with the mod disabled skips directly to Game Select. The first run exposed a 16-byte arm64 trampoline overlap; `-falign-functions=16` fixes it and `tools/check_patchable_aot.py` verifies 11,162 linked AOT entries with zero misalignment. Evidence: docs/evidence/2026-08-16/dinomod-full-macos/.
 - DinoMod static code handle green on macOS (2026-08-16): `tools/generate_static_mod_exports.py` creates a checked table for all 460 functions, 37 imports, 2,346 reference slots, and one local section; CMake links it into DinoPad. With the package presented as an ordinary `.nrm` and the offline dylib disabled, N64ModernRuntime selected the registered static handle and rendered restored PRESS START plus the title menu. Mach-O inspection found all 460 symbols and no DinoMod/offline dynamic dependency. Evidence: docs/evidence/2026-08-16/dinomod-static-macos/.
 - Production static replacement/hook dispatch green on macOS (2026-08-16): `tools/generate_static_dispatch.py` emits 328 wrappers for all 294 replacements and 42 hook callbacks / 35 slots. N64ModernRuntime validates conflicts but skips `patch_func` and unpatch writes for the static handle. The same arm64 binary renders the restored title when the ordinary package is present and falls back to Prototype Game Select when absent. Its `__TEXT` is immutable `r-x`, the former `__GAME` segment is absent, all 460 mod functions are linked, and there is no DinoMod dynamic dependency. Evidence: docs/evidence/2026-08-16/dinomod-static-dispatch-macos/.
+- Restored/Prototype session profiles and isolation green on macOS (2026-08-16): Restored is the default, `--profile restored|prototype` is deterministic, and invalid values fail before initialization. Shared ROM/package data is separated from per-profile configs, mod configs, and FlashRAM. A disposable-root smoke with distinct 128 KiB sentinel saves proved no cross-mode writes; Restored visibly enabled static dispatch, while Prototype disabled all mod scanning/registration and reached Game Select. Evidence: docs/evidence/2026-08-16/macos-profiles/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
-- docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch inventory (dino-recomp 0001-0005, N64ModernRuntime 0001-0002, hlslpp, RT64, Plume), locked ten-file patch-set checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
+- docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch inventory (dino-recomp 0001-0006, N64ModernRuntime 0001-0003, hlslpp, RT64, Plume), locked twelve-file patch-set checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
 - scripts/smoke-macos.sh added and green (2026-08-16): bounded automated input-replay smoke of boot -> GAME SELECT -> save load -> playable scene -> input (A/B/Z/Start/WASD) -> clean shutdown. First run FAILED because B was never exercised; B added to the replay, rerun PASS 22/22 (commit def59ac). Evidence: docs/evidence/2026-08-16/macos-smoke/.
@@ -63,12 +64,13 @@ Active goal: Goal 23c - add deterministic Restored/Prototype selection and isola
 ## Last successful commands
 
 ```sh
-./scripts/apply-patches.sh                           # PASS: all 10 maintained patches applied
+./scripts/apply-patches.sh                           # PASS: all 12 maintained patches applied
 ./scripts/check-repo-safety.sh                       # PASS: clean (private paths, patches covered)
 cmake --build build-macos --parallel 4 --target DinoPad   # PASS: incremental, arm64 executable
 DINOPAD_MAX_JOBS=4 scripts/generate-restoration.sh       # PASS: C + macOS offline AOT artifacts
 scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh  # PASS: 460 linked, r-x, no writes/dylib, restored title
 scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh    # PASS: same binary, base fallback, Game Select
+scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh            # PASS: explicit profiles + config/save isolation
 scripts/runtime-guard.sh macos scripts/smoke-macos.sh   # PASS: 22/22 automated smoke checks
 scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5  # PASS: 5/5, no new crash report
 scripts/runtime-guard.sh macos bash <session>        # PASS: full restored and prototype comparison sessions
@@ -80,6 +82,7 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Current evidence
 
+- Deterministic profiles + save/config isolation (2026-08-16): docs/evidence/2026-08-16/macos-profiles/.
 - Static no-write dispatch + same-binary Restored/Prototype fallback (2026-08-16): docs/evidence/2026-08-16/dinomod-static-dispatch-macos/.
 - Statically linked DinoMod code + no-dylib restored boot (2026-08-16): docs/evidence/2026-08-16/dinomod-static-macos/.
 - Full DinoMod macOS AOT load + visible restored/prototype comparison (2026-08-16): docs/evidence/2026-08-16/dinomod-full-macos/.
@@ -116,16 +119,23 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Add Restored/Prototype profile selection plus separate save/config namespaces and repeat the visible rolling-demo comparison through the profile boundary.
-2. Port the PaperPad Apple shell (Phase 4): native ROM import/validation UI on macOS + touch overlay groundwork.
-3. Build the first iPhone Simulator target with the static no-write restoration path.
+1. Port the PaperPad Apple shell (Phase 4): native ROM import/validation and Restored/Prototype home UI on macOS.
+2. Reuse the shell/runtime boundary in the first iPhone Simulator arm64 target.
+3. Add the persistent menu and touch-control groundwork before iPad layout verification.
 
 ## Selected next goal
 
-Goal 23c: add an explicit session profile boundary. Acceptance requires a
-deterministic Restored/Prototype choice, isolated save and configuration roots,
-Restored as the default, no restoration activation in Prototype, and visual +
-filesystem evidence that neither mode can read or write the other's save.
+Goal 24a: port the smallest native DinoPad setup/home boundary from PaperPad.
+Acceptance requires native supported-ROM import/validation, Restored as the
+recommended/default action, an explicit warned Prototype action, and launching
+the already-proven isolated session profile without exposing the desktop mod
+manager. Prove it on macOS before reusing the shell structure for iOS.
+
+Goal 23c outcome: the Restored-default and explicit Prototype engine boundary
+is deterministic, separates shared ROM/package data from profile-local config
+and saves, and disables mod scanning/registration in Prototype. Disposable
+sentinel saves plus visual runs proved cross-mode isolation. Evidence:
+docs/evidence/2026-08-16/macos-profiles/.
 
 Goal 23b outcome: build-time wrappers now cover all 294 replacements and 42
 hooks without runtime code writes. The same immutable arm64 Mach-O passed both

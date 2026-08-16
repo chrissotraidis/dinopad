@@ -38,9 +38,7 @@ index d7a464e..0c45df7 100644
              std::vector<ModHandle> opened_mods;
              std::unordered_map<std::string, size_t> opened_mods_by_id;
              std::unordered_map<std::filesystem::path::string_type, size_t> opened_mods_by_filename;
-@@ -622,6 +630,7 @@ namespace recomp {
- 
-         void initialize_mods();
+@@ -624,4 +632,5 @@ namespace recomp {
          void register_embedded_mod(const std::string &mod_id, std::span<const uint8_t> mod_bytes);
 +        void register_static_mod_code(const std::string& mod_id, ModCodeHandleFactory factory);
          void scan_mods();
@@ -102,7 +100,7 @@ diff --git a/librecomp/src/recomp.cpp b/librecomp/src/recomp.cpp
 index ea17675..8253910 100644
 --- a/librecomp/src/recomp.cpp
 +++ b/librecomp/src/recomp.cpp
-@@ -95,6 +95,11 @@ void recomp::mods::register_embedded_mod(const std::string &mod_id, std::span<co
+@@ -96,4 +96,9 @@ void recomp::mods::register_embedded_mod(const std::string &mod_id, std::span<co
      mod_context->register_embedded_mod(mod_id, mod_bytes);
  }
  
@@ -112,5 +110,3 @@ index ea17675..8253910 100644
 +}
 +
  void recomp::mods::scan_mods() {
-     std::vector<recomp::mods::ModOpenErrorDetails> mod_open_errors;
-     {

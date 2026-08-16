@@ -1,0 +1,100 @@
+diff --git a/src/config/config.hpp b/src/config/config.hpp
+index 98d8202..b1e524b 100644
+--- a/src/config/config.hpp
++++ b/src/config/config.hpp
+@@ -19,6 +19,15 @@ namespace dino::config {
+     void reset_kb_input_bindings();
+     void reset_single_input_binding(dino::input::InputDevice device, dino::input::GameInput input);
+ 
++    enum class SessionProfile {
++        Restored,
++        Prototype,
++    };
++
++    void set_session_profile(SessionProfile profile);
++    SessionProfile get_session_profile();
++    std::string_view get_session_profile_name();
++    std::filesystem::path get_data_folder_path();
+     std::filesystem::path get_app_folder_path();
+     
+     enum class AutosaveMode {
+@@ -141,4 +150,4 @@ namespace dino::config {
+ 
+     bool get_debug_recompsave_enabled();
+     void set_debug_recompsave_enabled(bool enabled);
+-}
+\ No newline at end of file
++}
+diff --git a/src/main.cpp b/src/main.cpp
+index 9447d63..d6021ac 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -65,6 +65,7 @@ std::vector<recomp::GameEntry> supported_games = {
+ struct CliArgs {
+     bool skip_launcher = false;
+     bool show_console = false;
++    dino::config::SessionProfile profile = dino::config::SessionProfile::Restored;
+     int window_width = 1600;
+     int window_height = 960;
+ };
+@@ -101,9 +102,25 @@ int main(int argc, char** argv) {
+                     cli_args.window_height = height;
+                 }
+             }
++        } else if (strcmp(argv[i], "--profile") == 0) {
++            i++;
++            if (i >= argc) {
++                fprintf(stderr, "ERROR: --profile requires restored or prototype\n");
++                return EXIT_FAILURE;
++            }
++            if (strcmp(argv[i], "restored") == 0) {
++                cli_args.profile = dino::config::SessionProfile::Restored;
++            } else if (strcmp(argv[i], "prototype") == 0) {
++                cli_args.profile = dino::config::SessionProfile::Prototype;
++            } else {
++                fprintf(stderr, "ERROR: unknown DinoPad profile '%s'\n", argv[i]);
++                return EXIT_FAILURE;
++            }
+         }
+     }
+ 
++    dino::config::set_session_profile(cli_args.profile);
++
+     // Load project version
+     recomp::Version project_version{};
+     if (!recomp::Version::from_string(version_string, project_version)) {
+@@ -174,6 +191,10 @@ int main(int argc, char** argv) {
+     }
+ 
+     recomp::register_config_path(dino::config::get_app_folder_path());
++    recomp::register_data_path(dino::config::get_data_folder_path());
++    fprintf(stderr, "DinoPad profile: %s (namespace=Profiles/%s)\n",
++            dino::config::get_session_profile_name().data(),
++            dino::config::get_session_profile_name().data());
+     
+     // Register supported games
+     for (const auto& game : supported_games) {
+@@ -230,7 +251,8 @@ int main(int argc, char** argv) {
+         .get_game_thread_name = dino::runtime::get_game_thread_name,
+     };
+ 
+-    dino::runtime::register_mods();
++    dino::runtime::register_mods(
++        cli_args.profile == dino::config::SessionProfile::Restored);
+ 
+     if (cli_args.skip_launcher) {
+         // HACK: This relies on unsupported behavior in the runtime and requires using a fork
+diff --git a/src/runtime/mods.hpp b/src/runtime/mods.hpp
+index 11af481..17ad0e4 100644
+--- a/src/runtime/mods.hpp
++++ b/src/runtime/mods.hpp
+@@ -2,6 +2,6 @@
+ 
+ namespace dino::runtime {
+ 
+-void register_mods();
++void register_mods(bool restoration_enabled);
+ 
+-}
+\ No newline at end of file
++}

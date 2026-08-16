@@ -77,6 +77,15 @@ scripts/runtime-guard.sh macos \
   scripts/smoke-static-prototype-macos.sh
 ```
 
+The profile smoke stages one shared private ROM/package in a disposable root,
+seeds distinct Restored and Prototype FlashRAM files, runs both explicit
+profiles, verifies visual behavior and runtime markers, checks independent
+configuration files, and proves each other-mode save hash stays unchanged:
+
+```sh
+scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
+```
+
 ### Visual tests
 
 - App shell, safe areas, touch layout, `•••` menu, settings, error states, title/gameplay rendering sanity.
@@ -116,6 +125,7 @@ scripts/runtime-guard.sh macos scripts/smoke-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5
 scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh
+scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

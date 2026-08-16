@@ -138,14 +138,19 @@ flowchart TD
 - Private app-container storage: `Application Support/DinoPad/` (macOS) and the app sandbox equivalent on iOS.
 - ROM: private normalized copy after import, never exposed.
 - Saves: Flashram-backed (upstream `SaveType::Flashram`), stored under mode-specific roots so Restored and Prototype saves never mix:
-  - `Application Support/DinoPad/Saves/Restored/`
-  - `Application Support/DinoPad/Saves/Prototype/`
-- Configuration: `Application Support/DinoPad/Config/` with mode-scoped settings; restoration settings only meaningful in Restored Adventure.
+  - `Application Support/DinoPad/Profiles/Restored/saves/`
+  - `Application Support/DinoPad/Profiles/Prototype/saves/`
+- Configuration is isolated under the same profile roots; the validated ROM
+  and build-integrated restoration package data remain in the shared DinoPad
+  data root.
 - RT64 data dir must be explicitly pointed at the container (PaperPad's `paperpad_paths.mm` rationale; the container root is read-only on iPadOS).
 
 ## 9. Mode / restoration boundary
 
 - Both profiles are compiled into one binary. At session start DinoPad registers the restoration module (hooks, replacements, events, config, assets) only for Restored Adventure; Prototype Mode starts with registration disabled.
+- The engine boundary defaults to Restored, accepts explicit
+  `--profile restored|prototype`, and rejects unknown values before runtime
+  initialization. The native Apple home screen will call this same boundary.
 - The current macOS bridge generates a typed table for every OfflineModRecomp
   function and registers a build-time `ModCodeHandle` by manifest ID. Generated
   executable code is statically linked; the private `.nrm` currently supplies

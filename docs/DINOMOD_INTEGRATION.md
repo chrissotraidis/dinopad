@@ -201,11 +201,15 @@ Example options to expose:
 
 Restored and Prototype modes must not share saves:
 
-- Prototype Mode uses the base save namespace (no DinoMod).
-- Restored Adventure uses a separate restored save namespace.
-- `ultramodern::change_save_file(subfolder, name)` in the pinned
-  N64ModernRuntime supports subfolders; the DinoPad bridge selects the
-  namespace at session start.
+- Prototype uses `Profiles/Prototype/saves/dino.bin` and disables mod scanning
+  plus static restoration registration before runtime startup.
+- Restored uses `Profiles/Restored/saves/dino.bin`; it is the default profile.
+- General, graphics, controls, sound, mod-list, and per-mod configuration are
+  also rooted under the active profile. The ROM and package data stay shared
+  and read-only from the session's perspective.
+- A disposable-root smoke with distinct 128 KiB sentinels proved that neither
+  session touched the other profile's save. Evidence:
+  `docs/evidence/2026-08-16/macos-profiles/`.
 
 ## 8. Compatibility pair record
 

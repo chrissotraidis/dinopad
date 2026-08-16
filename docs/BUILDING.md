@@ -1,6 +1,6 @@
 # Building DinoPad
 
-Status: Phase 0 baseline (2026-08-15). No DinoPad build exists yet; the Apple-specific build scripts are still to be written. This document records the target pipeline derived from the pinned upstream guides (`ref/dino-recomp/BUILDING.md`) and PaperPad's maintained Apple build scripts.
+Status: macOS arm64 build active (updated 2026-08-16); iOS scripts remain to be written.
 
 DinoPad does not distribute a ROM or ROM-derived playable output. All generation output is private and ignored.
 
@@ -56,6 +56,20 @@ Scripts still verify/fetch pins and apply maintained patches; they refuse to con
 | Physical iOS | `build-ios-device/Release/DinoPad.app` | arm64 device app; requires your own Apple Development signing team |
 
 Both app artifacts must remain ROM-free (`scripts/check-package-safety.sh` in Phase 10).
+
+## macOS session profiles
+
+Restored Adventure is the default. The current engine boundary can also be
+selected explicitly while the native home screen is being ported:
+
+```sh
+build-macos/DinoPad --profile restored --skip-launcher
+build-macos/DinoPad --profile prototype --skip-launcher
+```
+
+Unknown profile values fail before runtime initialization. ROM/package data is
+shared under the DinoPad data root; configs and saves are isolated under
+`Profiles/Restored/` and `Profiles/Prototype/`.
 
 ## One runtime at a time
 

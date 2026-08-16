@@ -25,7 +25,9 @@ void reorder_texture_pack(recomp::mods::ModContext&) {
 
 }  // namespace
 
-void register_mods() {
+void register_mods(bool restoration_enabled) {
+    recomp::mods::set_scanning_enabled(restoration_enabled);
+
     recomp::mods::ModContentType texture_pack_content_type{
         .content_filename = "rt64.json",
         .allow_runtime_toggle = true,
@@ -38,7 +40,9 @@ void register_mods() {
     recomp::mods::register_mod_container_type(
         "rtz", std::vector{texture_pack_content_type_id}, false);
 
-    dinopad::restoration::register_static_code();
+    if (restoration_enabled) {
+        dinopad::restoration::register_static_code();
+    }
 }
 
 }  // namespace dino::runtime

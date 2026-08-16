@@ -47,9 +47,10 @@ Ordered, numbered, replayable with `scripts/apply-patches.sh`:
 |---|---|---|---|
 | 0001-macos-sdl-metal-window.patch | src/runtime/gfx.cpp | Ports the PaperPad macOS window path: RT64 needs the NSWindow + CAMetalLayer as WindowHandle{window, view} | Yes (Apple-only branch) |
 | 0002-disable-imgui-debug-overlay-on-apple.patch | src/debug_ui/backend.cpp | The pinned imgui debug overlay has no Metal backend and dereferences a Vulkan device; disabling on Apple keeps the game loop alive. The RmlUi launcher registers its own UI | Yes (Apple-only) |
-| 0003-macos-app-folder-path.patch | src/config/config.cpp | Upstream has no Apple config path branch (returns empty -> config in CWD). DinoPad uses PaperPad-style `~/Library/Application Support/DinoPad` | Yes (Apple-only) |
+| 0003-macos-app-folder-path.patch | src/config/config.cpp | Adds PaperPad-style Apple data root plus mode-scoped config roots and a disposable-root test override | Yes (Apple-only path; profile policy is DinoPad-specific) |
 | 0004-input-debug-log.patch | src/input/controls.cpp | Env-gated (`DINOPAD_LOG_INPUT=1`) input state logging for smoke tests/evidence; disabled by default | Yes (off by default) |
 | 0005-audio-debug-log.patch | src/runtime/audio.cpp | Env-gated (`DINOPAD_LOG_AUDIO=1`, `DINOPAD_AUDIO_DUMP=<path>`) audio diagnostics; disabled by default | Yes (off by default) |
+| 0006-session-profiles.patch | main/config/mod registration | Adds Restored-default and explicit Prototype session selection; Prototype disables mod scanning/registration | DinoPad product policy |
 
 Additional patch: `patches/hlslpp/0001-scalar-labs.patch` (hlslpp scalar
 platform header fix required by the pinned RT64/hlslpp combination on Apple).
@@ -62,9 +63,10 @@ Nested upstream patches applied by checkout basename:
 | `patches/plume/0001-metal-ownership-balance.patch` | `plume_metal.cpp` | Balances Metal encoder ownership and avoids over-releasing autoreleased Objective-C objects | Yes (Metal ownership fix) |
 | `patches/N64ModernRuntime/0001-static-mod-code-factories.patch` | librecomp mod API/loader | Lets an application register a build-time `ModCodeHandle` factory by manifest ID, before offline-library/live-recompiler fallback | Yes (opt-in generic API) |
 | `patches/N64ModernRuntime/0002-static-dispatch-lifecycle.patch` | librecomp mod API/loader | Lets a static handle own replacement/hook dispatch and skip runtime writes while preserving conflict tracking and unload behavior | Yes (opt-in generic API; dynamic/live handles unchanged) |
+| `patches/N64ModernRuntime/0003-separate-data-config-roots.patch` | librecomp ROM/mod/config paths | Separates shared ROM/package data from per-profile config/save roots and permits disabling mod scanning before startup | Yes (opt-in APIs; legacy one-root default preserved) |
 
-The ten-file patch set is locked in `dependencies.lock.json` at SHA-256
-`b870903d0f11a2efb3a0a51f14d15f13d30e55e7bf09a3fc4606ba6a4664c239`.
+The twelve-file patch set is locked in `dependencies.lock.json` at SHA-256
+`b9537239d1d897d34550b824159329e2f14530f3d7e094d9845b8c00d8ebf293`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested
