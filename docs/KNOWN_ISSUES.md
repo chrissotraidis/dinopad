@@ -70,6 +70,29 @@ name).
 
 Evidence: measured glyph-brightness tracking across sessions 9-13.
 
+### Second-save name entry: same END sequence lands on backspace
+
+**Status:** Confirmed (2026-08-16, macOS); affects automated second-save
+creation only.
+
+The ENTER NAME keyboard's bottom control row (dot / ! / backspace / END)
+handles right presses differently depending on how the name-entry screen was
+reached. From a fresh boot (no save), typing 5 letters then S x3 + D x1 lands
+on END (sessions 13/14). When opening ENTER NAME through GAME SELECT -> NEW
+with an existing save present, the same S x3 + D x1 lands on the backspace
+key, deleting the last letter (probes 20-28, repeatedly). Adaptive
+measurement (session 13's `measure_bottom`) cycles dot <-> backspace and
+never reaches END from the second-save flow. This is upstream prototype
+behavior in the keyboard's internal cursor math, not a DinoPad regression.
+The first save is created successfully by the game's own flow and persists
+across relaunches (see `docs/evidence/2026-08-16/macos-save-persistence/`).
+A distinct-named second save is deferred; the durable fix for automated input
+is native input injection into the app rather than frontmost-app keystrokes.
+
+Evidence: probe20-28 captures (`.goal-loop/probe2*-evidence/`), session 20
+adaptive END attempt (discarded captures in
+`.goal-loop/discarded-save-captures/`).
+
 ## Game content (prototype, authentic)
 
 ### Opening subtitle typo: "floating moutain"
