@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-16T09:55:00Z
-Current commit: def59ac (this cycle's evidence + docs follow)
+Last updated: 2026-08-16T10:10:00Z
+Current commit: d6510b9 (this cycle's evidence + docs follow)
 Current phase: Phase 2 - Apple Silicon macOS base build
-Active goal: Verify controller input (SDL gamepad) on macOS
+Active goal: Build the DinoPad macOS app bundle (scripts/build-macos-app.sh) with auto ROM staging
 
 ## Green
 
@@ -30,6 +30,7 @@ Active goal: Verify controller input (SDL gamepad) on macOS
 - macOS title/game flow verified (2026-08-16): N64 logo -> Rareware splash -> GAME SELECT -> ENTER NAME (save created, name "AAAAA") -> PLAY THIS GAME? -> YES -> opening cinematic with subtitles renders through RT64 Metal.
 - Stable audio loop verified on macOS (2026-08-16): SDL device opens at 48000 Hz/2ch; continuous float32 stereo PCM captured (95 s session, 36 MB, RMS ~0.09, peak ~0.51, mean spectral entropy 5.5); no audio errors.
 - Controllable gameplay verified on macOS (2026-08-16): the playable tutorial scene ("Krystal! Try shooting the cannon!") responds to input end-to-end. All input types delivered to the recompiled game during gameplay (analog WASD x/y ±0.66, A=0x8000, Z=0x2000 in the [dinopad-in] log); held W displaces the on-screen character and S returns it (NCC tracking: t1 750,1050 -> W -> t2 648,954 -> S -> t3 414,1032 -> idle -> t4 768,1038); A-presses fire the tutorial cannon (orange energy pixels 1,132 -> 112,846, ~100x). Evidence: docs/evidence/2026-08-16/macos-gameplay/.
+- SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
 - scripts/smoke-macos.sh added and green (2026-08-16): bounded automated input-replay smoke of boot -> GAME SELECT -> save load -> playable scene -> input (A/B/Z/Start/WASD) -> clean shutdown. First run FAILED because B was never exercised; B added to the replay, rerun PASS 22/22 (commit def59ac). Evidence: docs/evidence/2026-08-16/macos-smoke/.
 - Flashram save persistence verified on macOS (2026-08-16): the AAAAA save (created 02:30 by the game's own name-entry flow) survived two full launches in one guarded session with SHA-256 unchanged (a62085a8...5516 for dino.bin and dino.bin.bak at all three checkpoints); GAME SELECT lists it after a clean relaunch; loading it after relaunch reaches the playable tutorial scene again. Evidence: docs/evidence/2026-08-16/macos-save-persistence/.
 - Second-save name entry documented as a known issue (same S x3 D x1 lands on backspace when entering via GAME SELECT -> NEW with an existing save); first save creation and persistence unaffected.
@@ -46,7 +47,7 @@ Active goal: Verify controller input (SDL gamepad) on macOS
 - Acoustic playback (speaker/headphones) not checked; audio verified at the pipeline/SDL-device level.
 - RmlUi launcher not exercised on Metal (--skip-launcher used).
 - scripts/build-macos-app.sh (app bundle + auto ROM staging) not yet written.
-- Controller input on macOS not yet exercised (SDL gamepad path untested).
+- Physical controller play on macOS: BLOCKED (external) - both paired pads (8BitDo Lite 2, Xbox Wireless) are Not Connected; SDL sees 0 joysticks. Code path verified via virtual controller; see docs/KNOWN_ISSUES.md.
 - docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/UI_PARITY.md not yet written.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
 
@@ -66,6 +67,7 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Current evidence
 
+- Controller path verified hardware-free + external blocker documented (2026-08-16): docs/evidence/2026-08-16/macos-controller/.
 - Automated smoke PASS (2026-08-16): docs/evidence/2026-08-16/macos-smoke/ (result.txt, runtime.log, game-select + input screenshots, README).
 - Flashram save persistence verified (2026-08-16): docs/evidence/2026-08-16/macos-save-persistence/ (game select before/after relaunch, gameplay after reload, stable hashes).
 - Controllable gameplay verified (2026-08-16): docs/evidence/2026-08-16/macos-gameplay/ (pre_input, move_*, action_*, cannon-fire pair, displacement captures, analysis.txt, README).
@@ -94,10 +96,10 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Verify controller input (SDL gamepad) on macOS.
-2. Build the DinoPad macOS app bundle (scripts/build-macos-app.sh) with auto ROM staging.
-3. Write docs/UPSTREAM.md (source pins, patch list, update procedure).
+1. Build the DinoPad macOS app bundle (scripts/build-macos-app.sh) with auto ROM staging.
+2. Write docs/UPSTREAM.md (source pins, patch list, update procedure).
+3. Verify physical controller input on macOS once a pad is connected (currently externally blocked).
 
 ## Selected next goal
 
-Verify controller input (SDL gamepad) on macOS.
+Build the DinoPad macOS app bundle (scripts/build-macos-app.sh) with auto ROM staging.

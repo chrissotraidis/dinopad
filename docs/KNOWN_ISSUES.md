@@ -110,3 +110,21 @@ Retina) display. Use `--window-width 1024 --window-height 768` on small
 screens, or pass explicit dimensions. Evidence capture helper
 `scripts/capture-window.sh` requires a fitting window to produce a clean
 window-only screenshot.
+
+## External hardware blockers
+
+### No connected game controller (physical-controller verification blocked)
+
+**Status:** External blocker (2026-08-16); code path verified hardware-free.
+
+The machine has two paired Bluetooth gamepads (8BitDo Lite 2 and Xbox
+Wireless Controller) but both report **Not Connected**; SDL enumerates 0
+joysticks and no USB pad is present. Physical-controller play (connect a pad,
+reach gameplay, verify analog + button mapping, connect/disconnect handoff)
+cannot be exercised on this machine until a controller is connected. This is
+not a code defect: `tools/controller_virtual_smoke.cpp` verifies the exact
+SDL gamecontroller calls the game makes (open, GetButton/GetAxis, N64 mapping
+semantics) 11/11 via a virtual controller (evidence:
+`docs/evidence/2026-08-16/macos-controller/`). Unblock when hardware is
+available; then run a guarded session with the pad and record `Controller
+added` in the runtime log plus gameplay screenshots.
