@@ -1,0 +1,79 @@
+diff --git a/librecomp/include/librecomp/mods.hpp b/librecomp/include/librecomp/mods.hpp
+--- a/librecomp/include/librecomp/mods.hpp
++++ b/librecomp/include/librecomp/mods.hpp
+@@ -286,6 +286,7 @@ namespace recomp {
+         struct PatchData {
+             std::array<std::byte, 16> replaced_bytes;
+             std::string mod_id;
++            bool wrote_code = true;
+         };
+ 
+         using GenericFunction = std::variant<recomp_func_t*>;
+@@ -463,6 +464,9 @@ namespace recomp {
+             virtual uint32_t get_base_event_index() = 0;
+             virtual void set_local_section_address(size_t section_index, int32_t address) = 0;
+             virtual GenericFunction get_function_handle(size_t func_index) = 0;
++            virtual bool uses_static_dispatch() const { return false; }
++            virtual void activate_static_dispatch() {}
++            virtual void deactivate_static_dispatch() {}
+         };
+ 
+         class DynamicLibrary;
+diff --git a/librecomp/src/mods.cpp b/librecomp/src/mods.cpp
+--- a/librecomp/src/mods.cpp
++++ b/librecomp/src/mods.cpp
+@@ -2609,12 +2609,15 @@ recomp::mods::CodeModLoadError recomp::mods::ModContext::resolve_code_dependenci
+         // Register the function handle for this hook slot.
+         GenericFunction func = mod.code_handle->get_function_handle(cur_hook.func_index);
+         recomp::mods::register_hook(find_it->second, mod_index, func);
++        if (mod.code_handle->uses_static_dispatch()) {
++            processed_hook_slots[find_it->second] = true;
++        }
+     }
+ 
+     // Populate the relocated section addresses for the mod.
+     for (size_t section_index = 0; section_index < mod.section_load_addresses.size(); section_index++) {
+         mod.code_handle->set_local_section_address(section_index, mod.section_load_addresses[section_index]);
+     }
+ 
+     // Apply all the function replacements in the mod.
+     for (const auto& replacement : mod.recompiler_context->replacements) {
+@@ -2620,18 +2623,33 @@ recomp::mods::CodeModLoadError recomp::mods::ModContext::resolve_code_dependenci
+ 
+         // Copy the original bytes so they can be restored later after the mod is unloaded.
+         PatchData& cur_replacement_data = patched_funcs[to_replace];
+-        memcpy(cur_replacement_data.replaced_bytes.data(), reinterpret_cast<void*>(to_replace), cur_replacement_data.replaced_bytes.size());
+         cur_replacement_data.mod_id = mod.manifest.mod_id;
+-
+-        // Patch the function to redirect it to the replacement.
+-        patch_func(to_replace, mod.code_handle->get_function_handle(replacement.func_index));
++        if (mod.code_handle->uses_static_dispatch()) {
++            cur_replacement_data.wrote_code = false;
++        }
++        else {
++            memcpy(cur_replacement_data.replaced_bytes.data(), reinterpret_cast<void*>(to_replace), cur_replacement_data.replaced_bytes.size());
++            // Patch the function to redirect it to the replacement.
++            patch_func(to_replace, mod.code_handle->get_function_handle(replacement.func_index));
++        }
+     }
++
++    if (mod.code_handle->uses_static_dispatch()) {
++        mod.code_handle->activate_static_dispatch();
++    }
+ 
+     return CodeModLoadError::Good;
+ }
+ 
+ void recomp::mods::ModContext::unload_mods() {
++    for (size_t mod_index : loaded_code_mods) {
++        if (opened_mods[mod_index].code_handle != nullptr) {
++            opened_mods[mod_index].code_handle->deactivate_static_dispatch();
++        }
++    }
+     for (auto& [replacement_func, replacement_data] : patched_funcs) {
+-        unpatch_func(reinterpret_cast<void*>(replacement_func), replacement_data);
++        if (replacement_data.wrote_code) {
++            unpatch_func(reinterpret_cast<void*>(replacement_func), replacement_data);
++        }
+     }
+     patched_funcs.clear();

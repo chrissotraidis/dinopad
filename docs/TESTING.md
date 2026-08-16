@@ -1,6 +1,6 @@
 # DinoPad testing and evidence
 
-Status: Phase 0 baseline (2026-08-15). No runtime evidence exists yet; this defines the test contract from `IMPLEMENTATION_PLAN.md` section 10 and PaperPad's evidence discipline.
+Status: Active implementation contract (updated 2026-08-16).
 
 ## Principles
 
@@ -27,9 +27,9 @@ Run with:
 ctest --test-dir <build-dir> --output-on-failure
 ```
 
-After linking a macOS target that supports runtime mod replacements, verify
-that every generated arm64 entry point owns the runtime's complete 16-byte
-trampoline range:
+The historical developer offline-library feasibility path writes 16-byte
+arm64 trampolines. If that diagnostic path is rebuilt, verify its generated
+entry-point spacing with:
 
 ```sh
 tools/check_patchable_aot.py build-macos/DinoPad \
@@ -63,14 +63,18 @@ scripts/runtime-guard.sh macos \
   scripts/smoke-graceful-shutdown-macos.sh 5
 ```
 
-The static-restoration smoke requires the 460 linked functions, rejects any
-DinoMod/offline Mach-O dependency, temporarily presents the private package as
-an ordinary `.nrm`, disables the developer dylib, and verifies the runtime's
-static-handle selection marker plus restored title flow:
+The production static-restoration smoke requires the 460 linked functions,
+immutable `r-x` `__TEXT`, no writable executable `__GAME` segment, no
+DinoMod/offline Mach-O dependency, and the no-runtime-code-writes marker. It
+temporarily presents the private package as an ordinary `.nrm`, disables the
+developer dylib, and verifies restored title flow. A paired smoke disables the
+package and verifies the same binary stays on its base-function fallback:
 
 ```sh
 scripts/runtime-guard.sh macos \
   scripts/smoke-static-restoration-macos.sh
+scripts/runtime-guard.sh macos \
+  scripts/smoke-static-prototype-macos.sh
 ```
 
 ### Visual tests
@@ -111,6 +115,7 @@ Each evidence README records: commit, upstream pins, target and OS, build comman
 scripts/runtime-guard.sh macos scripts/smoke-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5
 scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh
+scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

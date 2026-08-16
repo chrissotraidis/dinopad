@@ -117,19 +117,17 @@ assets and is preserved as-is (evidence: 2026-08-16 opening-subtitle.png).
 
 ## Build / tooling
 
-### Static restoration replacement patching still requires writable code
+### Resolved: static restoration required writable executable code
 
-**Status:** Known feasibility-only limitation (2026-08-16).
+**Status:** Fixed and regression-checked (2026-08-16, macOS).
 
-DinoPad's static code handle now removes the offline dylib and links all 460
-restoration functions into the executable. N64ModernRuntime still installs its
-294 arm64 replacement trampolines by rewriting generated base-game function
-entry points. The Apple arm64 linker forces maximum protection to equal initial
-protection, so the current macOS feasibility target places executable text in
-an `rwx` `__GAME` segment and restores touched pages to `r-x` after patching.
-This must not be carried to iOS; the next bridge slice will statically dispatch
-to linked replacements without runtime code writes. Evidence:
-`docs/evidence/2026-08-16/dinomod-static-macos/`.
+The developer offline path installed 294 arm64 trampolines by rewriting
+base-game entry points. DinoPad now generates build-time replacement/hook
+wrappers and lets the static handle activate them without `patch_func`, JIT,
+or any other runtime code write. The linked Mach-O has immutable `r-x`
+`__TEXT` (`maxprot == initprot == 0x5`) and no `__GAME` segment. Restored and
+base-fallback Prototype visual smokes both pass on the same binary. Evidence:
+`docs/evidence/2026-08-16/dinomod-static-dispatch-macos/`.
 
 ### Resolved: 16-byte arm64 trampoline overwrote adjacent AOT function
 

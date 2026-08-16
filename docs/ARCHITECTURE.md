@@ -149,8 +149,12 @@ flowchart TD
 - The current macOS bridge generates a typed table for every OfflineModRecomp
   function and registers a build-time `ModCodeHandle` by manifest ID. Generated
   executable code is statically linked; the private `.nrm` currently supplies
-  only manifest, symbol, binary-data, and asset content. Runtime replacement
-  writes remain a temporary macOS-only boundary pending static dispatch.
+  only manifest, symbol, binary-data, and asset content. A build-time generator
+  renames each affected base definition and emits 328 strong wrappers for 294
+  replacements and 35 unique hook slots. The wrappers dispatch to the linked
+  restoration code only while Restored is active and otherwise call the renamed
+  base definitions. N64ModernRuntime records conflicts but performs no code
+  writes for this handle.
 - Saves and configs are selected by the active profile; switching modes can never read or write the other profile's root.
 - Prototype Mode copy must stay honest: platform/renderer/compatibility patches remain, restoration does not.
 - DinoMod's own data (`ref/dinomod-enhanced-recompiled`) stays read-only; every bridge/adapter is DinoPad-owned; no AI-generated patches are submitted upstream.
@@ -192,7 +196,8 @@ macOS arm64 (base frame -> title -> gameplay -> audio/input/save) -> static Dino
 - Remaining RT64 iOS Metal ownership and UIKit patches must be re-derived for
   the dino-planet fork; worker-autorelease and Plume ownership subsets are now
   ported and macOS regression-tested.
-- Full DinoMod offline AOT feasibility is proven on macOS; the production
-  static handle with no dynamic library or writable executable segment remains.
+- Full DinoMod offline AOT and no-write static dispatch are proven on macOS;
+  iOS still needs the private package data embedded and the live-recompiler
+  implementation excluded from the mobile link.
 - DinoMod redistribution clearance unresolved (release gate only).
 - Disk pressure (28 GiB free at bootstrap) before full AOT generation.

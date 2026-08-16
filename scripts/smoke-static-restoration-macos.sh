@@ -61,6 +61,19 @@ if otool -L "$APP" | rg -qi 'dinomod|offline'; then
   echo "ERROR: DinoPad has a dynamic DinoMod dependency" >&2
   exit 1
 fi
+text_protections="$(otool -l "$APP" | awk '
+  $1 == "segname" && $2 == "__TEXT" { in_text = 1 }
+  in_text && $1 == "maxprot" { maxprot = $2 }
+  in_text && $1 == "initprot" { print maxprot " " $2; exit }
+')"
+if [ "$text_protections" != "0x00000005 0x00000005" ]; then
+  echo "ERROR: expected immutable r-x __TEXT, found: $text_protections" >&2
+  exit 1
+fi
+if otool -l "$APP" | awk '$1 == "segname" && $2 == "__GAME" { found = 1 } END { exit !found }'; then
+  echo "ERROR: DinoPad still contains the former writable executable __GAME segment" >&2
+  exit 1
+fi
 
 mv "$OFFLINE_NRM" "$STATIC_NRM"
 MOVED_NRM=1
@@ -101,5 +114,9 @@ if ! rg -q "Using statically linked code for mod dinomod_enhanced" "$SCRATCH/run
   echo "ERROR: runtime did not select the static mod code handle" >&2
   exit 1
 fi
+if ! rg -q "Static restoration dispatch enabled .*no runtime code writes" "$SCRATCH/runtime.log"; then
+  echo "ERROR: runtime did not confirm no-write static dispatch" >&2
+  exit 1
+fi
 
-echo "STATIC RESTORATION RESULT: PASS (460 linked functions; no dynamic dependency)"
+echo "STATIC RESTORATION RESULT: PASS (460 linked functions; r-x text; no runtime code writes; no dynamic dependency)"

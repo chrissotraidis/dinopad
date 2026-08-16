@@ -61,9 +61,10 @@ Nested upstream patches applied by checkout basename:
 | `patches/rt64/0001-metal-worker-autorelease-lifetime.patch` | RT64 application, queues, worker threads | Stops/joins Metal workers before dependent resources and scopes Apple autoreleases; fixes the `RT64 Present` shutdown crash | Yes (lifetime/Apple ownership fix) |
 | `patches/plume/0001-metal-ownership-balance.patch` | `plume_metal.cpp` | Balances Metal encoder ownership and avoids over-releasing autoreleased Objective-C objects | Yes (Metal ownership fix) |
 | `patches/N64ModernRuntime/0001-static-mod-code-factories.patch` | librecomp mod API/loader | Lets an application register a build-time `ModCodeHandle` factory by manifest ID, before offline-library/live-recompiler fallback | Yes (opt-in generic API) |
+| `patches/N64ModernRuntime/0002-static-dispatch-lifecycle.patch` | librecomp mod API/loader | Lets a static handle own replacement/hook dispatch and skip runtime writes while preserving conflict tracking and unload behavior | Yes (opt-in generic API; dynamic/live handles unchanged) |
 
-The nine-file patch set is locked in `dependencies.lock.json` at SHA-256
-`8af7a25e4a279fa4c33f37564cea1cbf5435142425aa5d3c1f18ec42789db616`.
+The ten-file patch set is locked in `dependencies.lock.json` at SHA-256
+`b870903d0f11a2efb3a0a51f14d15f13d30e55e7bf09a3fc4606ba6a4664c239`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested

@@ -1,0 +1,14 @@
+Restored session:
+Using statically linked code for mod dinomod_enhanced
+Static restoration dispatch enabled (294 replacements; 35 hook slots; no runtime code writes)
+STATIC RESTORATION RESULT: PASS (460 linked functions; r-x text; no runtime code writes; no dynamic dependency)
+runtime-guard: cleanup: 0 booted Simulators
+runtime-guard: cleanup: no DinoPad process
+
+Prototype fallback session:
+restoration package disabled; testing base-function fallback
+Static handle marker: absent
+Static dispatch activation marker: absent
+STATIC PROTOTYPE RESULT: PASS (same binary; restoration absent; base wrappers active)
+runtime-guard: cleanup: 0 booted Simulators
+runtime-guard: cleanup: no DinoPad process

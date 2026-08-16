@@ -97,6 +97,14 @@ tools/generate_static_mod_exports.py \
     "$STATIC_DIR/dinomod_static_exports.h" \
     "$STATIC_DIR/dinomod_static_exports.c"
 
+echo "== Generating static replacement/hook dispatch =="
+tools/generate_static_dispatch.py \
+    "$OUT_DIR/mod_syms.bin" \
+    "generated/aot/RecompiledFuncs/recomp_overlays.inl" \
+    "$STATIC_DIR/dinomod_static_dispatch.c" \
+    "generated/aot/RecompiledFuncs" \
+    "generated/aot/RecompiledPatches"
+
 # 5. Build N64ModernRuntime's macOS offline-mod developer format. The package
 # filename suffix selects the precompiled code handle, avoiding live/JIT
 # recompilation while the production static bridge is brought up separately.
@@ -117,6 +125,7 @@ shasum -a 256 \
     "$OUT_DIR/dinomod_enhanced.nrm" \
     "$OUT_DIR/mod_syms.bin" \
     "$STATIC_DIR/dinomod_enhanced.c" \
+    "$STATIC_DIR/dinomod_static_dispatch.c" \
     "$STATIC_DIR/dinomod_static_exports.h" \
     "$STATIC_DIR/dinomod_static_exports.c"
 if [[ -f "$OUT_DIR/dinomod_enhanced.offline.dylib" ]]; then

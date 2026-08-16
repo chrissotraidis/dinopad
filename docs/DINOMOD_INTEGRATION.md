@@ -15,7 +15,7 @@ Compatibility pair: Dino Recompiled **v0.3.0** + DinoMod Enhanced **v0.9.3**.
 | OfflineModRecomp emitted C | DONE (2026-08-16: 6,979,048 B; 460 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks) |
 | Emitted C compiles on arm64 + ABI harness | DONE (2026-08-16: 0 warnings; 13/13 harness checks) |
 | One import bound + one mod function executed | DONE (2026-08-16: recomp_get_config_u32 bound; mod_func_16 = kiosk_icons_gold_silver_keys ran; 0 failures) |
-| Replacements/hooks/events bound into game runtime | NOT STARTED (next: 294 replacements + 42 hooks; release gate still required) |
+| Replacements/hooks/events bound into game runtime | DONE on macOS (static no-write dispatch: 294 replacements, 42 hooks / 35 slots; release gate still required) |
 | **Maintainer permission / license** | **BLOCKED** - release gate; no public Restored binary/source integration without it |
 
 ## 2. Hard policy gate (from the plan)
@@ -169,10 +169,17 @@ the runtime selected the static handle and rendered the same restored title
 flow. The executable has no DinoMod dynamic dependency. Evidence:
 `docs/evidence/2026-08-16/dinomod-static-macos/`.
 
-This is not yet the production iOS dispatch boundary. The existing mod loader
-still installs replacements by writing trampolines over base-game functions,
-so macOS still needs its writable/executable `__GAME` segment. Goal 23b must
-replace those runtime writes with static dispatch before the iOS build.
+Static no-write dispatch result (goal 23b, 2026-08-16): a DinoPad build-time
+generator maps every replacement/hook record to the generated base overlay
+table, renames 328 affected base definitions, and emits strong wrappers. The
+294 replacement wrappers call the linked `mod_func_N` only while the static
+handle is active; hook wrappers route 42 callbacks through 35 runtime hook
+slots around the original functions. N64ModernRuntime still validates and
+records replacement conflicts but skips `patch_func` and unpatch writes for
+the static handle. The macOS Mach-O has `r-x` `__TEXT`, no `__GAME` segment,
+and no DinoMod dynamic dependency. Restored and Prototype fallback visual
+smokes pass on the same binary. Evidence:
+`docs/evidence/2026-08-16/dinomod-static-dispatch-macos/`.
 
 If offline conversion proves incomplete during live binding (goal 21), fall
 back to a generic static bridge or ship Prototype-only until solved (plan
@@ -209,10 +216,8 @@ Restored and Prototype modes must not share saves:
 ## 9. Open questions / blockers
 
 1. Maintainer permission or license (BLOCKED for public Restored).
-2. Production static dispatch: the DinoPad-owned static code handle removes the
-   developer-only dynamic library (goal 23a, 2026-08-16). Replacing writable
-   base-function trampolines with an iOS-safe dispatch mechanism remains (goal
-   23b).
+2. Embed the permitted non-code package data for iOS and exclude the unused
+   live-recompiler implementation from the mobile target.
 3. Asset patch redistribution (ROM-derived content rules; build from baserom
    privately, ship only legally distributable derived assets).
 4. Whether "DinoMod Enhanced" branding is permitted in the app UI.

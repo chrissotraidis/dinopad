@@ -1,5 +1,6 @@
 #include "dinopad/restoration.hpp"
 
+#include <cstdio>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -8,6 +9,8 @@
 #include "librecomp/mods.hpp"
 #include "librecomp/overlays.hpp"
 #include "recompiler/context.h"
+
+extern "C" void dinopad_static_dispatch_set_enabled(int enabled);
 
 namespace dinopad::restoration {
 namespace {
@@ -108,6 +111,17 @@ public:
         return dinopad_mod_functions[function_index];
     }
 
+    bool uses_static_dispatch() const final { return true; }
+    void activate_static_dispatch() final {
+        dinopad_static_dispatch_set_enabled(1);
+        std::fprintf(stderr,
+                     "Static restoration dispatch enabled (294 replacements; "
+                     "35 hook slots; no runtime code writes)\n");
+    }
+    void deactivate_static_dispatch() final {
+        dinopad_static_dispatch_set_enabled(0);
+    }
+
 private:
     bool is_good_ = false;
 };
@@ -125,3 +139,9 @@ void register_static_code() {
 }
 
 }  // namespace dinopad::restoration
+
+extern "C" void dinopad_static_run_hook(uint8_t* rdram,
+                                         recomp_context* context,
+                                         unsigned long slot) {
+    recomp::mods::run_hook(rdram, context, static_cast<size_t>(slot));
+}
