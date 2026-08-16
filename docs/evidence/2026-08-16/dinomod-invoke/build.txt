@@ -1,0 +1,4 @@
+build:
+  clang -O2 -I include -I ref/dino-recomp/lib/N64Recomp/include tools/mod_invoke_harness.c .goal-loop/dinomod-aot/harness/dinomod_enhanced.o -o mod_invoke_harness
+run:
+  .goal-loop/dinomod-aot/harness/mod_invoke_harness

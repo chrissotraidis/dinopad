@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-16T16:00:00Z
+Last updated: 2026-08-16T17:00:00Z
 Current commit: 0e03822 (this cycle's evidence + docs follow)
 Current phase: Phase 3 - Static DinoMod on macOS (technical AOT gate; release gate separate)
-Active goal: Goal 21 - bind one DinoMod import and invoke one safe exported function/hook on macOS (goal 20, offline-mod-recomp PoC, passed this cycle)
+Active goal: COMPLETE - goals 20-21 passed; next goal: bind replacements/hooks/events from the mod symbol file into the DinoPad restoration bridge
 
 ## Green
 
@@ -33,6 +33,7 @@ Active goal: Goal 21 - bind one DinoMod import and invoke one safe exported func
 - tools/normalize_rom.py added and green (2026-08-16): plan-listed ROM byte-order normalizer + fingerprint validator (z64/v64/n64 detection, big-endian normalization, supported MD5 check) with 16/16 self-tests; real private ROM validated (ALREADY, z64, MD5 ok); wired into scripts/build-macos-app.sh ROM staging. Evidence: docs/evidence/2026-08-16/macos-rom-normalizer/.
 - docs/DINOMOD_INTEGRATION.md written (2026-08-16): package inventory, mod.toml config schema summary, AOT path and toolchain status, offline-mod-recomp feasibility notes, settings bridge, save namespace isolation, compatibility pair, and the maintainer-permission gate.
 - Offline-mod-recomp proof of concept green (2026-08-16): pinned DinoMod v0.9.3 ELF built (MIPS-II, 42,997,184 B) with n64recomp-clang; RecompModTool produced a zip-tested .nrm (mod_syms.bin 201,008 B, mod_binary.bin 42,711,744 B, mod.json, thumb.png); OfflineModRecomp emitted 6,979,048 B of C (920 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks); the C compiles on arm64 macOS with 0 warnings against the new DinoPad-owned include/mod_recomp.h and links into tools/mod_aot_harness.c passing 13/13 ABI checks. Evidence: docs/evidence/2026-08-16/dinomod-aot/. Replayable via scripts/generate-restoration.sh.
+- DinoMod live invocation green (2026-08-16): tools/mod_invoke_harness.c binds imported_funcs[10] (recomp_get_config_u32) and executes the statically converted mod_func_16 (the pinned mod's kiosk_icons_gold_silver_keys restoration handler) on arm64 against a simulated N64 address space. Verified 0 failures: the import was called with all three config keys, mod-local static state updated, and base-game inventory data received exactly the constants the mod source writes (0x25C/0x25D/0x25E/0x260/0x261), proving RELOC + REF_RELOC semantics and the sign-extended gpr address convention. Evidence: docs/evidence/2026-08-16/dinomod-invoke/.
 - docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch series inventory (0001-0005 + hlslpp), test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
@@ -102,12 +103,12 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Bind one DinoMod import and invoke one safe exported function/hook on macOS against a live runtime context (plan goal 21), using mod_syms.bin's 294 replacements/42 hooks as the binding table source.
+1. Build the replacement/hook/event binding tables from mod_syms.bin and connect the statically compiled mod to the DinoPad macOS runtime so the game visibly applies restoration (plan goals 22-23); a visible restored-vs-prototype difference is the acceptance gate.
 2. Port the PaperPad Apple shell (Phase 4): native ROM import/validation UI on macOS + touch overlay groundwork.
 3. Start the iPhone Simulator build (Phase 5) after the Apple shell milestone.
 
 ## Selected next goal
 
-Goal 21: bind one DinoMod import and invoke one safe exported function/hook on macOS (live runtime context), validating the hook/replacement binding tables generated from mod_syms.bin. The AOT C now compiles and links (goal 20); the remaining unknown is live execution semantics.
+Goal 22: bind the mod's 294 replacements + 42 hooks from mod_syms.bin into the game runtime on macOS and verify one visible restoration difference between restored and prototype behavior. Goals 20 (AOT C compiles/links) and 21 (one import bound, one mod function executes with correct RELOC/REF_RELOC semantics) are complete and evidence-backed.
 
-Goal 20 outcome summary (this cycle): the offline-mod-recomp proof of concept passed end to end. Pinned DinoMod v0.9.3 built a MIPS-II ELF, RecompModTool produced a zip-tested .nrm, OfflineModRecomp emitted 6,979,048 B of C (920 functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks), the C compiles on arm64 with 0 warnings against the new include/mod_recomp.h, and tools/mod_aot_harness.c passes 13/13 ABI checks. Evidence: docs/evidence/2026-08-16/dinomod-aot/. Replayable via scripts/generate-restoration.sh.
+Goal 21 outcome summary (this cycle): tools/mod_invoke_harness.c bound imported_funcs[10] (recomp_get_config_u32) and executed the statically converted mod_func_16 - the pinned mod's kiosk_icons_gold_silver_keys restoration handler - on arm64 against a simulated N64 address space. 0 failures; the import was called with the exact config keys and base-game inventory data received exactly the constants the mod source writes. Evidence: docs/evidence/2026-08-16/dinomod-invoke/.

@@ -14,7 +14,8 @@ Compatibility pair: Dino Recompiled **v0.3.0** + DinoMod Enhanced **v0.9.3**.
 | Mod ELF + .nrm + mod symbols built | DONE (2026-08-16, private; MIPS-II ELF 42,997,184 B; .nrm 4 files, zip-tested) |
 | OfflineModRecomp emitted C | DONE (2026-08-16: 6,979,048 B; 920 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks) |
 | Emitted C compiles on arm64 + ABI harness | DONE (2026-08-16: 0 warnings; 13/13 harness checks) |
-| Restored mode integrated into DinoPad | NOT STARTED (next: bind imports, invoke one hook on macOS; release gate still required) |
+| One import bound + one mod function executed | DONE (2026-08-16: recomp_get_config_u32 bound; mod_func_16 = kiosk_icons_gold_silver_keys ran; 0 failures) |
+| Replacements/hooks/events bound into game runtime | NOT STARTED (next: 294 replacements + 42 hooks; release gate still required) |
 | **Maintainer permission / license** | **BLOCKED** - release gate; no public Restored binary/source integration without it |
 
 ## 2. Hard policy gate (from the plan)
@@ -133,6 +134,20 @@ Prerequisites added to the build environment (documented for reproducibility):
 Replayable script: `scripts/generate-restoration.sh`. Evidence:
 `docs/evidence/2026-08-16/dinomod-aot/`.
 
+Live invocation result (goal 21, 2026-08-16): `tools/mod_invoke_harness.c`
+binds `imported_funcs[10]` (`recomp_get_config_u32`) and executes the
+statically converted `mod_func_16` - the pinned mod's
+`kiosk_icons_gold_silver_keys()` handler in `src/dlls/engine/1_cmdmenu.c` -
+on arm64 against a simulated N64 address space loaded exactly like the
+runtime's `init_mod_code`. Verified 0 failures: the import stub was called
+with the exact config keys (`cmdmenu_icons_gold_silver_keys`,
+`cmdmenu_icons_firefly`, `cmdmenu_icons_energy_eggs`), the mod's static state
+bytes updated, and base-game inventory data received exactly the constants
+the mod source writes when enabled (TEXTABLE_25C/25D/25E/260/261). This proves
+RELOC (mod-local) and REF_RELOC (base-game) relocation semantics plus the
+sign-extended gpr address convention, with no live recompilation. Evidence:
+`docs/evidence/2026-08-16/dinomod-invoke/`.
+
 If offline conversion proves incomplete during live binding (goal 21), fall
 back to a generic static bridge or ship Prototype-only until solved (plan
 risk table).
@@ -168,7 +183,7 @@ Restored and Prototype modes must not share saves:
 ## 9. Open questions / blockers
 
 1. Maintainer permission or license (BLOCKED for public Restored).
-2. OfflineModRecomp completeness for this mod: compile/link ABI gate passed (2026-08-16); live import binding + one-hook invocation remains (goal 21).
+2. OfflineModRecomp completeness for this mod: compile/link ABI gate passed (2026-08-16); one import bound and one mod function executed correctly (goal 21, 2026-08-16). Replacements/hooks/events binding into the game runtime remains (goal 22).
 3. Asset patch redistribution (ROM-derived content rules; build from baserom
    privately, ship only legally distributable derived assets).
 4. Whether "DinoMod Enhanced" branding is permitted in the app UI.

@@ -1,0 +1,3 @@
+upstream pins:
+  dinomod-enhanced-recompiled v0.9.3 = d79e86be2304cba75216b0b98e9fb53ee99b7500
+  N64Recomp (dino-recomp submodule) = 8b46781e7d248ce24e235a60fc83cd7dafd56325
