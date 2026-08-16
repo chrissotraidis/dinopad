@@ -1,0 +1,113 @@
+diff --git a/src/runtime/audio.cpp b/src/runtime/audio.cpp
+index 6c38c22..2db700e 100644
+--- a/src/runtime/audio.cpp
++++ b/src/runtime/audio.cpp
+@@ -1,10 +1,12 @@
+-#include "audio.hpp"
+-
+-#include <array>
+-#include <cstdint>
+-#include <cassert>
+-#include <stdexcept>
+-#include <vector>
++#include "audio.hpp"
++
++#include <array>
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cassert>
++#include <stdexcept>
++#include <vector>
+ 
+ #include "config/config.hpp"
+ #include "common/error.hpp"
+@@ -13,8 +15,18 @@
+ 
+ namespace dino::runtime {
+ 
+-static SDL_AudioCVT audio_convert;
+-static SDL_AudioDeviceID audio_device = 0;
++static SDL_AudioCVT audio_convert;
++static SDL_AudioDeviceID audio_device = 0;
++
++// DinoPad: optional smoke-test audio diagnostics, off by default.
++// DINOPAD_LOG_AUDIO=1 logs device open and a periodic queue status.
++// DINOPAD_AUDIO_DUMP=<path> writes the resampled float stereo PCM stream.
++static const bool log_audio = [] {
++    const char* env = getenv("DINOPAD_LOG_AUDIO");
++    return env != nullptr && env[0] != '\0' && env[0] != '0';
++}();
++static FILE* audio_dump_file = nullptr;
++static uint64_t audio_dump_bytes = 0;
+ 
+ // Samples per channel per second.
+ static uint32_t sample_rate = 48000;
+@@ -92,10 +104,28 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
+         }
+     }
+ 
+-    // Queue the swapped audio data.
+-    // Offset the data start by only half the discarded frame count as the other half of the discarded frames are at the end of the buffer.
+-    SDL_QueueAudio(audio_device, samples_to_queue, num_bytes_to_queue);
+-}
++    // Queue the swapped audio data.
++    // Offset the data start by only half the discarded frame count as the other half of the discarded frames are at the end of the buffer.
++    SDL_QueueAudio(audio_device, samples_to_queue, num_bytes_to_queue);
++
++    // DinoPad: optional PCM dump and periodic loop status for smoke tests.
++    if (audio_dump_file != nullptr) {
++        fwrite(samples_to_queue, 1, num_bytes_to_queue, audio_dump_file);
++        audio_dump_bytes += num_bytes_to_queue;
++    }
++    if (log_audio) {
++        static uint32_t last_status_ms = 0;
++        uint32_t now_ms = SDL_GetTicks();
++        if (now_ms - last_status_ms >= 5000) {
++            last_status_ms = now_ms;
++            fprintf(stderr, "[dinopad-audio] t=%ums queued=%llu bytes buffer=%llu us dumped=%llu\n",
++                    now_ms,
++                    (unsigned long long)SDL_GetQueuedAudioSize(audio_device),
++                    (unsigned long long)cur_queued_microseconds,
++                    (unsigned long long)audio_dump_bytes);
++        }
++    }
++}
+ 
+ size_t get_frames_remaining() {
+     constexpr float buffer_offset_frames = 1.0f;
+@@ -158,12 +188,27 @@ bool reset_audio(uint32_t output_freq) {
+         return false;
+     }
+ 
+-    SDL_PauseAudioDevice(audio_device, 0);
+-
+-    output_sample_rate = output_freq;
+-    update_audio_converter();
+-
+-    return true;
+-}
++    SDL_PauseAudioDevice(audio_device, 0);
++
++    output_sample_rate = output_freq;
++    update_audio_converter();
++
++    if (log_audio) {
++        fprintf(stderr, "[dinopad-audio] SDL device opened (id=%u, %u Hz, %u ch)\n",
++                audio_device, output_sample_rate, output_channels);
++    }
++    const char* dump_path = getenv("DINOPAD_AUDIO_DUMP");
++    if (dump_path != nullptr && dump_path[0] != '\0') {
++        audio_dump_file = fopen(dump_path, "wb");
++        if (audio_dump_file == nullptr) {
++            fprintf(stderr, "[dinopad-audio] failed to open PCM dump: %s\n", dump_path);
++        }
++        else {
++            fprintf(stderr, "[dinopad-audio] dumping float32 stereo PCM to %s\n", dump_path);
++        }
++    }
++
++    return true;
++}
+ 
+ }

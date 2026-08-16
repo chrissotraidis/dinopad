@@ -1,0 +1,46 @@
+diff --git a/src/config/config.cpp b/src/config/config.cpp
+index b6735bd..e47e119 100644
+--- a/src/config/config.cpp
++++ b/src/config/config.cpp
+@@ -158,22 +158,30 @@ std::filesystem::path get_app_folder_path() {
+    }
+ 
+    CoTaskMemFree(known_path);
+-#elif defined(__linux__)
+-   // check for APP_FOLDER_PATH env var used by AppImage
+-   if (getenv("APP_FOLDER_PATH") != nullptr) {
+-       return std::filesystem::path{getenv("APP_FOLDER_PATH")};
+-   }
+-
+-   const char *homedir;
++#elif defined(__linux__)
++   // check for APP_FOLDER_PATH env var used by AppImage
++   if (getenv("APP_FOLDER_PATH") != nullptr) {
++       return std::filesystem::path{getenv("APP_FOLDER_PATH")};
++   }
++
++   const char *homedir;
+ 
+    if ((homedir = getenv("HOME")) == nullptr) {
+        homedir = getpwuid(getuid())->pw_dir;
+    }
+ 
+-   if (homedir != nullptr) {
+-       recomp_dir = std::filesystem::path{homedir} / (std::u8string{u8".config/"} + std::u8string{program_id});
+-   }
+-#endif
++   if (homedir != nullptr) {
++       recomp_dir = std::filesystem::path{homedir} / (std::u8string{u8".config/"} + std::u8string{program_id});
++   }
++#elif defined(__APPLE__)
++   // DinoPad: Application Support/DinoPad (PaperPad-style app-container path).
++   // Upstream has no Apple branch and returns an empty path, which puts config
++   // and saves in the process working directory.
++   const char *apple_home = getenv("HOME");
++   if (apple_home != nullptr) {
++       recomp_dir = std::filesystem::path{apple_home} / "Library/Application Support" / "DinoPad";
++   }
++#endif
+ 
+     return recomp_dir;
+ }

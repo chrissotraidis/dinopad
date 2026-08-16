@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-15T21:00:00Z
-Current commit: 4ef33ef
+Last updated: 2026-08-16T08:00:00Z
+Current commit: <pending cycle commit>
 Current phase: Phase 2 - Apple Silicon macOS base build
-Active goal: Reach the title screen and verify a stable audio loop on macOS
+Active goal: Verify keyboard/controller input and reach controllable gameplay on macOS
 
 ## Green
 
@@ -25,52 +25,47 @@ Active goal: Reach the title screen and verify a stable audio loop on macOS
 - Apple window adapter (SDL Metal) and hlslpp fix applied as replayable patches; apply-patches.sh and check-repo-safety.sh verify patch state.
 - DinoPad macOS executable links and renders the first Metal frame: the game boots to the GAME SELECT screen on arm64 macOS (2026-08-15).
 - Boot blockers resolved: weak-symbol link order (patches before base) and imgui debug overlay disabled on Apple (no Metal backend).
-- Key architecture finding: dino-recomp renderer already maps Metal on __APPLE__; src/runtime/gfx.cpp create_window() is the first macOS blocker (static_assert on Apple).
+- Patch series extended to 0004 (env-gated input logging) and 0005 (env-gated audio device/PCM logging); repo safety audit clean with the new patches.
+- Input verified end-to-end on macOS: Space = N64 A, WASD = analog, IJKL = D-pad, Enter = Start all reach the recompiled game (logged via [dinopad-in]).
+- macOS title/game flow verified (2026-08-16): N64 logo -> Rareware splash -> GAME SELECT -> ENTER NAME (save created, name "AAAAA") -> PLAY THIS GAME? -> YES -> opening cinematic with subtitles renders through RT64 Metal.
+- Stable audio loop verified on macOS (2026-08-16): SDL device opens at 48000 Hz/2ch; continuous float32 stereo PCM captured (95 s session, 36 MB, RMS ~0.09, peak ~0.51, mean spectral entropy 5.5); no audio errors.
+- scripts/capture-window.sh + tools/window_id.swift added for clean window-only evidence screenshots.
+- docs/KNOWN_ISSUES.md created; naming-screen input quirks documented (analog-only cursor, +3 key jump).
 - Private supported ROM present; MD5 verified as 49f7bb346ade39d1915c22e090ffd748 (path never exposed publicly).
-- Commits: 96f8377, 7c42e58, 26f75f9, 5500d28, a4089e1, 215b71f, 66f1e69, 0d1e7ea, 0e1f9af.
+- Commits: 96f8377, 7c42e58, 26f75f9, 5500d28, a4089e1, 215b71f, 66f1e69, 0d1e7ea, 0e1f9af, 10f6b1d (+ this cycle).
 - Incident resolved: spirv-cross build output (build/) was briefly tracked; removed and /build/ ignored (0e1f9af).
-- Commits: 96f8377, 7c42e58, 26f75f9, 5500d28.
-- Commits: 96f8377 (docs bootstrap), 7c42e58 (upstream pins), 26f75f9 (scripts).
 
 ## Red / blocked
 
-- No build, runtime, or gameplay evidence exists yet.
-- docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/KNOWN_ISSUES.md, docs/UI_PARITY.md, docs/PLAYTEST_MATRIX.md not yet written.
-- Title screen and gameplay not yet reached/validated; audio, input, and saves unverified on macOS.
+- Controllable gameplay not yet exercised (opening cinematic reached; input during a playable scene is next).
+- Saves (Flashram) persistence across relaunch not yet verified.
+- Acoustic playback (speaker/headphones) not checked; audio verified at the pipeline/SDL-device level.
 - RmlUi launcher not exercised on Metal (--skip-launcher used).
 - scripts/build-macos-app.sh (app bundle + auto ROM staging) not yet written.
+- docs/UPSTREAM.md, docs/DINOMOD_INTEGRATION.md, docs/UI_PARITY.md, docs/PLAYTEST_MATRIX.md not yet written.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
 
 ## Last successful commands
 
 ```sh
-./scripts/bootstrap.sh                              # PASS: all checkouts pinned, audit clean
-./scripts/check-repo-safety.sh                      # PASS: 8/8 checks
-./scripts/runtime-guard.sh macos sleep 4            # PASS: acquire -> run -> cleanup -> release
-scripts/runtime-guard.sh macos echo should-not-run  # PASS: rejected while lock held (rc=1)
-./scripts/build-tools.sh                            # PASS: 5 host tools + MIPS clang
-./scripts/generate-base.sh                          # PASS: 219 funcs + RSP + 2561 patch funcs
-cmake -S . -B build-macos -G Ninja -DCMAKE_BUILD_TYPE=Release   # PASS
-cmake --build build-macos --parallel 4               # PASS: full runtime stack static libs (arm64)
-./scripts/apply-patches.sh                           # PASS: idempotent patch series
-./scripts/check-repo-safety.sh                       # PASS: patches applied, push URLs disabled
-cmake --build build-macos --target DinoPad           # PASS: arm64 executable
-./build-macos/DinoPad --skip-launcher                # PASS: boots to GAME SELECT, stable 45s+
+./scripts/apply-patches.sh                           # PASS: series 0001-0005 + hlslpp applied
+./scripts/check-repo-safety.sh                       # PASS: clean (private paths, patches covered)
+cmake --build build-macos --parallel 4 --target DinoPad   # PASS: incremental, arm64 executable
+scripts/runtime-guard.sh macos bash <session>        # PASS: guarded macOS sessions (14 total)
+./build-macos/DinoPad --skip-launcher --window-width 1024 --window-height 768  # PASS with DINOPAD_LOG_* env
+# full flow: A x3 (boot) -> A x5 (name AAAAA) -> S x3, D x1 (END) -> A (PLAY THIS GAME?) -> A (YES) -> opening cinematic
 md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090ffd748 (private, untracked)
 ```
 
 ## Current evidence
 
+- macOS title/game flow + stable audio loop (2026-08-16): docs/evidence/2026-08-16/macos-title-audio/ (boot, game select, name entry, play question, opening cinematic screenshots; runtime excerpt; README).
 - Reference checkouts resolved and push-disabled (2026-08-15): PaperPad 644945d..., dino-recomp 725b2ed..., dinomod d79e86b...
-- Repository safety audit green (2026-08-15).
-- Runtime guard acquire/reject/release verified (2026-08-15).
-- Source inventory for Apple port recorded in docs/ARCHITECTURE.md (2026-08-15).
+- Repository safety audit green (2026-08-16, after patch series 0004/0005 and evidence curation).
 - Base AOT generation verified (2026-08-15): docs/evidence/2026-08-15/base-aot/.
-- macOS arm64 compile of base AOT verified (2026-08-15): docs/evidence/2026-08-15/macos-base-compile/.
-- macOS arm64 compile of the full runtime stack verified (2026-08-15): docs/evidence/2026-08-15/macos-runtime-compile/.
-- macOS first Metal frame verified (2026-08-15): docs/evidence/2026-08-15/macos-first-frame/ (GAME SELECT screenshot).
+- macOS arm64 compile of base AOT and full runtime stack verified (2026-08-15): docs/evidence/2026-08-15/macos-base-compile/, macos-runtime-compile/.
+- macOS first Metal frame verified (2026-08-15): docs/evidence/2026-08-15/macos-first-frame/.
 - Private ROM fingerprint verified (2026-08-15).
-- No DinoPad build exists yet; no runtime has ever been launched.
 
 ## Current upstream pins
 
@@ -84,13 +79,14 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 - Disk: 28 GiB free (gate is 20 GiB); monitor before full generation/builds.
 - DinoMod redistribution clearance unresolved (release gate only).
 - RT64 Metal/iOS path unproven on this toolchain (Xcode 26.6).
+- Name-entry navigation quirks (analog-only, +3 jump) must be handled by the touch/controller shell and automated smoke input.
 
 ## Next three candidate goals
 
-1. Reach the title screen and verify a stable audio loop on macOS.
-2. Verify keyboard/controller input and reach controllable gameplay on macOS.
-3. Verify saves (Flashram) persist across relaunch on macOS.
+1. Verify keyboard/controller input and reach controllable gameplay on macOS.
+2. Verify saves (Flashram) persist across relaunch on macOS.
+3. Run a bounded automated input-replay smoke of the boot-to-gameplay flow on macOS.
 
 ## Selected next goal
 
-Reach the title screen and verify a stable audio loop on macOS.
+Verify keyboard/controller input and reach controllable gameplay on macOS.

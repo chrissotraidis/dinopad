@@ -1,0 +1,73 @@
+diff --git a/src/input/controls.cpp b/src/input/controls.cpp
+index 7b53d07..d9878b9 100644
+--- a/src/input/controls.cpp
++++ b/src/input/controls.cpp
+@@ -1,8 +1,10 @@
+-#include "controls.hpp"
+-
+-#include <array>
+-
+-namespace dino::input {
++#include "controls.hpp"
++
++#include <array>
++#include <cstdio>
++#include <cstdlib>
++
++namespace dino::input {
+ 
+ // Arrays that hold the mappings for every input for keyboard and controller respectively.
+ using input_mapping = std::array<InputField, bindings_per_input>;
+@@ -75,10 +77,20 @@ void set_input_binding(GameInput input, size_t binding_index, InputDevice device
+     }
+ }
+ 
+-bool get_n64_input(int controller_num, uint16_t* buttons_out, float* x_out, float* y_out) {
+-    uint16_t cur_buttons = 0;
+-    float cur_x = 0.0f;
+-    float cur_y = 0.0f;
++bool get_n64_input(int controller_num, uint16_t* buttons_out, float* x_out, float* y_out) {
++    uint16_t cur_buttons = 0;
++    float cur_x = 0.0f;
++    float cur_y = 0.0f;
++    // DinoPad: optional smoke-test input logging, off by default so that the
++    // shipped behavior is unchanged (enabled with DINOPAD_LOG_INPUT=1).
++    static const bool log_input = [] {
++        const char* env = getenv("DINOPAD_LOG_INPUT");
++        return env != nullptr && env[0] != '\0' && env[0] != '0';
++    }();
++    static int last_buttons = -1;
++    static float last_x = 0.0f;
++    static float last_y = 0.0f;
++    static int log_frame = 0;
+ 
+     if (controller_num != 0) {
+         return false;
+@@ -111,11 +123,21 @@ bool get_n64_input(int controller_num, uint16_t* buttons_out, float* x_out, floa
+         cur_y *= joystick_range;
+     }
+ 
+-    *buttons_out = cur_buttons;
+-    *x_out = std::clamp(cur_x, -1.0f, 1.0f);
+-    *y_out = std::clamp(cur_y, -1.0f, 1.0f);
+-
+-    return true;
+-}
++    *buttons_out = cur_buttons;
++    *x_out = std::clamp(cur_x, -1.0f, 1.0f);
++    *y_out = std::clamp(cur_y, -1.0f, 1.0f);
++    if (log_input) {
++        log_frame++;
++        if (cur_buttons != last_buttons || cur_x != last_x || cur_y != last_y) {
++            fprintf(stderr, "[dinopad-in] frame=%d buttons=0x%04X x=%.2f y=%.2f\n",
++                    log_frame, cur_buttons, cur_x, cur_y);
++            last_buttons = cur_buttons;
++            last_x = cur_x;
++            last_y = cur_y;
++        }
++    }
++
++    return true;
++}
+ 
+ }
