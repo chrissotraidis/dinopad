@@ -12,10 +12,11 @@
 #      dylib format for the full replacement/hook feasibility test. This is
 #      not the iOS production packaging path.
 #
-# Outputs go under .goal-loop/dinomod-aot/ (ignored, private). Nothing in this
-# script downloads or distributes game data or DinoMod source; it consumes the
-# already-pinned read-only checkout in ref/ and the user's private ROM (via the
-# mod's own asset pipeline, which runs against ref/DINO/rom).
+# Package/intermediate outputs go under .goal-loop/dinomod-aot/ and generated
+# static sources go under generated/restoration/ (both ignored and private).
+# Nothing in this script downloads or distributes game data or DinoMod source;
+# it consumes the already-pinned read-only checkout in ref/ and the user's
+# private ROM (via the mod's own asset pipeline, which runs against ref/DINO/rom).
 #
 # Prerequisites (documented in docs/DINOMOD_INTEGRATION.md):
 #   - xdelta3 (brew install xdelta)
@@ -30,6 +31,7 @@ MOD_DIR="ref/dinomod-enhanced-recompiled/dinomod_enhanced"
 MOD_REPO="ref/dinomod-enhanced-recompiled"
 TC_BIN="$(pwd)/build-tools/toolchains/mips-clang/nrs_bin"
 OUT_DIR=".goal-loop/dinomod-aot"
+STATIC_DIR="generated/restoration"
 VENV_PY=".goal-loop/dinomod-venv/bin/python"
 
 if [[ ! -x "$TC_BIN/clang" ]]; then
@@ -58,7 +60,7 @@ if [[ "$ROM_MD5" != "49f7bb346ade39d1915c22e090ffd748" ]]; then
     exit 1
 fi
 
-mkdir -p "$OUT_DIR"
+mkdir -p "$OUT_DIR" "$STATIC_DIR"
 
 # 1. Extract the ROM's FST and build the mod's patched assets (private, in ref/).
 echo "== Extracting ROM FST (private) =="
@@ -87,7 +89,13 @@ echo "== Running OfflineModRecomp =="
     "$OUT_DIR/mod_syms.bin" \
     "$OUT_DIR/mod_binary.bin" \
     "$MOD_REPO/lib/dino-recomp-decomp-bridge/dino.syms.toml" \
-    "$OUT_DIR/dinomod_enhanced.c"
+    "$STATIC_DIR/dinomod_enhanced.c"
+
+echo "== Generating static function table =="
+tools/generate_static_mod_exports.py \
+    "$STATIC_DIR/dinomod_enhanced.c" \
+    "$STATIC_DIR/dinomod_static_exports.h" \
+    "$STATIC_DIR/dinomod_static_exports.c"
 
 # 5. Build N64ModernRuntime's macOS offline-mod developer format. The package
 # filename suffix selects the precompiled code handle, avoiding live/JIT
@@ -97,15 +105,20 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     clang -dynamiclib -O2 -target arm64-apple-macos \
         -I include \
         -I "$MOD_REPO/../dino-recomp/lib/N64Recomp/include" \
-        "$OUT_DIR/dinomod_enhanced.c" \
+        "$STATIC_DIR/dinomod_enhanced.c" \
         -Wl,-install_name,@rpath/dinomod_enhanced.offline.dylib \
         -o "$OUT_DIR/dinomod_enhanced.offline.dylib"
     cp "$OUT_DIR/dinomod_enhanced.nrm" "$OUT_DIR/dinomod_enhanced.offline.nrm"
 fi
 
 echo "== Done =="
-ls -la "$OUT_DIR"
-shasum -a 256 "$OUT_DIR/dinomod_enhanced.nrm" "$OUT_DIR/mod_syms.bin" "$OUT_DIR/dinomod_enhanced.c"
+ls -la "$OUT_DIR" "$STATIC_DIR"
+shasum -a 256 \
+    "$OUT_DIR/dinomod_enhanced.nrm" \
+    "$OUT_DIR/mod_syms.bin" \
+    "$STATIC_DIR/dinomod_enhanced.c" \
+    "$STATIC_DIR/dinomod_static_exports.h" \
+    "$STATIC_DIR/dinomod_static_exports.c"
 if [[ -f "$OUT_DIR/dinomod_enhanced.offline.dylib" ]]; then
     shasum -a 256 "$OUT_DIR/dinomod_enhanced.offline.dylib"
 fi

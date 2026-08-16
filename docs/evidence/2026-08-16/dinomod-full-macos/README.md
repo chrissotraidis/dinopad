@@ -14,7 +14,7 @@ Pins: dino-recomp `v0.3.0` = `725b2ed...`; DinoMod `v0.9.3` =
 ## Result
 
 - The complete `.offline.nrm` opened with its arm64 offline library. The
-  package contains 920 converted functions, 37 imports, 2,346 reference
+  package contains 460 converted functions, 37 imports, 2,346 reference
   symbols, 294 replacements, and 42 hooks. No live recompiler was used.
 - The first full load exposed a real arm64 trampoline bug: the generated
   `__dll60_dll_60_update2` and `__dll60_dll_60_draw` entry points were only

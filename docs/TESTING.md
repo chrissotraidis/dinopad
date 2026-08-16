@@ -63,6 +63,16 @@ scripts/runtime-guard.sh macos \
   scripts/smoke-graceful-shutdown-macos.sh 5
 ```
 
+The static-restoration smoke requires the 460 linked functions, rejects any
+DinoMod/offline Mach-O dependency, temporarily presents the private package as
+an ordinary `.nrm`, disables the developer dylib, and verifies the runtime's
+static-handle selection marker plus restored title flow:
+
+```sh
+scripts/runtime-guard.sh macos \
+  scripts/smoke-static-restoration-macos.sh
+```
+
 ### Visual tests
 
 - App shell, safe areas, touch layout, `•••` menu, settings, error states, title/gameplay rendering sanity.
@@ -100,6 +110,7 @@ Each evidence README records: commit, upstream pins, target and OS, build comman
 ```sh
 scripts/runtime-guard.sh macos scripts/smoke-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5
+scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

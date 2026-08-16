@@ -37,6 +37,15 @@ mkdir -p "$ROOT/.goal-loop"
 
 pid_alive() { kill -0 "$1" 2>/dev/null; }
 
+wait_for_dinopad_exit() {
+  attempts=0
+  while pgrep -x DinoPad >/dev/null 2>&1 && [ "$attempts" -lt 100 ]; do
+    sleep 0.1
+    attempts=$((attempts + 1))
+  done
+  ! pgrep -x DinoPad >/dev/null 2>&1
+}
+
 acquire() {
   if [ -d "$LOCK_DIR" ]; then
     old_pid=""
@@ -64,6 +73,7 @@ acquire() {
 
 pre_launch_cleanup() {
   pkill -x DinoPad 2>/dev/null || true
+  wait_for_dinopad_exit || true
   xcrun simctl terminate booted com.chrissotraidis.dinopad 2>/dev/null || true
   xcrun simctl shutdown all 2>/dev/null || true
   booted="$(xcrun simctl list devices 2>/dev/null | grep -c '(Booted)' || true)"
@@ -93,6 +103,7 @@ cleanup() {
   trap - EXIT INT TERM
   echo "runtime-guard: cleanup: terminating DinoPad and shutting down Simulators"
   pkill -x DinoPad 2>/dev/null || true
+  wait_for_dinopad_exit || true
   xcrun simctl terminate booted com.chrissotraidis.dinopad 2>/dev/null || true
   xcrun simctl shutdown all 2>/dev/null || true
   booted="$(xcrun simctl list devices 2>/dev/null | grep -c '(Booted)' || true)"

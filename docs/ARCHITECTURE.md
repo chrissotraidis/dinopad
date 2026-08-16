@@ -146,6 +146,11 @@ flowchart TD
 ## 9. Mode / restoration boundary
 
 - Both profiles are compiled into one binary. At session start DinoPad registers the restoration module (hooks, replacements, events, config, assets) only for Restored Adventure; Prototype Mode starts with registration disabled.
+- The current macOS bridge generates a typed table for every OfflineModRecomp
+  function and registers a build-time `ModCodeHandle` by manifest ID. Generated
+  executable code is statically linked; the private `.nrm` currently supplies
+  only manifest, symbol, binary-data, and asset content. Runtime replacement
+  writes remain a temporary macOS-only boundary pending static dispatch.
 - Saves and configs are selected by the active profile; switching modes can never read or write the other profile's root.
 - Prototype Mode copy must stay honest: platform/renderer/compatibility patches remain, restoration does not.
 - DinoMod's own data (`ref/dinomod-enhanced-recompiled`) stays read-only; every bridge/adapter is DinoPad-owned; no AI-generated patches are submitted upstream.
@@ -156,7 +161,7 @@ The iOS binary must contain only signed static code:
 
 - no JIT, TCC, or LiveRecomp (excluded at CMake level, mirroring PaperPad);
 - no runtime-generated machine code;
-- no downloadable code, `.nrm` loading, or mod manager;
+- no downloadable code, runtime code from `.nrm`, or mod manager;
 - no executable-memory entitlement;
 - restoration integrated at build time only;
 - package audit proves the boundary before any release (`scripts/check-package-safety.sh`, Phase 10).

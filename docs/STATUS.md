@@ -1,9 +1,9 @@
 # DinoPad Status
 
 Last updated: 2026-08-16T17:10:00Z
-Current commit: 8205112 (this cycle's evidence + docs follow)
+Current commit: 99b3a3b (this cycle's implementation follows)
 Current phase: Phase 3 - Static DinoMod on macOS (technical AOT gate; release gate separate)
-Active goal: Goal 23 - replace the macOS developer-only offline dynamic handle with a DinoPad-owned static code handle, then add Restored/Prototype profile selection and save isolation
+Active goal: Goal 23b - replace writable replacement trampolines with static dispatch, then add Restored/Prototype profile selection and save isolation
 
 ## Green
 
@@ -32,11 +32,12 @@ Active goal: Goal 23 - replace the macOS developer-only offline dynamic handle w
 - Controllable gameplay verified on macOS (2026-08-16): the playable tutorial scene ("Krystal! Try shooting the cannon!") responds to input end-to-end. All input types delivered to the recompiled game during gameplay (analog WASD x/y ±0.66, A=0x8000, Z=0x2000 in the [dinopad-in] log); held W displaces the on-screen character and S returns it (NCC tracking: t1 750,1050 -> W -> t2 648,954 -> S -> t3 414,1032 -> idle -> t4 768,1038); A-presses fire the tutorial cannon (orange energy pixels 1,132 -> 112,846, ~100x). Evidence: docs/evidence/2026-08-16/macos-gameplay/.
 - tools/normalize_rom.py added and green (2026-08-16): plan-listed ROM byte-order normalizer + fingerprint validator (z64/v64/n64 detection, big-endian normalization, supported MD5 check) with 16/16 self-tests; real private ROM validated (ALREADY, z64, MD5 ok); wired into scripts/build-macos-app.sh ROM staging. Evidence: docs/evidence/2026-08-16/macos-rom-normalizer/.
 - docs/DINOMOD_INTEGRATION.md written (2026-08-16): package inventory, mod.toml config schema summary, AOT path and toolchain status, offline-mod-recomp feasibility notes, settings bridge, save namespace isolation, compatibility pair, and the maintainer-permission gate.
-- Offline-mod-recomp proof of concept green (2026-08-16): pinned DinoMod v0.9.3 ELF built (MIPS-II, 42,997,184 B) with n64recomp-clang; RecompModTool produced a zip-tested .nrm (mod_syms.bin 201,008 B, mod_binary.bin 42,711,744 B, mod.json, thumb.png); OfflineModRecomp emitted 6,979,048 B of C (920 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks); the C compiles on arm64 macOS with 0 warnings against the new DinoPad-owned include/mod_recomp.h and links into tools/mod_aot_harness.c passing 13/13 ABI checks. Evidence: docs/evidence/2026-08-16/dinomod-aot/. Replayable via scripts/generate-restoration.sh.
+- Offline-mod-recomp proof of concept green (2026-08-16): pinned DinoMod v0.9.3 ELF built (MIPS-II, 42,997,184 B) with n64recomp-clang; RecompModTool produced a zip-tested .nrm (mod_syms.bin 201,008 B, mod_binary.bin 42,711,744 B, mod.json, thumb.png); OfflineModRecomp emitted 6,979,048 B of C (460 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks); the C compiles on arm64 macOS with 0 warnings against the new DinoPad-owned include/mod_recomp.h and links into tools/mod_aot_harness.c passing 13/13 ABI checks. Evidence: docs/evidence/2026-08-16/dinomod-aot/. Replayable via scripts/generate-restoration.sh.
 - DinoMod live invocation green (2026-08-16): tools/mod_invoke_harness.c binds imported_funcs[10] (recomp_get_config_u32) and executes the statically converted mod_func_16 (the pinned mod's kiosk_icons_gold_silver_keys restoration handler) on arm64 against a simulated N64 address space. Verified 0 failures: the import was called with all three config keys, mod-local static state updated, and base-game inventory data received exactly the constants the mod source writes (0x25C/0x25D/0x25E/0x260/0x261), proving RELOC + REF_RELOC semantics and the sign-extended gpr address convention. Evidence: docs/evidence/2026-08-16/dinomod-invoke/.
-- Full DinoMod offline AOT load green on macOS (2026-08-16): N64ModernRuntime's precompiled `.offline.nrm` path resolves the complete 920-function module with 294 replacements and 42 hooks; no live recompiler. Restored mode visibly restores the rolling-demo `PRESS START` and Start/Options/Language title screens, while a same-build run with the mod disabled skips directly to Game Select. The first run exposed a 16-byte arm64 trampoline overlap; `-falign-functions=16` fixes it and `tools/check_patchable_aot.py` verifies 11,162 linked AOT entries with zero misalignment. Evidence: docs/evidence/2026-08-16/dinomod-full-macos/.
+- Full DinoMod offline AOT load green on macOS (2026-08-16): N64ModernRuntime's precompiled `.offline.nrm` path resolves the complete 460-function module with 294 replacements and 42 hooks; no live recompiler. Restored mode visibly restores the rolling-demo `PRESS START` and Start/Options/Language title screens, while a same-build run with the mod disabled skips directly to Game Select. The first run exposed a 16-byte arm64 trampoline overlap; `-falign-functions=16` fixes it and `tools/check_patchable_aot.py` verifies 11,162 linked AOT entries with zero misalignment. Evidence: docs/evidence/2026-08-16/dinomod-full-macos/.
+- DinoMod static code handle green on macOS (2026-08-16): `tools/generate_static_mod_exports.py` creates a checked table for all 460 functions, 37 imports, 2,346 reference slots, and one local section; CMake links it into DinoPad. With the package presented as an ordinary `.nrm` and the offline dylib disabled, N64ModernRuntime selected the registered static handle and rendered restored PRESS START plus the title menu. Mach-O inspection found all 460 symbols and no DinoMod/offline dynamic dependency. Evidence: docs/evidence/2026-08-16/dinomod-static-macos/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
-- docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch inventory (dino-recomp 0001-0005, hlslpp, RT64, Plume), locked eight-file patch-set checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
+- docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch inventory (dino-recomp 0001-0005, N64ModernRuntime, hlslpp, RT64, Plume), locked nine-file patch-set checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
 - scripts/smoke-macos.sh added and green (2026-08-16): bounded automated input-replay smoke of boot -> GAME SELECT -> save load -> playable scene -> input (A/B/Z/Start/WASD) -> clean shutdown. First run FAILED because B was never exercised; B added to the replay, rerun PASS 22/22 (commit def59ac). Evidence: docs/evidence/2026-08-16/macos-smoke/.
@@ -57,16 +58,17 @@ Active goal: Goal 23 - replace the macOS developer-only offline dynamic handle w
 - Physical controller play on macOS: BLOCKED (external) - both paired pads (8BitDo Lite 2, Xbox Wireless) are Not Connected; SDL sees 0 joysticks. Code path verified via virtual controller; see docs/KNOWN_ISSUES.md.
 - docs/UI_PARITY.md not yet written.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
-- Production static DinoMod handle is not complete: the passing macOS full-AOT test still uses the runtime's developer-only `.dylib` handle and an `rwx` game segment; neither is acceptable for iOS.
+- Production static replacement dispatch is not complete: the passing handle no longer uses a `.dylib`, live recompiler, or runtime-loaded executable code, but N64ModernRuntime still writes replacement trampolines into an `rwx` game segment; that is unacceptable for iOS.
 
 ## Last successful commands
 
 ```sh
-./scripts/apply-patches.sh                           # PASS: all 8 dino-recomp/hlslpp/RT64/Plume patches applied
+./scripts/apply-patches.sh                           # PASS: all 9 maintained patches applied
 ./scripts/check-repo-safety.sh                       # PASS: clean (private paths, patches covered)
 cmake --build build-macos --parallel 4 --target DinoPad   # PASS: incremental, arm64 executable
 tools/check_patchable_aot.py build-macos/DinoPad generated/aot/RecompiledFuncs/funcs.h generated/aot/RecompiledPatches/funcs.h  # PASS: 11162 aligned
 DINOPAD_MAX_JOBS=4 scripts/generate-restoration.sh       # PASS: C + macOS offline AOT artifacts
+scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh  # PASS: 460 linked, no dylib, restored title
 scripts/runtime-guard.sh macos scripts/smoke-macos.sh   # PASS: 22/22 automated smoke checks
 scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5  # PASS: 5/5, no new crash report
 scripts/runtime-guard.sh macos bash <session>        # PASS: full restored and prototype comparison sessions
@@ -78,6 +80,7 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Current evidence
 
+- Statically linked DinoMod code + no-dylib restored boot (2026-08-16): docs/evidence/2026-08-16/dinomod-static-macos/.
 - Full DinoMod macOS AOT load + visible restored/prototype comparison (2026-08-16): docs/evidence/2026-08-16/dinomod-full-macos/.
 - Native-close RT64/Metal teardown regression (2026-08-16): docs/evidence/2026-08-16/macos-graceful-shutdown/.
 - ROM normalizer + validation verified (2026-08-16): docs/evidence/2026-08-16/macos-rom-normalizer/.
@@ -108,22 +111,26 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 - RT64 Metal/iOS path unproven on this toolchain (Xcode 26.6).
 - Name-entry navigation quirks (analog-only, +3 jump) must be handled by the touch/controller shell and automated smoke input.
 - Automated macOS input requires the DinoPad window to be frontmost; sendkey.sh handles it, but native input injection (or SDL-internal injection) is the durable fix for smoke automation.
-- macOS's developer-only offline code path needs runtime function patching and an `rwx` generated-code segment; the static iOS-safe dispatch bridge must remove both requirements.
+- Statically linked restoration still needs runtime function patching and an `rwx` generated-code segment; the iOS-safe dispatch bridge must remove both requirements.
 
 ## Next three candidate goals
 
-1. Add a DinoPad-owned static `ModCodeHandle` for the generated restoration functions so the full module links into the app with no `.dylib`, live recompiler, or runtime-loaded executable code.
-2. Add Restored/Prototype profile selection plus separate save/config namespaces and repeat the visible rolling-demo comparison through the native profile boundary.
+1. Replace runtime-written base-function trampolines with build-time/static dispatch so the executable no longer needs an `rwx` segment.
+2. Add Restored/Prototype profile selection plus separate save/config namespaces and repeat the visible rolling-demo comparison through the profile boundary.
 3. Port the PaperPad Apple shell (Phase 4): native ROM import/validation UI on macOS + touch overlay groundwork.
 
 ## Selected next goal
 
-Goal 23: replace the successful developer-only macOS offline dynamic-library
-handle with a DinoPad-owned static code handle. Link the generated functions
-into DinoPad, bind imports/reference/local sections/events through the existing
-symbol context, and prove the same visible rolling-demo difference without a
-runtime-loaded library. Then add Restored/Prototype profile selection and
+Goal 23b: replace the runtime-written arm64 replacement trampolines with a
+build-time/static dispatch mechanism. Acceptance requires the same restored
+title flow with an `r-x` executable, no calls to the runtime code-patching path,
+and no dynamic/JIT code. Then add Restored/Prototype profile selection and
 separate save namespaces.
+
+Goal 23a outcome: the complete restoration module is statically linked and
+selected by manifest ID. The ordinary `.nrm` + disabled-dylib smoke passed,
+with all 460 functions in the executable and no DinoMod dynamic dependency.
+Evidence: docs/evidence/2026-08-16/dinomod-static-macos/.
 
 Goal 22 outcome summary: complete offline AOT loading now works on arm64 macOS.
 All 294 replacements and 42 hooks resolve without live recompilation, and the

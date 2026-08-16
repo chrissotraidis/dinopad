@@ -12,7 +12,7 @@ Compatibility pair: Dino Recompiled **v0.3.0** + DinoMod Enhanced **v0.9.3**.
 | DinoMod manifest (`mod.toml`) inventoried | DONE (this document) |
 | Toolchain for AOT conversion built | DONE (build-tools/OfflineModRecomp, RecompModTool, RecompModMerger, n64recomp-clang) |
 | Mod ELF + .nrm + mod symbols built | DONE (2026-08-16, private; MIPS-II ELF 42,997,184 B; .nrm 4 files, zip-tested) |
-| OfflineModRecomp emitted C | DONE (2026-08-16: 6,979,048 B; 920 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks) |
+| OfflineModRecomp emitted C | DONE (2026-08-16: 6,979,048 B; 460 mod functions, 37 imports, 2,346 reference symbols, 294 replacements, 42 hooks) |
 | Emitted C compiles on arm64 + ABI harness | DONE (2026-08-16: 0 warnings; 13/13 harness checks) |
 | One import bound + one mod function executed | DONE (2026-08-16: recomp_get_config_u32 bound; mod_func_16 = kiosk_icons_gold_silver_keys ran; 0 failures) |
 | Replacements/hooks/events bound into game runtime | NOT STARTED (next: 294 replacements + 42 hooks; release gate still required) |
@@ -101,7 +101,7 @@ description). The formal feasibility experiment has now been run; results:
 - `RecompModTool dinomod_enhanced/mod.toml <out>` produces a valid .nrm
   (mod_syms.bin + mod_binary.bin + mod.json + thumb.png; zip integrity OK).
 - `OfflineModRecomp <mod_syms.bin> <mod_binary.bin> <dino.syms.toml> <out.c>`
-  emits 6,979,048 B of C: 920 mod functions, 37 imports, 2,346 reference
+  emits 6,979,048 B of C: 460 mod functions, 37 imports, 2,346 reference
   symbols, 294 replacements, 42 hooks (all in the mod symbol file).
 - The emitted C compiles cleanly on arm64 macOS (0 warnings, -O2) against the
   DinoPad-owned `include/mod_recomp.h` ABI header and links into
@@ -150,7 +150,7 @@ sign-extended gpr address convention, with no live recompilation. Evidence:
 
 Full offline AOT load result (goal 22, 2026-08-16): the pinned package loaded
 through N64ModernRuntime's precompiled macOS `.offline.nrm` developer path,
-resolving the complete 920-function module with 294 replacements and 42 hooks.
+resolving the complete 460-function module with 294 replacements and 42 hooks.
 The first run found an arm64 correctness bug: the runtime writes a 16-byte
 replacement trampoline, while two generated leaf functions were linked only
 four bytes apart. `-falign-functions=16` now protects every generated entry
@@ -159,12 +159,20 @@ zero misalignment. The fixed build visibly restores the rolling-demo title
 flow, while a same-build run with the mod disabled skips directly to Game
 Select. Evidence: `docs/evidence/2026-08-16/dinomod-full-macos/`.
 
-This remains a feasibility bridge, not production static integration. The
-macOS offline path loads a `.dylib` and arm64 macOS requires its patchable game
-segment to begin writable/executable. iOS must instead use a DinoPad-owned
-static code handle/dispatch path with no dynamic code loading and no writable
-executable segment. `scripts/generate-restoration.sh` now reproduces the
-macOS offline artifacts while keeping all generated code and assets ignored.
+Static code-handle result (goal 23a, 2026-08-16): DinoPad now generates a
+typed, contiguous table for all 460 offline functions and links the generated C
+into the executable. A generic N64ModernRuntime registration API selects the
+build-time handle by manifest ID, and the DinoPad handle directly supplies the
+function, import, reference-symbol, section, event, and runtime-binding tables.
+With the package renamed to an ordinary `.nrm` and the offline dylib disabled,
+the runtime selected the static handle and rendered the same restored title
+flow. The executable has no DinoMod dynamic dependency. Evidence:
+`docs/evidence/2026-08-16/dinomod-static-macos/`.
+
+This is not yet the production iOS dispatch boundary. The existing mod loader
+still installs replacements by writing trampolines over base-game functions,
+so macOS still needs its writable/executable `__GAME` segment. Goal 23b must
+replace those runtime writes with static dispatch before the iOS build.
 
 If offline conversion proves incomplete during live binding (goal 21), fall
 back to a generic static bridge or ship Prototype-only until solved (plan
@@ -201,10 +209,10 @@ Restored and Prototype modes must not share saves:
 ## 9. Open questions / blockers
 
 1. Maintainer permission or license (BLOCKED for public Restored).
-2. Production static code handle: full macOS offline AOT loading, replacements,
-   hooks, assets, and visible behavior passed (goal 22, 2026-08-16). Replacing
-   the developer-only dynamic handle and writable-code trampolines with a
-   DinoPad-owned static/iOS-safe dispatch bridge remains (goal 23).
+2. Production static dispatch: the DinoPad-owned static code handle removes the
+   developer-only dynamic library (goal 23a, 2026-08-16). Replacing writable
+   base-function trampolines with an iOS-safe dispatch mechanism remains (goal
+   23b).
 3. Asset patch redistribution (ROM-derived content rules; build from baserom
    privately, ship only legally distributable derived assets).
 4. Whether "DinoMod Enhanced" branding is permitted in the app UI.

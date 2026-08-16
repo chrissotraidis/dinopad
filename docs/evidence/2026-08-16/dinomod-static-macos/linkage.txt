@@ -1,0 +1,14 @@
+build-macos/DinoPad: Mach-O 64-bit executable arm64
+Mach-O UUID: D654860D-1E44-3F3D-83C4-81070782B0C6
+linked mod_func_N symbols: 460
+linked dinopad_mod_functions table: present
+linked dinopad_mod_imported_funcs table: present
+linked dinopad_mod_reference_symbol_funcs table: present
+otool DinoMod/offline dynamic dependencies: 0
+
+generated/restoration/dinomod_enhanced.c
+  sha256 62f59e8f0ba355645b2c3885baf022148b4c865e0609f6637fa1e82569be61c1
+generated/restoration/dinomod_static_exports.h
+  sha256 0b89b5e9ca7b8b18b33d76adc56a721e274e175a6c2274663a423ed0c85a651a
+generated/restoration/dinomod_static_exports.c
+  sha256 c6005728167515e90ea8c5aaa7733ed876e24d9d41d4a7253c73f585d32edd54

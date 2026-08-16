@@ -21,6 +21,7 @@ endif()
 get_filename_component(DINOPAD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 set(DINO_RECOMP "${DINOPAD_ROOT}/ref/dino-recomp")
 set(DINOPAD_AOT "${DINOPAD_ROOT}/generated/aot")
+set(DINOPAD_RESTORATION "${DINOPAD_ROOT}/generated/restoration")
 set(DINOPAD_SDL2_BUILD "${DINOPAD_ROOT}/build-macos-sdl2")
 
 # Reproducible builds: do not embed the builder's absolute checkout path.
@@ -110,6 +111,37 @@ add_subdirectory("${DINO_RECOMP}/lib/RmlUi")
 target_compile_definitions(rmlui_core PRIVATE LUNASVG_BUILD_STATIC)
 add_subdirectory("${DINO_RECOMP}/lib/N64ModernRuntime")
 
+# ---- Statically linked restoration module ---------------------------------
+option(DINOPAD_ENABLE_STATIC_RESTORATION
+    "Link the privately generated DinoMod restoration code" ON)
+if (DINOPAD_ENABLE_STATIC_RESTORATION)
+    foreach(required_file
+            dinomod_enhanced.c
+            dinomod_static_exports.c
+            dinomod_static_exports.h)
+        if (NOT EXISTS "${DINOPAD_RESTORATION}/${required_file}")
+            message(FATAL_ERROR
+                "Generated restoration file missing: ${required_file}. "
+                "Run scripts/generate-restoration.sh first.")
+        endif()
+    endforeach()
+
+    add_library(dinopad_restoration STATIC
+        "${DINOPAD_RESTORATION}/dinomod_enhanced.c"
+        "${DINOPAD_RESTORATION}/dinomod_static_exports.c"
+        "${DINOPAD_ROOT}/src/restoration/static_mod_code.cpp")
+    target_compile_definitions(dinopad_restoration PRIVATE DINOPAD_STATIC_MOD=1)
+    target_include_directories(dinopad_restoration PRIVATE
+        "${DINOPAD_ROOT}/include"
+        "${DINOPAD_RESTORATION}"
+        ${DINOPAD_RECOMP_INCLUDE_DIRS})
+    target_compile_options(dinopad_restoration PRIVATE
+        -fno-strict-aliasing
+        -Wno-unused-variable
+        -Wno-implicit-function-declaration)
+    target_link_libraries(dinopad_restoration PUBLIC librecomp)
+endif()
+
 # ---- DinoPad runtime: pinned dino-recomp sources (launcher UI included) ---
 set(DINOPAD_RUNTIME_SOURCES
     "${DINO_RECOMP}/src/config/config.cpp"
@@ -117,7 +149,7 @@ set(DINOPAD_RUNTIME_SOURCES
     "${DINO_RECOMP}/src/input/input.cpp"
     "${DINO_RECOMP}/src/runtime/audio.cpp"
     "${DINO_RECOMP}/src/runtime/gfx.cpp"
-    "${DINO_RECOMP}/src/runtime/mods.cpp"
+    "${DINOPAD_ROOT}/src/runtime/dinopad_mods.cpp"
     "${DINO_RECOMP}/src/runtime/overlays.cpp"
     "${DINO_RECOMP}/src/runtime/patches.cpp"
     "${DINO_RECOMP}/src/runtime/preload.cpp"
@@ -173,6 +205,7 @@ set(DINOPAD_RUNTIME_SOURCES
 
 add_library(dinopad_runtime STATIC ${DINOPAD_RUNTIME_SOURCES})
 target_include_directories(dinopad_runtime PUBLIC
+    "${DINOPAD_ROOT}/include"
     ${DINOPAD_RECOMP_INCLUDE_DIRS}
     "${DINO_RECOMP}/src"
     "${DINO_RECOMP}/lib/concurrentqueue"
@@ -287,6 +320,10 @@ target_compile_options(DinoPad PRIVATE
 target_link_libraries(DinoPad PRIVATE
     dinopad_runtime
     dinopad_sdl2)
+
+if (DINOPAD_ENABLE_STATIC_RESTORATION)
+    target_link_libraries(DinoPad PRIVATE dinopad_restoration)
+endif()
 
 if (APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     # The N64ModernRuntime mod system patches base-game code at runtime

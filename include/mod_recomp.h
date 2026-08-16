@@ -39,6 +39,26 @@
 #undef do_break
 #undef section_addresses
 
+// When the offline output is linked into DinoPad, keep its writable ABI
+// globals distinct from identically named runtime functions. The generated C
+// continues to use its original names; the preprocessor gives the linked
+// definitions a private, stable prefix. The diagnostic dylib build omits this
+// define and retains OfflineModRecomp's ordinary export names.
+#if defined(DINOPAD_STATIC_MOD)
+#define recomp_api_version dinopad_mod_recomp_api_version
+#define imported_funcs dinopad_mod_imported_funcs
+#define reference_symbol_funcs dinopad_mod_reference_symbol_funcs
+#define base_event_index dinopad_mod_base_event_index
+#define recomp_trigger_event dinopad_mod_recomp_trigger_event
+#define get_function dinopad_mod_get_function
+#define cop0_status_write dinopad_mod_cop0_status_write
+#define cop0_status_read dinopad_mod_cop0_status_read
+#define switch_error dinopad_mod_switch_error
+#define do_break dinopad_mod_do_break
+#define reference_section_addresses dinopad_mod_reference_section_addresses
+#define section_addresses dinopad_mod_section_addresses
+#endif
+
 // Exported mod globals are placed in a dedicated section so a loader can
 // enumerate them without relying on symbol-name dlsym alone. This matches the
 // approach the pinned dino-recomp patches use for their RECOMP_EXPORT.
