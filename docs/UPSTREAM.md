@@ -66,7 +66,7 @@ Nested upstream patches applied by checkout basename:
 | `patches/N64ModernRuntime/0003-separate-data-config-roots.patch` | librecomp ROM/mod/config paths | Separates shared ROM/package data from per-profile config/save roots and permits disabling mod scanning before startup | Yes (opt-in APIs; legacy one-root default preserved) |
 
 The twelve-file patch set is locked in `dependencies.lock.json` at SHA-256
-`b9537239d1d897d34550b824159329e2f14530f3d7e094d9845b8c00d8ebf293`.
+`1761094c1ab774ee8c77ca1941a61dd2c30a2b6a22f92c67b80c20168b2a82aa`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested

@@ -147,6 +147,11 @@ flowchart TD
 
 ## 9. Mode / restoration boundary
 
+- On macOS, a DinoPad-owned AppKit boundary runs before SDL/runtime startup.
+  It presents first-run ROM setup, a Restored-primary home, an explicit
+  Prototype action with an archival warning, and private ROM replacement.
+  Selecting either mode enters the same profile API used by automation; the
+  upstream Rml launcher is bypassed.
 - Both profiles are compiled into one binary. At session start DinoPad registers the restoration module (hooks, replacements, events, config, assets) only for Restored Adventure; Prototype Mode starts with registration disabled.
 - The engine boundary defaults to Restored, accepts explicit
   `--profile restored|prototype`, and rejects unknown values before runtime

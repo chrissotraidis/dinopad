@@ -286,7 +286,11 @@ endif()
 add_executable(DinoPad
     "${DINO_RECOMP}/src/main.cpp"
     "${DINO_RECOMP}/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp"
+    "${DINOPAD_ROOT}/src/app/dinopad_home.mm"
     "${DINOPAD_ROOT}/src/app/dinopad_support.mm")
+
+set_source_files_properties("${DINOPAD_ROOT}/src/app/dinopad_home.mm"
+    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 
 target_include_directories(DinoPad PRIVATE
     ${DINOPAD_RECOMP_INCLUDE_DIRS}

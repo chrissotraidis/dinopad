@@ -26,18 +26,29 @@ index 98d8202..b1e524b 100644
 \ No newline at end of file
 +}
 diff --git a/src/main.cpp b/src/main.cpp
-index 9447d63..d6021ac 100644
+index 9447d63..c3a16da 100644
 --- a/src/main.cpp
 +++ b/src/main.cpp
-@@ -65,6 +65,7 @@ std::vector<recomp::GameEntry> supported_games = {
+@@ -37,6 +37,9 @@ const std::string version_string = "0.3.0";
+ 
+ extern "C" void recomp_entrypoint(uint8_t *rdram, recomp_context *ctx);
+ gpr get_entrypoint_address();
++#if defined(__APPLE__)
++extern "C" int dinopad_macos_prepare_home(void);
++#endif
+ 
+ static void custom_recomp_entrypoint(uint8_t *rdram, recomp_context *ctx) {
+     printf("Initialized RDRAM at %p\n", rdram);
+@@ -65,6 +68,8 @@ std::vector<recomp::GameEntry> supported_games = {
  struct CliArgs {
      bool skip_launcher = false;
      bool show_console = false;
++    bool profile_explicit = false;
 +    dino::config::SessionProfile profile = dino::config::SessionProfile::Restored;
      int window_width = 1600;
      int window_height = 960;
  };
-@@ -101,9 +102,25 @@ int main(int argc, char** argv) {
+@@ -101,9 +106,39 @@ int main(int argc, char** argv) {
                      cli_args.window_height = height;
                  }
              }
@@ -55,9 +66,23 @@ index 9447d63..d6021ac 100644
 +                fprintf(stderr, "ERROR: unknown DinoPad profile '%s'\n", argv[i]);
 +                return EXIT_FAILURE;
 +            }
++            cli_args.profile_explicit = true;
          }
      }
  
++#if defined(__APPLE__)
++    if (!cli_args.skip_launcher && !cli_args.profile_explicit) {
++        const int selected_profile = dinopad_macos_prepare_home();
++        if (selected_profile < 0) {
++            return EXIT_SUCCESS;
++        }
++        cli_args.profile = selected_profile == 0
++            ? dino::config::SessionProfile::Restored
++            : dino::config::SessionProfile::Prototype;
++        cli_args.skip_launcher = true;
++    }
++#endif
++
 +    dino::config::set_session_profile(cli_args.profile);
 +
      // Load project version

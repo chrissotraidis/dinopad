@@ -1,0 +1,8 @@
+Native setup: empty data root -> Set Up DinoPad -> Quit -> status 0
+Native Prototype: home -> warning -> Prototype profile -> direct Game Select
+Prototype static-handle marker: absent
+Prototype restoration-dispatch marker: absent
+Native Restored: home -> Restored profile -> restored PRESS START
+Restored marker: Static restoration dispatch enabled (294 replacements; 35 hook slots; no runtime code writes)
+NATIVE HOME RESULT: PASS (first-run setup; Restored primary; warned Prototype; both handoffs)
+runtime-guard cleanup: zero booted Simulators; no DinoPad process

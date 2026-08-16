@@ -86,6 +86,14 @@ configuration files, and proves each other-mode save hash stays unchanged:
 scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
 ```
 
+The native-home smoke verifies the first-run setup presentation, Restored as
+the primary home action, Prototype's required archival warning, and both native
+handoffs into their expected runtime profiles:
+
+```sh
+scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
+```
+
 ### Visual tests
 
 - App shell, safe areas, touch layout, `•••` menu, settings, error states, title/gameplay rendering sanity.
@@ -126,6 +134,7 @@ scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5
 scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
+scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

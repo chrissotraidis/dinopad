@@ -11,6 +11,8 @@ claims a full playthrough it did not perform.
 
 | Date | Target | Mode | Start | End state | Duration | Result | Input | Evidence |
 |---|---|---|---|---|---|---|---|---|
+| 2026-08-16 | macOS arm64 (M2) | Restored (native home primary action) | Native DinoPad home | Restored PRESS START; static no-write dispatch active | ~20 s | PASS | Native button + keyboard A | docs/evidence/2026-08-16/macos-native-home/ |
+| 2026-08-16 | macOS arm64 (M2) | Prototype (native home warned action) | Native DinoPad home + archival warning | Direct Game Select; restoration absent | ~25 s | PASS | Native buttons + keyboard A | docs/evidence/2026-08-16/macos-native-home/ |
 | 2026-08-16 | macOS arm64 (M2) | Restored (`--profile restored`, disposable isolated root) | Boot | Restored PRESS START; Prototype save unchanged | ~25 s | PASS | Keyboard A | docs/evidence/2026-08-16/macos-profiles/ |
 | 2026-08-16 | macOS arm64 (M2) | Prototype (`--profile prototype`, same disposable root) | Boot | Direct Game Select; no restoration activation; Restored save unchanged | ~20 s | PASS | Keyboard A | docs/evidence/2026-08-16/macos-profiles/ |
 | 2026-08-16 | macOS arm64 (M2) | Restored (static no-write dispatch; ordinary `.nrm`; no dylib) | Boot | Restored PRESS START -> Start/Options/English title | ~25 s | PASS | Keyboard A | docs/evidence/2026-08-16/dinomod-static-dispatch-macos/ |
