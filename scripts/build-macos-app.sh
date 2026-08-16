@@ -69,11 +69,14 @@ EOF
 echo "== staging private ROM =="
 mkdir -p "$SUPPORT"
 if [ -f "$ROM_DEST" ]; then
-  ROM_MD5="$(md5 -q "$ROM_DEST" 2>/dev/null || md5sum "$ROM_DEST" | awk '{print $1}')"
-  if [ "$ROM_MD5" = "$EXPECTED_ROM_MD5" ]; then
-    echo "ROM already staged and verified: $ROM_DEST (md5 ok)"
+  # DinoPad-owned validator: detects byte order (.z64/.v64/.n64), normalizes
+  # to big-endian, and verifies the supported fingerprint.
+  NORMALIZE_OUT="$(python3 "$ROOT/tools/normalize_rom.py" "$ROM_DEST" 2>&1)"
+  NORMALIZE_RC=$?
+  if [ "$NORMALIZE_RC" = "0" ] && echo "$NORMALIZE_OUT" | grep -qE '^(ALREADY|NORMALIZED)$'; then
+    echo "ROM staged and verified: $ROM_DEST ($NORMALIZE_OUT, md5 ok)"
   else
-    fail "staged ROM has wrong MD5 ($ROM_MD5); expected $EXPECTED_ROM_MD5. Replace it manually with the supported December 2000 prototype."
+    fail "staged ROM failed validation (rc=$NORMALIZE_RC): $NORMALIZE_OUT. Expected the supported December 2000 prototype (MD5 $EXPECTED_ROM_MD5)."
   fi
 else
   fail "no ROM at $ROM_DEST. Copy your supported Dinosaur Planet prototype ROM there first (MD5 $EXPECTED_ROM_MD5); DinoPad never downloads game data."
