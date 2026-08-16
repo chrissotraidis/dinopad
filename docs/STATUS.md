@@ -1,7 +1,7 @@
 # DinoPad Status
 
 Last updated: 2026-08-16T08:00:00Z
-Current commit: <pending cycle commit>
+Current commit: 04ea270
 Current phase: Phase 2 - Apple Silicon macOS base build
 Active goal: Verify keyboard/controller input and reach controllable gameplay on macOS
 
