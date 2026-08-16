@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-16T09:45:00Z
-Current commit: de4809e (this cycle's evidence + docs follow)
+Last updated: 2026-08-16T09:55:00Z
+Current commit: def59ac (this cycle's evidence + docs follow)
 Current phase: Phase 2 - Apple Silicon macOS base build
-Active goal: Run a bounded automated input-replay smoke of the boot-to-gameplay flow on macOS
+Active goal: Verify controller input (SDL gamepad) on macOS
 
 ## Green
 
@@ -30,6 +30,7 @@ Active goal: Run a bounded automated input-replay smoke of the boot-to-gameplay 
 - macOS title/game flow verified (2026-08-16): N64 logo -> Rareware splash -> GAME SELECT -> ENTER NAME (save created, name "AAAAA") -> PLAY THIS GAME? -> YES -> opening cinematic with subtitles renders through RT64 Metal.
 - Stable audio loop verified on macOS (2026-08-16): SDL device opens at 48000 Hz/2ch; continuous float32 stereo PCM captured (95 s session, 36 MB, RMS ~0.09, peak ~0.51, mean spectral entropy 5.5); no audio errors.
 - Controllable gameplay verified on macOS (2026-08-16): the playable tutorial scene ("Krystal! Try shooting the cannon!") responds to input end-to-end. All input types delivered to the recompiled game during gameplay (analog WASD x/y ±0.66, A=0x8000, Z=0x2000 in the [dinopad-in] log); held W displaces the on-screen character and S returns it (NCC tracking: t1 750,1050 -> W -> t2 648,954 -> S -> t3 414,1032 -> idle -> t4 768,1038); A-presses fire the tutorial cannon (orange energy pixels 1,132 -> 112,846, ~100x). Evidence: docs/evidence/2026-08-16/macos-gameplay/.
+- scripts/smoke-macos.sh added and green (2026-08-16): bounded automated input-replay smoke of boot -> GAME SELECT -> save load -> playable scene -> input (A/B/Z/Start/WASD) -> clean shutdown. First run FAILED because B was never exercised; B added to the replay, rerun PASS 22/22 (commit def59ac). Evidence: docs/evidence/2026-08-16/macos-smoke/.
 - Flashram save persistence verified on macOS (2026-08-16): the AAAAA save (created 02:30 by the game's own name-entry flow) survived two full launches in one guarded session with SHA-256 unchanged (a62085a8...5516 for dino.bin and dino.bin.bak at all three checkpoints); GAME SELECT lists it after a clean relaunch; loading it after relaunch reaches the playable tutorial scene again. Evidence: docs/evidence/2026-08-16/macos-save-persistence/.
 - Second-save name entry documented as a known issue (same S x3 D x1 lands on backspace when entering via GAME SELECT -> NEW with an existing save); first save creation and persistence unaffected.
 - Scripted macOS input now activates the DinoPad window before sending keys (.goal-loop/scratch-title-audio/sendkey.sh) after session 16 showed osascript keystrokes go to the frontmost app; see docs/KNOWN_ISSUES.md.
@@ -55,7 +56,8 @@ Active goal: Run a bounded automated input-replay smoke of the boot-to-gameplay 
 ./scripts/apply-patches.sh                           # PASS: series 0001-0005 + hlslpp applied
 ./scripts/check-repo-safety.sh                       # PASS: clean (private paths, patches covered)
 cmake --build build-macos --parallel 4 --target DinoPad   # PASS: incremental, arm64 executable
-scripts/runtime-guard.sh macos bash <session>        # PASS: guarded macOS sessions (19 total)
+scripts/runtime-guard.sh macos scripts/smoke-macos.sh   # PASS: 22/22 automated smoke checks
+scripts/runtime-guard.sh macos bash <session>        # PASS: guarded macOS sessions (24 total)
 ./build-macos/DinoPad --skip-launcher --window-width 1024 --window-height 768  # PASS with DINOPAD_LOG_* env
 .goal-loop/scratch-title-audio/sendkey.sh <keycode> <hold-s>   # activate DinoPad window, send held key
 # full flow: A x3 (boot) -> A x5 (name AAAAA) -> S x3, D x1 (END) -> A (PLAY THIS GAME?) -> A (YES) -> opening cinematic -> playable tutorial scene
@@ -64,6 +66,7 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Current evidence
 
+- Automated smoke PASS (2026-08-16): docs/evidence/2026-08-16/macos-smoke/ (result.txt, runtime.log, game-select + input screenshots, README).
 - Flashram save persistence verified (2026-08-16): docs/evidence/2026-08-16/macos-save-persistence/ (game select before/after relaunch, gameplay after reload, stable hashes).
 - Controllable gameplay verified (2026-08-16): docs/evidence/2026-08-16/macos-gameplay/ (pre_input, move_*, action_*, cannon-fire pair, displacement captures, analysis.txt, README).
 - macOS title/game flow + stable audio loop (2026-08-16): docs/evidence/2026-08-16/macos-title-audio/ (boot, game select, name entry, play question, opening cinematic screenshots; runtime excerpt; README).
@@ -91,10 +94,10 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 ## Next three candidate goals
 
-1. Run a bounded automated input-replay smoke of the boot-to-gameplay flow on macOS.
-2. Verify controller input (SDL gamepad) on macOS.
-3. Build the DinoPad macOS app bundle (scripts/build-macos-app.sh) with auto ROM staging.
+1. Verify controller input (SDL gamepad) on macOS.
+2. Build the DinoPad macOS app bundle (scripts/build-macos-app.sh) with auto ROM staging.
+3. Write docs/UPSTREAM.md (source pins, patch list, update procedure).
 
 ## Selected next goal
 
-Run a bounded automated input-replay smoke of the boot-to-gameplay flow on macOS.
+Verify controller input (SDL gamepad) on macOS.
