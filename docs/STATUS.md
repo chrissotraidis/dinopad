@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-16T10:35:00Z
-Current commit: 7eb0cd9 (this cycle's evidence + docs follow)
+Last updated: 2026-08-16T10:45:00Z
+Current commit: 3b89e69 (this cycle's evidence + docs follow)
 Current phase: Phase 2 - Apple Silicon macOS base build
-Active goal: Verify physical controller input on macOS once a pad is connected (externally blocked) - OR port the PaperPad Apple shell ROM setup/menu (Phase 4)
+Active goal: Port the PaperPad Apple shell (Phase 4): ROM setup, menu, touch overlay
 
 ## Green
 
@@ -30,6 +30,7 @@ Active goal: Verify physical controller input on macOS once a pad is connected (
 - macOS title/game flow verified (2026-08-16): N64 logo -> Rareware splash -> GAME SELECT -> ENTER NAME (save created, name "AAAAA") -> PLAY THIS GAME? -> YES -> opening cinematic with subtitles renders through RT64 Metal.
 - Stable audio loop verified on macOS (2026-08-16): SDL device opens at 48000 Hz/2ch; continuous float32 stereo PCM captured (95 s session, 36 MB, RMS ~0.09, peak ~0.51, mean spectral entropy 5.5); no audio errors.
 - Controllable gameplay verified on macOS (2026-08-16): the playable tutorial scene ("Krystal! Try shooting the cannon!") responds to input end-to-end. All input types delivered to the recompiled game during gameplay (analog WASD x/y ±0.66, A=0x8000, Z=0x2000 in the [dinopad-in] log); held W displaces the on-screen character and S returns it (NCC tracking: t1 750,1050 -> W -> t2 648,954 -> S -> t3 414,1032 -> idle -> t4 768,1038); A-presses fire the tutorial cannon (orange energy pixels 1,132 -> 112,846, ~100x). Evidence: docs/evidence/2026-08-16/macos-gameplay/.
+- docs/DINOMOD_INTEGRATION.md written (2026-08-16): package inventory, mod.toml config schema summary, AOT path and toolchain status, offline-mod-recomp feasibility notes, settings bridge, save namespace isolation, compatibility pair, and the maintainer-permission gate.
 - docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch series inventory (0001-0005 + hlslpp), test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
@@ -49,7 +50,7 @@ Active goal: Verify physical controller input on macOS once a pad is connected (
 - Acoustic playback (speaker/headphones) not checked; audio verified at the pipeline/SDL-device level.
 - RmlUi launcher not exercised on Metal (--skip-launcher used).
 - Physical controller play on macOS: BLOCKED (external) - both paired pads (8BitDo Lite 2, Xbox Wireless) are Not Connected; SDL sees 0 joysticks. Code path verified via virtual controller; see docs/KNOWN_ISSUES.md.
-- docs/DINOMOD_INTEGRATION.md, docs/UI_PARITY.md not yet written.
+- docs/UI_PARITY.md not yet written.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
 
 ## Last successful commands
