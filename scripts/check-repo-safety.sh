@@ -103,17 +103,23 @@ check_ref_repo() {
     fail "missing reference checkout: $repo_dir"
     return
   fi
-  # Untracked files: only the generated-output symlinks are permitted.
+  # Files introduced by an applied patch are permitted even though Git reports
+  # them as untracked in the read-only reference checkout.
+  patched_files="$(grep -h '^diff --git ' "$ROOT"/patches/"$name"/*.patch 2>/dev/null \
+    | sed -E 's|^diff --git a/(.*) b/.*|\1|' | tr '\n' ' ')"
+  # Untracked files: generated-output symlinks or patch-owned paths only.
   while IFS= read -r f; do
     case "$f" in
       RecompiledFuncs|RecompiledPatches) ;;
-      *) fail "untracked file in reference checkout: $repo_dir/$f";;
+      *)
+        case " $patched_files " in
+          *" $f "*) ;;
+          *) fail "untracked file in reference checkout: $repo_dir/$f";;
+        esac;;
     esac
   done < <(git -C "$repo_dir" ls-files --others --exclude-standard 2>/dev/null)
   # Modified tracked files must be covered by an applied DinoPad patch set
   # (submodule gitlinks are verified inside the submodule itself).
-  patched_files="$(grep -h '^diff --git ' "$ROOT"/patches/"$name"/*.patch 2>/dev/null \
-    | sed -E 's|^diff --git a/(.*) b/.*|\1|' | tr '\n' ' ')"
   while IFS= read -r f; do
     [ -n "$f" ] || continue
     if [ -d "$repo_dir/$f/.git" ] || [ -f "$repo_dir/$f/.git" ]; then

@@ -52,7 +52,7 @@ Scripts still verify/fetch pins and apply maintained patches; they refuse to con
 | Target | Output | Notes |
 |---|---|---|
 | macOS | `build-macos/DinoPad.app` | Apple Silicon; ad-hoc signed and verified by the script |
-| iOS Simulator | `build-ios-simulator/Release/DinoPad.app` | arm64 Simulator app; signing disabled; iPhone+iPad |
+| iOS Simulator | `build-ios-simulator/Release-iphonesimulator/DinoPad.app` | arm64 Simulator app; signing disabled; iPhone+iPad |
 | Physical iOS | `build-ios-device/Release/DinoPad.app` | arm64 device app; requires your own Apple Development signing team |
 
 Both app artifacts must remain ROM-free (`scripts/check-package-safety.sh` in Phase 10).
@@ -78,12 +78,25 @@ Every launch goes through `scripts/runtime-guard.sh <target> [udid] <command...>
 ## Simulator install and first run
 
 ```sh
+scripts/build-ios-simulator.sh
 xcrun simctl list devices available
 xcrun simctl boot "iPhone 17 Pro"
 open -a Simulator
-xcrun simctl install booted build-ios-simulator/Release/DinoPad.app
+xcrun simctl install booted build-ios-simulator/Release-iphonesimulator/DinoPad.app
 xcrun simctl launch booted com.chrissotraidis.dinopad
 ```
+
+The reproducible first-frame smoke stages a private supported ROM only in the
+Simulator app container, verifies the installed process remains live, captures
+a frame, checks CrashReporter, and shuts down the Simulator:
+
+```sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
+```
+
+The current iOS shell enters the engine directly for bring-up. Native Files
+import, touch controls, menu, orientation correction, save/relaunch, and the
+10-minute Phase 5 run remain required before the iPhone Simulator is green.
 
 Choose the ROM from the first-run screen. The app validates, normalizes, and stores it privately. Use the `•••` menu > Manage Game ROM to replace or remove it.
 

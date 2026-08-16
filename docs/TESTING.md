@@ -39,7 +39,11 @@ tools/check_patchable_aot.py build-macos/DinoPad \
 
 ### Automated smoke
 
-`scripts/smoke-macos.sh` / `scripts/smoke-ios.sh` verify, when a private ROM/fixture exists:
+The completed macOS smoke verifies the full list below. The current
+`scripts/smoke-ios.sh` is intentionally the first bounded subset: ROM
+fingerprint validation, ROM-free bundle audit, install/launch, a live process
+for 20 seconds, rendered-frame capture, no new crash report, and clean guarded
+shutdown. It will be extended goal-by-goal until it verifies:
 
 1. app launch;
 2. ROM validation;

@@ -3,6 +3,12 @@ cmake_minimum_required(VERSION 3.20)
 project(DinoPad LANGUAGES C CXX)
 
 set(DINOPAD_VERSION "0.1.0")
+set(DINOPAD_BUILD_NUMBER "1")
+
+if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Minimum iOS version" FORCE)
+    set(DINOPAD_IOS TRUE)
+endif()
 
 if (APPLE)
     enable_language(OBJCXX)
@@ -47,7 +53,8 @@ endif()
 set(DINOPAD_AOT_COMPILE_OPTIONS
     -fno-strict-aliasing
     -Wno-unused-variable
-    -Wno-implicit-function-declaration)
+    -Wno-implicit-function-declaration
+    -Wno-shorten-64-to-32)
 
 # Base recompiled game code (N64Recomp output, ROM-derived, private).
 file(GLOB DINOPAD_FUNC_C_SOURCES "${DINOPAD_AOT}/RecompiledFuncs/*.c")
@@ -73,36 +80,64 @@ add_library(dinopad_rsp STATIC "${DINOPAD_AOT}/rsp/aspMain.cpp")
 target_include_directories(dinopad_rsp PRIVATE
     ${DINOPAD_RECOMP_INCLUDE_DIRS}
     "${DINOPAD_AOT}/RecompiledFuncs")
-target_compile_options(dinopad_rsp PRIVATE -fno-strict-aliasing)
+target_compile_options(dinopad_rsp PRIVATE
+    -fno-strict-aliasing
+    -Wno-shorten-64-to-32)
 
-# ---- SDL2 (static, built by scripts/build-sdl2.sh) ------------------------
-if (NOT EXISTS "${DINOPAD_SDL2_BUILD}/libSDL2.a")
-    message(FATAL_ERROR
-        "SDL2 static library missing at ${DINOPAD_SDL2_BUILD}. "
-        "Run scripts/build-sdl2.sh first.")
+# ---- SDL2 -----------------------------------------------------------------
+if (DINOPAD_IOS)
+    set(SDL_SHARED OFF CACHE BOOL "Build SDL shared library" FORCE)
+    set(SDL_STATIC ON CACHE BOOL "Build SDL static library" FORCE)
+    set(SDL_TEST OFF CACHE BOOL "Build SDL tests" FORCE)
+    add_subdirectory("${DINOPAD_ROOT}/ref/SDL2" "${CMAKE_BINARY_DIR}/sdl2")
+    set(SDL2_INCLUDE_DIRS "${DINOPAD_ROOT}/ref/SDL2/include")
+    set(SDL2_LIBRARIES SDL2::SDL2-static)
+    add_library(dinopad_sdl2 INTERFACE)
+    target_link_libraries(dinopad_sdl2 INTERFACE SDL2::SDL2-static)
+else()
+    if (NOT EXISTS "${DINOPAD_SDL2_BUILD}/libSDL2.a")
+        message(FATAL_ERROR
+            "SDL2 static library missing at ${DINOPAD_SDL2_BUILD}. "
+            "Run scripts/build-sdl2.sh first.")
+    endif()
+    add_library(dinopad_sdl2 STATIC IMPORTED)
+    set_target_properties(dinopad_sdl2 PROPERTIES
+        IMPORTED_LOCATION "${DINOPAD_SDL2_BUILD}/libSDL2.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${DINOPAD_ROOT}/ref/SDL2/include")
+    # Force dependency subdirectories to use the audited static SDL2 build.
+    set(SDL2_DIR "${DINOPAD_SDL2_BUILD}" CACHE PATH "SDL2 CMake package config directory")
 endif()
-add_library(dinopad_sdl2 STATIC IMPORTED)
-set_target_properties(dinopad_sdl2 PROPERTIES
-    IMPORTED_LOCATION "${DINOPAD_SDL2_BUILD}/libSDL2.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${DINOPAD_ROOT}/ref/SDL2/include")
-# Force find_package(SDL2) in dependency subdirectories (e.g. RmlUi backends)
-# to resolve to our static SDL2 build instead of the Homebrew sdl2-compat shim.
-set(SDL2_DIR "${DINOPAD_SDL2_BUILD}" CACHE PATH "SDL2 CMake package config directory")
 
 # ---- Renderer and UI dependency stack (pinned dino-recomp submodules) -----
 set(RT64_STATIC TRUE CACHE BOOL "Build RT64 as a static library" FORCE)
 if (APPLE)
     set(RT64_SDL_WINDOW_VULKAN FALSE CACHE BOOL "Use SDL windows for RT64 Vulkan" FORCE)
 endif()
+if (DINOPAD_IOS)
+    set(RT64_BUILD_TOOLS OFF CACHE BOOL "RT64 command-line tools" FORCE)
+    set(FILE_TO_C_PATH "${DINOPAD_ROOT}/build-macos/rt64/src/tools/file_to_c/file_to_c"
+        CACHE FILEPATH "Native host file_to_c")
+    set(SPIRV_CROSS_MSL_PATH "${DINO_RECOMP}/lib/rt64/build/bin/spirv_cross_msl"
+        CACHE FILEPATH "Native host spirv_cross_msl")
+endif()
 add_compile_definitions(HLSL_CPU)
 set(LUNASVG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(RMLUI_SVG_PLUGIN ON CACHE BOOL "" FORCE)
 set(RMLUI_TESTS_ENABLED OFF CACHE BOOL "" FORCE)
+if (DINOPAD_IOS)
+    # Mobile setup/settings use UIKit; the skipped desktop launcher does not
+    # need RmlUi's external FreeType or SVG font-rendering dependencies.
+    set(RMLUI_FONT_ENGINE "none" CACHE STRING "RmlUi font engine" FORCE)
+    set(RMLUI_SVG_PLUGIN OFF CACHE BOOL "" FORCE)
+endif()
 
 add_subdirectory("${DINO_RECOMP}/lib/rt64" "${CMAKE_BINARY_DIR}/rt64")
 add_subdirectory("${DINO_RECOMP}/lib/lunasvg")
 add_subdirectory("${DINO_RECOMP}/lib/RmlUi")
 target_compile_definitions(rmlui_core PRIVATE LUNASVG_BUILD_STATIC)
+if (DINOPAD_IOS)
+    set(N64MODERN_NO_DYNAMIC_CODE ON CACHE BOOL "Disable runtime code generation" FORCE)
+endif()
 add_subdirectory("${DINO_RECOMP}/lib/N64ModernRuntime")
 
 # ---- Statically linked restoration module ---------------------------------
@@ -134,7 +169,8 @@ if (DINOPAD_ENABLE_STATIC_RESTORATION)
     target_compile_options(dinopad_restoration PRIVATE
         -fno-strict-aliasing
         -Wno-unused-variable
-        -Wno-implicit-function-declaration)
+        -Wno-implicit-function-declaration
+        -Wno-shorten-64-to-32)
     target_link_libraries(dinopad_restoration PUBLIC librecomp)
 endif()
 
@@ -267,7 +303,7 @@ target_link_libraries(dinopad_runtime PUBLIC
     dinopad_rsp
     dinopad_sdl2)
 
-if (APPLE)
+if (APPLE AND NOT DINOPAD_IOS)
     target_link_libraries(dinopad_runtime PUBLIC
         "-framework Cocoa"
         "-framework Metal"
@@ -282,12 +318,22 @@ if (APPLE)
         "-framework GameController")
 endif()
 
-# ---- DinoPad macOS executable (base port; first Metal frame) --------------
-add_executable(DinoPad
+# ---- DinoPad executable ----------------------------------------------------
+set(DINOPAD_APP_SOURCES
     "${DINO_RECOMP}/src/main.cpp"
-    "${DINO_RECOMP}/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp"
-    "${DINOPAD_ROOT}/src/app/dinopad_home.mm"
-    "${DINOPAD_ROOT}/src/app/dinopad_support.mm")
+    "${DINO_RECOMP}/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp")
+
+if (DINOPAD_IOS)
+    list(APPEND DINOPAD_APP_SOURCES
+        "${DINOPAD_ROOT}/apple/app/ios_main.mm"
+        "${DINOPAD_ROOT}/src/app/dinopad_support.mm")
+else()
+    list(APPEND DINOPAD_APP_SOURCES
+        "${DINOPAD_ROOT}/src/app/dinopad_home.mm"
+        "${DINOPAD_ROOT}/src/app/dinopad_support.mm")
+endif()
+
+add_executable(DinoPad ${DINOPAD_APP_SOURCES})
 
 set_source_files_properties("${DINOPAD_ROOT}/src/app/dinopad_home.mm"
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
@@ -325,7 +371,41 @@ if (DINOPAD_ENABLE_STATIC_RESTORATION)
     target_link_libraries(DinoPad PRIVATE dinopad_restoration)
 endif()
 
-if (APPLE)
+if (DINOPAD_IOS)
+    configure_file(
+        "${DINO_RECOMP}/lib/SDL_GameControllerDB/gamecontrollerdb.txt"
+        "${CMAKE_BINARY_DIR}/recompcontrollerdb.txt"
+        COPYONLY)
+    set_source_files_properties("${CMAKE_BINARY_DIR}/recompcontrollerdb.txt"
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(DinoPad PRIVATE "${CMAKE_BINARY_DIR}/recompcontrollerdb.txt")
+    set_target_properties(DinoPad PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_INFO_PLIST "${DINOPAD_ROOT}/apple/app/Info.plist.in"
+        MACOSX_BUNDLE_BUNDLE_NAME "DinoPad"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.chrissotraidis.dinopad"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${DINOPAD_VERSION}"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${DINOPAD_BUILD_NUMBER}"
+        OUTPUT_NAME "DinoPad"
+        XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "15.0"
+        XCODE_ATTRIBUTE_CODE_SIGN_STYLE Automatic
+        XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM}"
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.chrissotraidis.dinopad"
+        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
+    target_link_libraries(DinoPad PRIVATE
+        SDL2::SDL2main
+        SDL2::SDL2-static
+        "-framework UIKit"
+        "-framework Metal"
+        "-framework QuartzCore"
+        "-framework CoreGraphics"
+        "-framework CoreVideo"
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework CoreHaptics"
+        "-framework GameController"
+        "-framework Foundation")
+elseif (APPLE)
     target_link_libraries(DinoPad PRIVATE
         "-framework Cocoa"
         "-framework Metal"

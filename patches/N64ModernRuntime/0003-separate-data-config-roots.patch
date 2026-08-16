@@ -47,14 +47,16 @@ index 8253910..a1617dd 100644
  }
  
  bool recomp::register_game(const recomp::GameEntry& entry) {
-@@ -83,13 +90,20 @@ bool recomp::register_game(const recomp::GameEntry& entry) {
+@@ -83,13 +90,22 @@ bool recomp::register_game(const recomp::GameEntry& entry) {
  }
  
  void recomp::mods::initialize_mods() {
 +    if (!mod_scanning_enabled) {
 +        return;
 +    }
++#if !defined(N64MODERN_NO_DYNAMIC_CODE)
      N64Recomp::live_recompiler_init();
++#endif
 -    std::filesystem::create_directories(config_path / mods_directory);
 +    std::filesystem::create_directories(data_path / mods_directory);
      std::filesystem::create_directories(config_path / mod_config_directory);

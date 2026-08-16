@@ -201,14 +201,14 @@ private-fixtures/ ignored private saves (manifest only committed)
 
 ## 12. Platform bring-up order
 
-macOS arm64 (base frame -> title -> gameplay -> audio/input/save) -> static DinoMod proof on macOS -> PaperPad shell port -> iPhone Simulator -> iPad Simulator -> physical iPhone -> physical iPad -> progression/stability -> packaging/release. Exactly one runtime active at a time (`scripts/runtime-guard.sh`).
+macOS arm64 (base frame -> title -> gameplay -> audio/input/save) -> static DinoMod proof on macOS -> PaperPad shell port -> iPhone Simulator -> iPad Simulator -> physical iPhone -> physical iPad -> progression/stability -> packaging/release. Exactly one runtime active at a time (`scripts/runtime-guard.sh`). The iPhone Simulator now compiles and renders the base Rareware opening frame; native import, correct landscape presentation, touch/menu, lifecycle, save, and restored-package data are still in progress.
 
 ## 13. Risks
 
 - `create_window()` static-assert on Apple is the first macOS blocker (adapter needed).
-- Remaining RT64 iOS Metal ownership and UIKit patches must be re-derived for
-  the dino-planet fork; worker-autorelease and Plume ownership subsets are now
-  ported and macOS regression-tested.
+- The initial RT64 iOS Metal path renders on Simulator after mobile device
+  metadata and nil timestamp-query readback guards. Orientation, lifecycle,
+  long-session stability, and physical-device behavior remain unverified.
 - Full DinoMod offline AOT and no-write static dispatch are proven on macOS;
   iOS still needs the private package data embedded and the live-recompiler
   implementation excluded from the mobile link.

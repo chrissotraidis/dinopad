@@ -26,20 +26,34 @@ index 98d8202..b1e524b 100644
 \ No newline at end of file
 +}
 diff --git a/src/main.cpp b/src/main.cpp
-index 9447d63..c3a16da 100644
+index 9447d63..b3631b5 100644
 --- a/src/main.cpp
 +++ b/src/main.cpp
-@@ -37,6 +37,9 @@ const std::string version_string = "0.3.0";
+@@ -1,7 +1,11 @@
+ #include <cstdio>
+ #include <cassert>
+-#include <cstdlib>
+-#include <vector>
++#include <cstdlib>
++#include <vector>
++
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
+ 
+ #include "nfd.h"
+ #include "ultramodern/ultramodern.hpp"
+@@ -38,6 +42,9 @@ const std::string version_string = "0.3.0";
  
  extern "C" void recomp_entrypoint(uint8_t *rdram, recomp_context *ctx);
  gpr get_entrypoint_address();
-+#if defined(__APPLE__)
++#if defined(__APPLE__) && !TARGET_OS_IPHONE
 +extern "C" int dinopad_macos_prepare_home(void);
 +#endif
  
  static void custom_recomp_entrypoint(uint8_t *rdram, recomp_context *ctx) {
      printf("Initialized RDRAM at %p\n", rdram);
-@@ -65,6 +68,8 @@ std::vector<recomp::GameEntry> supported_games = {
+@@ -65,6 +72,8 @@ std::vector<recomp::GameEntry> supported_games = {
  struct CliArgs {
      bool skip_launcher = false;
      bool show_console = false;
@@ -48,7 +62,20 @@ index 9447d63..c3a16da 100644
      int window_width = 1600;
      int window_height = 960;
  };
-@@ -101,9 +106,39 @@ int main(int argc, char** argv) {
+@@ -74,7 +83,11 @@ static ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callba
+     return dino::runtime::create_window(data, cli_args.window_width, cli_args.window_height); 
+ }
+ 
+-int main(int argc, char** argv) {
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++extern "C" int dinopad_recomp_main(int argc, char** argv) {
++#else
++int main(int argc, char** argv) {
++#endif
+     // Parse CLI args
+     for (int i = 1; i < argc; i++) {
+         char *arg = argv[i];
+@@ -101,8 +114,38 @@ int main(int argc, char** argv) {
                      cli_args.window_height = height;
                  }
              }
@@ -67,28 +94,27 @@ index 9447d63..c3a16da 100644
 +                return EXIT_FAILURE;
 +            }
 +            cli_args.profile_explicit = true;
-         }
-     }
- 
-+#if defined(__APPLE__)
++        }
++    }
++
++#if defined(__APPLE__) && !TARGET_OS_IPHONE
 +    if (!cli_args.skip_launcher && !cli_args.profile_explicit) {
 +        const int selected_profile = dinopad_macos_prepare_home();
 +        if (selected_profile < 0) {
 +            return EXIT_SUCCESS;
-+        }
+         }
 +        cli_args.profile = selected_profile == 0
 +            ? dino::config::SessionProfile::Restored
 +            : dino::config::SessionProfile::Prototype;
 +        cli_args.skip_launcher = true;
-+    }
+     }
 +#endif
 +
 +    dino::config::set_session_profile(cli_args.profile);
-+
+ 
      // Load project version
      recomp::Version project_version{};
-     if (!recomp::Version::from_string(version_string, project_version)) {
-@@ -174,6 +191,10 @@ int main(int argc, char** argv) {
+@@ -174,6 +217,10 @@ int main(int argc, char** argv) {
      }
  
      recomp::register_config_path(dino::config::get_app_folder_path());
@@ -99,7 +125,7 @@ index 9447d63..c3a16da 100644
      
      // Register supported games
      for (const auto& game : supported_games) {
-@@ -230,7 +251,8 @@ int main(int argc, char** argv) {
+@@ -230,7 +277,8 @@ int main(int argc, char** argv) {
          .get_game_thread_name = dino::runtime::get_game_thread_name,
      };
  

@@ -1,8 +1,8 @@
 diff --git a/src/runtime/gfx.cpp b/src/runtime/gfx.cpp
-index 6baec5c..a19f6b9 100644
+index 6baec5c..194c2a1 100644
 --- a/src/runtime/gfx.cpp
 +++ b/src/runtime/gfx.cpp
-@@ -7,9 +7,13 @@
+@@ -7,9 +7,14 @@
  #include "common/error.hpp"
  #include "common/sdl.hpp"
  
@@ -13,13 +13,14 @@ index 6baec5c..a19f6b9 100644
 +
 +#if defined(__APPLE__)
 +#include <SDL_metal.h>
++#include <TargetConditionals.h>
 +#endif
 +
 +namespace dino::runtime {
  
  static SDL_Window* window;
  
-@@ -83,12 +87,16 @@ bool SetImageAsIcon(const char* filename, SDL_Window* window)
+@@ -83,12 +88,16 @@ bool SetImageAsIcon(const char* filename, SDL_Window* window)
  }
  #endif
  
@@ -42,7 +43,7 @@ index 6baec5c..a19f6b9 100644
  
      window = SDL_CreateWindow("Dinosaur Planet: Recompiled", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, flags);
  
-@@ -108,13 +116,22 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
+@@ -108,13 +117,26 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
      SDL_VERSION(&wmInfo.version);
      SDL_GetWindowWMInfo(window, &wmInfo);
  
@@ -65,7 +66,11 @@ index 6baec5c..a19f6b9 100644
 +        exit_error("Failed to create Metal view: %s\n", SDL_GetError());
 +    }
 +    SDL_ShowWindow(window);
++#if TARGET_OS_IPHONE
++    return ultramodern::renderer::WindowHandle{ wmInfo.info.uikit.window, SDL_Metal_GetLayer(metal_view) };
++#else
 +    return ultramodern::renderer::WindowHandle{ wmInfo.info.cocoa.window, SDL_Metal_GetLayer(metal_view) };
++#endif
 +#else
 +    static_assert(false && "Unimplemented");
 +#endif

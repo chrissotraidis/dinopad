@@ -18,10 +18,18 @@ INFO_FILE="$LOCK_DIR/info"
 
 TARGET="${1:-}"
 shift 2>/dev/null || true
-UDID="${1:-}"
+UDID=""
 
 case "$TARGET" in
-  macos|iphone-simulator|ipad-simulator|physical-iphone|physical-ipad) ;;
+  macos) ;;
+  iphone-simulator|ipad-simulator|physical-iphone|physical-ipad)
+    UDID="${1:-}"
+    if [ -z "$UDID" ]; then
+      echo "ERROR: target $TARGET requires a device UDID" >&2
+      exit 2
+    fi
+    shift
+    ;;
   *)
     echo "usage: runtime-guard.sh <target> [udid] <command...>" >&2
     exit 2
@@ -81,8 +89,8 @@ acquire() {
 }
 
 pre_launch_cleanup() {
-  terminate_dinopad || true
   xcrun simctl terminate booted com.chrissotraidis.dinopad 2>/dev/null || true
+  terminate_dinopad || true
   xcrun simctl shutdown all 2>/dev/null || true
   booted="$(xcrun simctl list devices 2>/dev/null | grep -c '(Booted)' || true)"
   if [ "$booted" -ne 0 ]; then
@@ -110,8 +118,8 @@ write_info() {
 cleanup() {
   trap - EXIT INT TERM
   echo "runtime-guard: cleanup: terminating DinoPad and shutting down Simulators"
-  terminate_dinopad || true
   xcrun simctl terminate booted com.chrissotraidis.dinopad 2>/dev/null || true
+  terminate_dinopad || true
   xcrun simctl shutdown all 2>/dev/null || true
   booted="$(xcrun simctl list devices 2>/dev/null | grep -c '(Booted)' || true)"
   if [ "$booted" -ne 0 ]; then
@@ -132,6 +140,9 @@ trap cleanup EXIT INT TERM
 acquire
 pre_launch_cleanup
 write_info "$@"
+
+export DINOPAD_RUNTIME_TARGET="$TARGET"
+export DINOPAD_RUNTIME_UDID="$UDID"
 
 echo "runtime-guard: acquired ($TARGET${UDID:+ $UDID}), running: $*"
 "$@"

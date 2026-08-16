@@ -1,0 +1,136 @@
+diff --git a/src/ui/ui_config.cpp b/src/ui/ui_config.cpp
+index d117b72..63b6984 100644
+--- a/src/ui/ui_config.cpp
++++ b/src/ui/ui_config.cpp
+@@ -1045,7 +1045,9 @@ void recompui::update_supported_options() {
+     
+     new_options = ultramodern::renderer::get_graphics_config();
+ 
+-    graphics_model_handle.DirtyAllVariables();
++    if (graphics_model_handle) {
++        graphics_model_handle.DirtyAllVariables();
++    }
+ }
+ 
+ void recompui::toggle_fullscreen() {
+diff --git a/src/ui/ui_mod_menu.cpp b/src/ui/ui_mod_menu.cpp
+index 2279aed..377b623 100644
+--- a/src/ui/ui_mod_menu.cpp
++++ b/src/ui/ui_mod_menu.cpp
+@@ -9,6 +9,10 @@
+ 
+ #include <string>
+ 
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
++
+ #ifdef WIN32
+ #include <shellapi.h>
+ #endif
+@@ -271,8 +275,12 @@ void ModMenu::open_mods_folder() {
+     std::string command = "xdg-open \"" + mods_directory.string() + "\" &";
+     std::system(command.c_str());
+ #elif defined(__APPLE__)
++#if TARGET_OS_IPHONE
++    (void)mods_directory;
++#else
+     std::string command = "open \"" + mods_directory.string() + "\"";
+     std::system(command.c_str());
++#endif
+ #else
+     static_assert(false, "Not implemented for this platform.");
+ #endif
+diff --git a/src/ui/ui_state.cpp b/src/ui/ui_state.cpp
+index 1791870..7070da0 100644
+--- a/src/ui/ui_state.cpp
++++ b/src/ui/ui_state.cpp
+@@ -9,6 +9,10 @@
+ #include <filesystem>
+ #include <fstream>
+ 
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
++
+ #include "rt64_render_hooks.h"
+ 
+ #include "concurrentqueue.h"
+@@ -468,11 +472,19 @@ inline const std::string read_file_to_string(std::filesystem::path path) {
+ }
+ 
+ void init_hook(plume::RenderInterface* interface, plume::RenderDevice* device) {
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++    // UIKit owns the mobile shell. The desktop RmlUi stack is built without a
++    // font engine on iOS and must not be initialized as a renderer hook.
++    (void)interface;
++    (void)device;
++    return;
++#else
+ #if defined(__linux__)
+     std::locale::global(std::locale::classic());
+ #endif
+     ui_state = std::make_unique<UIState>(dino::runtime::get_window(), interface, device);
+     ui_state->create_menus();
++#endif
+ }
+ 
+ moodycamel::ConcurrentQueue<SDL_Event> ui_event_queue{};
+@@ -557,16 +569,20 @@ void apply_background_input_mode() {
+ }
+ 
+ bool recompui::get_cont_active() {
+-    return ui_state->cont_is_active;
++    return ui_state ? ui_state->cont_is_active : false;
+ }
+ 
+ void recompui::set_cont_active(bool active) {
+-    ui_state->cont_is_active = active;
++    if (ui_state) {
++        ui_state->cont_is_active = active;
++    }
+ }
+ 
+ void recompui::activate_mouse() {
+-    ui_state->update_primary_input(true, false);
+-    ui_state->update_focus(true, false);
++    if (ui_state) {
++        ui_state->update_primary_input(true, false);
++        ui_state->update_focus(true, false);
++    }
+ }
+ 
+ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer* swap_chain_framebuffer) {
+@@ -801,6 +817,10 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
+ }
+ 
+ void deinit_hook() {
++    if (!ui_state) {
++        return;
++    }
++
+     recompui::destroy_all_contexts();
+ 
+     std::lock_guard lock {ui_state_mutex};
+@@ -820,6 +840,10 @@ void recompui::message_box(const char* msg) {
+ }
+ 
+ void recompui::show_context(ContextId context, std::string_view param) {
++    if (!ui_state) {
++        return;
++    }
++
+     ContextId prev_context = recompui::try_close_current_context();
+     {
+         std::lock_guard lock{ ui_state_mutex };
+@@ -833,6 +857,10 @@ void recompui::show_context(ContextId context, std::string_view param) {
+ }
+ 
+ void recompui::hide_context(ContextId context) {
++    if (!ui_state) {
++        return;
++    }
++
+     ContextId prev_context = recompui::try_close_current_context();
+     {
+         std::lock_guard lock{ ui_state_mutex };

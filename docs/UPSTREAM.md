@@ -51,6 +51,7 @@ Ordered, numbered, replayable with `scripts/apply-patches.sh`:
 | 0004-input-debug-log.patch | src/input/controls.cpp | Env-gated (`DINOPAD_LOG_INPUT=1`) input state logging for smoke tests/evidence; disabled by default | Yes (off by default) |
 | 0005-audio-debug-log.patch | src/runtime/audio.cpp | Env-gated (`DINOPAD_LOG_AUDIO=1`, `DINOPAD_AUDIO_DUMP=<path>`) audio diagnostics; disabled by default | Yes (off by default) |
 | 0006-session-profiles.patch | main/config/mod registration | Adds Restored-default and explicit Prototype session selection; Prototype disables mod scanning/registration | DinoPad product policy |
+| 0007-ios-ui-platform-guards.patch | desktop RmlUi state/config/mod menu | Leaves the uninitialized desktop UI inert while UIKit owns the iOS shell; avoids desktop folder commands and null model access | Yes (iOS-only shell boundary) |
 
 Additional patch: `patches/hlslpp/0001-scalar-labs.patch` (hlslpp scalar
 platform header fix required by the pinned RT64/hlslpp combination on Apple).
@@ -60,13 +61,19 @@ Nested upstream patches applied by checkout basename:
 | Patch | File(s) | Why it exists | Upstream semantic preserved? |
 |---|---|---|---|
 | `patches/rt64/0001-metal-worker-autorelease-lifetime.patch` | RT64 application, queues, worker threads | Stops/joins Metal workers before dependent resources and scopes Apple autoreleases; fixes the `RT64 Present` shutdown crash | Yes (lifetime/Apple ownership fix) |
+| `patches/rt64/0002-ios-renderer-foundation.patch` | RT64 renderer/shader configuration | Uses mobile-safe sampler limits, iOS Metal SDK settings, and Simulator pipeline behavior | Yes (iOS-only portability) |
+| `patches/rt64/0003-cross-compile-host-tools.patch` | RT64 CMake host-tool path | Uses pinned native shader/file conversion tools while cross-compiling | Yes (cross-build only) |
+| `patches/rt64/0004-foundation-home-directory.patch` | RT64 Apple path helper | Replaces the AppKit-only home lookup with Foundation | Yes (Apple portability) |
 | `patches/plume/0001-metal-ownership-balance.patch` | `plume_metal.cpp` | Balances Metal encoder ownership and avoids over-releasing autoreleased Objective-C objects | Yes (Metal ownership fix) |
+| `patches/plume/0002-ios-metal-platform.patch` | Plume Apple/Metal backend | Adds UIKit window metrics, mobile device metadata, main-thread layer access, and nil timestamp-query handling | Yes (iOS/Simulator portability) |
 | `patches/N64ModernRuntime/0001-static-mod-code-factories.patch` | librecomp mod API/loader | Lets an application register a build-time `ModCodeHandle` factory by manifest ID, before offline-library/live-recompiler fallback | Yes (opt-in generic API) |
 | `patches/N64ModernRuntime/0002-static-dispatch-lifecycle.patch` | librecomp mod API/loader | Lets a static handle own replacement/hook dispatch and skip runtime writes while preserving conflict tracking and unload behavior | Yes (opt-in generic API; dynamic/live handles unchanged) |
 | `patches/N64ModernRuntime/0003-separate-data-config-roots.patch` | librecomp ROM/mod/config paths | Separates shared ROM/package data from per-profile config/save roots and permits disabling mod scanning before startup | Yes (opt-in APIs; legacy one-root default preserved) |
+| `patches/N64ModernRuntime/0004-no-dynamic-code.patch` | runtime CMake/mod loader | Excludes LiveRecomp/SLJIT and makes live handles inert for mobile no-code-generation builds | Yes (opt-in build mode) |
+| `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
-The twelve-file patch set is locked in `dependencies.lock.json` at SHA-256
-`1761094c1ab774ee8c77ca1941a61dd2c30a2b6a22f92c67b80c20168b2a82aa`.
+The nineteen-file patch set is locked in `dependencies.lock.json` at SHA-256
+`10564d78e309105ab6f84e2a71130c0052f3355a881a08373a5fe17452fcf3ad`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested
@@ -80,6 +87,8 @@ Each patch is applied to the pinned checkout, then:
    (native close -> status 0 -> no new crash report).
 4. Targeted evidence sessions for behavior (title/audio, gameplay input, save
    persistence, app bundle).
+5. `scripts/build-ios-simulator.sh` followed by the guarded
+   `scripts/smoke-ios.sh` first-frame test.
 
 Patch state is verified by `scripts/check-repo-safety.sh` before every commit
 cycle; a patch that cannot be replayed cleanly is a blocker for that cycle.
@@ -117,6 +126,6 @@ supports only its bundled pins.
 | Target | Toolchain | Status |
 |---|---|---|
 | macOS arm64 | Xcode 26.6 / Apple Clang 21.0.0 / CMake 3.27.1 / Ninja 1.13.2 | Green (Phase 2 evidence) |
-| iPhone Simulator arm64 | tbd | Not started (Phase 5) |
+| iPhone Simulator arm64 | Xcode 26.6 / iOS 26.5 Simulator | Partial green: ROM-free build/install/live first frame; remaining Phase 5 gates open |
 | iPad Simulator arm64 | tbd | Not started (Phase 6) |
 | Physical iPhone / iPad | tbd | Not started (Phases 7-8) |

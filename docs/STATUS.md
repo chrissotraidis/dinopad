@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-16T20:35:00Z
-Current commit: 615e9cc (this cycle's implementation follows)
-Current phase: Phase 4 - Native Apple shell
-Active goal: Goal 26a - configure the first iPhone Simulator arm64 app target from the pinned PaperPad shell and DinoPad runtime
+Last updated: 2026-08-16T19:30:00Z
+Current commit: 532020d (iOS first-frame milestone pending commit)
+Current phase: Phase 5 - iPhone Simulator
+Active goal: Goal 26b - correct iPhone landscape presentation, then add the native import/touch/menu shell
 
 ## Green
 
@@ -40,8 +40,10 @@ Active goal: Goal 26a - configure the first iPhone Simulator arm64 app target fr
 - Restored/Prototype session profiles and isolation green on macOS (2026-08-16): Restored is the default, `--profile restored|prototype` is deterministic, and invalid values fail before initialization. Shared ROM/package data is separated from per-profile configs, mod configs, and FlashRAM. A disposable-root smoke with distinct 128 KiB sentinel saves proved no cross-mode writes; Restored visibly enabled static dispatch, while Prototype disabled all mod scanning/registration and reached Game Select. Evidence: docs/evidence/2026-08-16/macos-profiles/.
 - Native macOS setup/home and profile handoff green (2026-08-16): a DinoPad-owned AppKit boundary precedes SDL, presents a ROM-free first-run setup screen, makes Restored Adventure the primary action, requires an explicit archival warning for Prototype, and offers ROM replacement. A guarded disposable-root smoke verified setup Quit, native Prototype -> base Game Select with no restoration, and native Restored -> PRESS START with static no-write dispatch. Evidence: docs/evidence/2026-08-16/macos-native-home/.
 - Native document-picker ROM import green on macOS (2026-08-16): the real AppKit picker visibly rejected a fingerprint-modified 64 MiB z64 without staging it, then accepted a private v64 byte-swapped supported ROM, normalized it to `80371240`, atomically stored MD5 `49f7bb346ade39d1915c22e090ffd748`, and advanced to the native home. Evidence: docs/evidence/2026-08-16/macos-native-rom-import/.
+- ROM-free iOS Simulator arm64 build green (2026-08-16): the Xcode target cross-compiles the pinned runtime/RT64/Plume/SDL stack for `iphonesimulator`, uses native host shader tools, disables LiveRecomp/SLJIT, bundles only the executable/plist/controller database, and passes architecture/ROM-extension audits. Built with Xcode 26.6 for iOS 15+.
+- iPhone Simulator first rendered frame green (2026-08-16): a guarded automated smoke installed the app, staged the verified private ROM only in its data container, kept DinoPad alive for 20 seconds with audio and RT64 Metal active, captured the Rareware opening frame, found no new crash report, terminated cleanly, and left zero booted Simulators. The run exposed and fixed mobile Plume metadata, desktop RmlUi null state, and nil Simulator timestamp-query readback. Evidence: docs/evidence/2026-08-16/iphone-simulator-first-frame/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
-- docs/UPSTREAM.md written (2026-08-16): pinned sources table, patch inventory (dino-recomp 0001-0006, N64ModernRuntime 0001-0003, hlslpp, RT64, Plume), locked twelve-file patch-set checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
+- docs/UPSTREAM.md written and current (2026-08-16): pinned sources table, 19-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
 - scripts/smoke-macos.sh added and green (2026-08-16): bounded automated input-replay smoke of boot -> GAME SELECT -> save load -> playable scene -> input (A/B/Z/Start/WASD) -> clean shutdown. First run FAILED because B was never exercised; B added to the replay, rerun PASS 22/22 (commit def59ac). Evidence: docs/evidence/2026-08-16/macos-smoke/.
@@ -62,11 +64,12 @@ Active goal: Goal 26a - configure the first iPhone Simulator arm64 app target fr
 - Physical controller play on macOS: BLOCKED (external) - both paired pads (8BitDo Lite 2, Xbox Wireless) are Not Connected; SDL sees 0 joysticks. Code path verified via virtual controller; see docs/KNOWN_ISSUES.md.
 - docs/UI_PARITY.md not yet written.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
+- iPhone Simulator is not Phase 5 green yet: the frame is rotated in a portrait capture; native Files import/rejection, Restored package data, touch controls, `•••` menu, lifecycle held-input release, save/relaunch, controllable gameplay, and the 10-minute smoke remain open.
 
 ## Last successful commands
 
 ```sh
-./scripts/apply-patches.sh                           # PASS: all 12 maintained patches applied
+./scripts/apply-patches.sh                           # PASS: all 19 maintained patches applied
 ./scripts/check-repo-safety.sh                       # PASS: clean (private paths, patches covered)
 cmake --build build-macos --parallel 4 --target DinoPad   # PASS: incremental, arm64 executable
 DINOPAD_MAX_JOBS=4 scripts/generate-restoration.sh       # PASS: C + macOS offline AOT artifacts
@@ -82,11 +85,14 @@ scripts/runtime-guard.sh macos bash <session>        # PASS: full restored and p
 .goal-loop/scratch-title-audio/sendkey.sh <keycode> <hold-s>   # activate DinoPad window, send held key
 # full flow: A x3 (boot) -> A x5 (name AAAAA) -> S x3, D x1 (END) -> A (PLAY THIS GAME?) -> A (YES) -> opening cinematic -> playable tutorial scene
 md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090ffd748 (private, untracked)
+scripts/build-ios-simulator.sh                      # PASS: ROM-free arm64 Simulator app
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: live 20s, frame, no crash, clean shutdown
 ```
 
 ## Current evidence
 
 - Native macOS setup/home + warned Prototype/primary Restored handoffs (2026-08-16): docs/evidence/2026-08-16/macos-native-home/.
+- iPhone Simulator ROM-free arm64 first frame (2026-08-16): docs/evidence/2026-08-16/iphone-simulator-first-frame/ (automated result, app console, real RT64 frame, limitations).
 - Native AppKit picker rejection + byte-swapped import (2026-08-16): docs/evidence/2026-08-16/macos-native-rom-import/.
 - Deterministic profiles + save/config isolation (2026-08-16): docs/evidence/2026-08-16/macos-profiles/.
 - Static no-write dispatch + same-binary Restored/Prototype fallback (2026-08-16): docs/evidence/2026-08-16/dinomod-static-dispatch-macos/.
@@ -118,24 +124,32 @@ md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090
 
 - Disk: ~27 GiB free (gate is 20 GiB); monitor before full generation/builds.
 - DinoMod redistribution clearance unresolved (release gate only).
-- RT64 Metal/iOS path unproven on this toolchain (Xcode 26.6).
+- RT64 Metal/iOS now renders on Simulator, but nil timestamp-query fallback,
+  orientation, lifecycle, longer stability, and physical-device behavior need
+  dedicated verification.
 - Name-entry navigation quirks (analog-only, +3 jump) must be handled by the touch/controller shell and automated smoke input.
 - Automated macOS input requires the DinoPad window to be frontmost; sendkey.sh handles it, but native input injection (or SDL-internal injection) is the durable fix for smoke automation.
 - The mobile target must embed permitted non-code restoration package data and exclude the unused live-recompiler implementation; macOS proves the static no-write dispatch itself.
 
 ## Next three candidate goals
 
-1. Reuse the setup/home/runtime boundary in the first iPhone Simulator arm64 target.
-2. Port the persistent menu and complete N64 touch-control bridge.
-3. Verify independent iPhone/iPad layouts and lifecycle behavior.
+1. Correct the iPhone landscape/orientation contract and add a screenshot assertion.
+2. Reuse the native setup/home boundary with a UIKit Files importer and exact unsupported-ROM rejection.
+3. Port the persistent `•••` menu and complete N64 touch-control bridge.
 
 ## Selected next goal
 
-Goal 26a: configure and compile the first iPhone Simulator arm64 app target.
-Acceptance requires a UIKit/SDL entry shell, the pinned static base and
-restoration code, Metal renderer linkage without JIT/runtime code loading, a
-ROM-free `.app`, and a clean Simulator shutdown. Runtime UI validation follows
-as the next smallest goal after the build is green.
+Goal 26b: correct the first iPhone runtime presentation before touch controls
+are placed. Acceptance requires a landscape Simulator capture with upright
+game content, no safe-area clipping, the process still live, no new crash
+report, and zero booted Simulators after the guarded run.
+
+Goal 26a outcome: the ROM-free arm64 app builds, installs, remains live for a
+bounded smoke, renders the Rareware opening frame through RT64 Metal with SDL
+audio active, produces no new crash report, and cleans up completely. This is
+base prototype output because the permitted restoration package data and
+mobile shell gates intentionally follow. Evidence:
+docs/evidence/2026-08-16/iphone-simulator-first-frame/.
 
 Goal 24b outcome: the real AppKit picker rejected a modified 64 MiB ROM without
 staging it, accepted a private v64 fixture, normalized it to z64, stored the

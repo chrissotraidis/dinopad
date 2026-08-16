@@ -1,0 +1,8 @@
+Failed to preload executable!
+DinoPad profile: Restored (namespace=Profiles/Restored)
+2026-08-16 14:27:45.068 DinoPad[83847:18276784] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1065b8500>.
+2026-08-16 14:27:45.069 DinoPad[83847:18276784] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1065b8500>.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!
+objc[83847]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1173fc310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x11795c398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+com.chrissotraidis.dinopad: 83847
