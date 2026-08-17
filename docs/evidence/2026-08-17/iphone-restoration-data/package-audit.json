@@ -1,0 +1,20 @@
+{
+  "binary_bytes": 42711744,
+  "executable_bytes_removed": 316592,
+  "executable_range": [42394592, 42711184],
+  "executable_range_all_zero": true,
+  "executable_segments_removed": 1,
+  "format": 1,
+  "mod_id": "dinomod_enhanced",
+  "native_libraries": false,
+  "original_executable_nonzero_bytes": 213988,
+  "package_bytes": 37994172,
+  "package_members": [
+    "mod.json",
+    "mod_syms.bin",
+    "mod_binary.bin"
+  ],
+  "package_sha256": "2ee8befb8ee724e776f52b7654eb2202ae9f6971d716df1aafc5346e617be5e1",
+  "sanitized_binary_sha256": "0e33cf6cded4c443b9fed11a1946d5b20bc847f353a70ea3ef287eb5c2c757e4",
+  "symbols_sha256": "37ec8af77f4ebd724cd27f5ed35dd53b537d27508809a026858245c652e0875c"
+}

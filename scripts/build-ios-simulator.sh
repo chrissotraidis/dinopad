@@ -14,6 +14,7 @@ command -v xcodebuild >/dev/null || { echo "ERROR: Xcode is required" >&2; exit 
 for required in \
     "$ROOT/generated/aot/RecompiledFuncs/funcs.h" \
     "$ROOT/generated/restoration/dinomod_static_dispatch.c" \
+    "$ROOT/generated/restoration/dinomod_restoration_data.nrm" \
     "$ROOT/build-macos/rt64/src/tools/file_to_c/file_to_c" \
     "$ROOT/ref/dino-recomp/lib/rt64/build/bin/spirv_cross_msl"; do
     if [[ ! -e "$required" ]]; then

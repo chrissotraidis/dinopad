@@ -14,6 +14,7 @@ external dependency.
 | Capability | PaperPad reference behavior | DinoPad status | Gap / intentional difference |
 |---|---|---|---|
 | Native arm64 static game code | No emulation/JIT dependency | Green on macOS and iPhone Simulator | Device build still open. |
+| Mobile restored content | Static code plus application-owned data; no arbitrary executable mods | **Green iPhone Simulator (Goal 27c)** | The embedded package has its MIPS executable segment zeroed; writable mod scanning is disabled; iPad/device proof and redistribution permission remain open. |
 | Metal presentation | SDL UIKit/AppKit window -> CAMetalLayer -> RT64 | Green first frame | Resize/orientation/device stress open. |
 | ROM-free bundle | User imports exact supported ROM | **Green** macOS + iPhone Simulator | Device/IPA audit remains Phase 10. |
 | ROM picker/normalization | `.z64/.v64/.n64`, exact revision, private normalized storage | **Green** macOS + iPhone Simulator **(Goal 27a)** | DinoPad validates its December 2000 prototype fingerprint; physical Files providers remain open. |
@@ -49,6 +50,7 @@ These intentional differences are required rather than parity regressions:
 - Prototype Mode requires a prominent incompleteness warning.
 - Saves/configuration are isolated between Restored and Prototype.
 - Restoration code is statically linked and dispatches without runtime writes.
+- Mobile restoration data is embedded-only and sanitized of its MIPS executable segment.
 - No arbitrary mod installation or downloaded executable code.
 - Menu includes restoration settings/status and quit-to-DinoPad-home actions.
 

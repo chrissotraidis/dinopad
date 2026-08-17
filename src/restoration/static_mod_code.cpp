@@ -1,5 +1,6 @@
 #include "dinopad/restoration.hpp"
 
+#include <cstdlib>
 #include <cstdio>
 #include <memory>
 #include <sstream>
@@ -14,6 +15,14 @@ extern "C" void dinopad_static_dispatch_set_enabled(int enabled);
 
 namespace dinopad::restoration {
 namespace {
+
+constexpr size_t kConfigU32ImportIndex = 10;
+recomp_func_ext_t* config_u32_function = nullptr;
+uintptr_t config_u32_mod_index = 0;
+
+void config_u32_static_adapter(uint8_t* rdram, recomp_context* context) {
+    config_u32_function(rdram, context, config_u32_mod_index);
+}
 
 class StaticModCodeHandle final : public recomp::mods::ModCodeHandle {
 public:
@@ -59,6 +68,21 @@ public:
         }
         dinopad_mod_imported_funcs[import_index] =
             std::get<recomp_func_t*>(function);
+    }
+
+    bool set_extended_imported_function(size_t import_index,
+                                        recomp_func_ext_t* function,
+                                        uintptr_t argument) final {
+        // DinoMod's only extended import is recomp_get_config_u32. Bind its
+        // per-mod argument through ordinary static code so iOS never needs the
+        // runtime-generated ShimFunction used by desktop dynamic mods.
+        if (import_index != kConfigU32ImportIndex || function == nullptr) {
+            return false;
+        }
+        config_u32_function = function;
+        config_u32_mod_index = argument;
+        dinopad_mod_imported_funcs[import_index] = config_u32_static_adapter;
+        return true;
     }
 
     recomp::mods::CodeModLoadError populate_reference_symbols(
@@ -113,6 +137,14 @@ public:
 
     bool uses_static_dispatch() const final { return true; }
     void activate_static_dispatch() final {
+        for (size_t index = 0; index < DINOPAD_MOD_IMPORT_COUNT; ++index) {
+            if (dinopad_mod_imported_funcs[index] == nullptr) {
+                std::fprintf(stderr,
+                             "ERROR: static restoration import[%zu] is null\n",
+                             index);
+                std::abort();
+            }
+        }
         dinopad_static_dispatch_set_enabled(1);
         std::fprintf(stderr,
                      "Static restoration dispatch enabled (294 replacements; "

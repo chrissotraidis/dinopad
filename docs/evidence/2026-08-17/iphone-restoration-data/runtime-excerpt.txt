@@ -1,0 +1,25 @@
+DinoPad profile: Restored (namespace=Profiles/Restored)
+Bundled restoration data registered (37994172 bytes; filesystem mods disabled)
+Using statically linked code for mod dinomod_enhanced
+Static restoration dispatch enabled (294 replacements; 35 hook slots; no runtime code writes)
+[dinopad-restoration-test] Restored title capture boundary
+[dinopad-in] frame=26536 buttons=0x0000 x=0.00 y=0.66
+[dinopad-in] frame=26656 buttons=0x8000 x=0.00 y=0.66
+[dinopad-in] frame=26657 buttons=0x8000 x=0.00 y=0.00
+[dinopad-restoration-test] Late-session input replay completed (polls=26679)
+[dinopad-in] frame=26680 buttons=0x0000 x=0.00 y=0.00
+
+Final restart regression:
+DinoPad profile: Restored (namespace=Profiles/Restored)
+Bundled restoration data registered (37994172 bytes; filesystem mods disabled)
+Using statically linked code for mod dinomod_enhanced
+Static restoration dispatch enabled (294 replacements; 35 hook slots; no runtime code writes)
+[dinopad-home-test] Gameplay input polled before quit
+[dinopad-home-test] Quit to home requested
+[dinopad-home-test] Runtime returned to home
+[dinopad-home-test] Prototype selected
+DinoPad profile: Prototype (namespace=Profiles/Prototype)
+
+Assertions: no package/static marker after the Prototype profile line; writable
+should-not-open.nrm absent from both logs; no new crash report; zero remaining
+DinoPad processes and zero booted Simulators after runtime-guard cleanup.

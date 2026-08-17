@@ -74,10 +74,12 @@ Nested upstream patches applied by checkout basename:
 | `patches/N64ModernRuntime/0003-separate-data-config-roots.patch` | librecomp ROM/mod/config paths | Separates shared ROM/package data from per-profile config/save roots and permits disabling mod scanning before startup | Yes (opt-in APIs; legacy one-root default preserved) |
 | `patches/N64ModernRuntime/0004-no-dynamic-code.patch` | runtime CMake/mod loader | Excludes LiveRecomp/SLJIT and makes live handles inert for mobile no-code-generation builds | Yes (opt-in build mode) |
 | `patches/N64ModernRuntime/0005-restartable-sessions.patch` | runtime startup/shutdown, events, timers, guest threads, overlays | Resets per-session state, unloads static mods, joins timers and all registered N64 guest host threads before freeing RDRAM, and makes overlay/manual symbol registration restart-safe | Yes (lifecycle cleanup; single-session behavior preserved) |
+| `patches/N64ModernRuntime/0006-embedded-only-mod-scanning.patch` | librecomp mod discovery | Lets constrained builds load application-registered embedded packages while refusing all writable-filesystem mod discovery | Yes (opt-in policy; desktop scanning remains the default) |
+| `patches/N64ModernRuntime/0007-static-extended-imports.patch` | librecomp static import binding | Lets a static code handle bind extended exports directly when runtime shim generation is disabled | Yes (opt-in static binding; dynamic/live handles unchanged) |
 | `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
-The twenty-three-file patch set is locked in `dependencies.lock.json` at SHA-256
-`ef27b6e115bcc5a23d9975496addaab03678bacda24994d04ecfd8967b02ffb4`.
+The twenty-five-file patch set is locked in `dependencies.lock.json` at SHA-256
+`0ced288c398859a955484d17ce7cd46e9c8b1f9eea8501ec0ae7fe0dba39b1a6`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested

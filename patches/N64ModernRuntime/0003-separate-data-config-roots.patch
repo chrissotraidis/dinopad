@@ -11,31 +11,33 @@ index 6df55ee..f12ad93 100644
      void check_all_stored_roms();
      bool load_stored_rom(std::u8string& game_id);
 diff --git a/librecomp/include/librecomp/mods.hpp b/librecomp/include/librecomp/mods.hpp
-index cf4794c..b40defe 100644
+index cf4794c..6ab6ffb 100644
 --- a/librecomp/include/librecomp/mods.hpp
 +++ b/librecomp/include/librecomp/mods.hpp
-@@ -633,6 +633,7 @@ namespace recomp {
+@@ -633,6 +633,8 @@ namespace recomp {
          CodeModLoadError validate_api_version(uint32_t api_version, std::string& error_param);
  
          void initialize_mods();
 +        void set_scanning_enabled(bool enabled);
++        void set_filesystem_scanning_enabled(bool enabled);
          void register_embedded_mod(const std::string &mod_id, std::span<const uint8_t> mod_bytes);
          void register_static_mod_code(const std::string& mod_id, ModCodeHandleFactory factory);
          void scan_mods();
 diff --git a/librecomp/src/recomp.cpp b/librecomp/src/recomp.cpp
-index 8253910..a1617dd 100644
+index 8253910..efb5052 100644
 --- a/librecomp/src/recomp.cpp
 +++ b/librecomp/src/recomp.cpp
-@@ -51,6 +51,8 @@ std::mutex mod_context_mutex{};
+@@ -51,6 +51,9 @@ std::mutex mod_context_mutex{};
  
  // Global variables
  std::filesystem::path config_path;
 +std::filesystem::path data_path;
 +bool mod_scanning_enabled = true;
++bool mod_filesystem_scanning_enabled = true;
  // Maps game_id to the game's entry.
  std::unordered_map<std::u8string, recomp::GameEntry> game_roms {};
  // The global mod context.
-@@ -66,6 +68,11 @@ std::u8string recomp::GameEntry::stored_filename() const {
+@@ -66,6 +69,11 @@ std::u8string recomp::GameEntry::stored_filename() const {
  
  void recomp::register_config_path(std::filesystem::path path) {
      config_path = path;
@@ -47,7 +49,7 @@ index 8253910..a1617dd 100644
  }
  
  bool recomp::register_game(const recomp::GameEntry& entry) {
-@@ -83,13 +90,22 @@ bool recomp::register_game(const recomp::GameEntry& entry) {
+@@ -83,13 +91,28 @@ bool recomp::register_game(const recomp::GameEntry& entry) {
  }
  
  void recomp::mods::initialize_mods() {
@@ -58,7 +60,9 @@ index 8253910..a1617dd 100644
      N64Recomp::live_recompiler_init();
 +#endif
 -    std::filesystem::create_directories(config_path / mods_directory);
-+    std::filesystem::create_directories(data_path / mods_directory);
++    if (mod_filesystem_scanning_enabled) {
++        std::filesystem::create_directories(data_path / mods_directory);
++    }
      std::filesystem::create_directories(config_path / mod_config_directory);
      mod_context->set_mods_config_path(config_path / "mods.json");
      mod_context->set_mod_config_directory(config_path / mod_config_directory);
@@ -68,10 +72,14 @@ index 8253910..a1617dd 100644
 +    mod_scanning_enabled = enabled;
 +}
 +
++void recomp::mods::set_filesystem_scanning_enabled(bool enabled) {
++    mod_filesystem_scanning_enabled = enabled;
++}
++
  void recomp::mods::register_embedded_mod(const std::string &mod_id, std::span<const uint8_t> mod_bytes) {
      std::lock_guard<std::mutex> lock(mod_context_mutex);
      mod_context->register_embedded_mod(mod_id, mod_bytes);
-@@ -101,10 +115,14 @@ void recomp::mods::register_static_mod_code(const std::string& mod_id, ModCodeHa
+@@ -101,10 +124,15 @@ void recomp::mods::register_static_mod_code(const std::string& mod_id, ModCodeHa
  }
  
  void recomp::mods::scan_mods() {
@@ -83,11 +91,12 @@ index 8253910..a1617dd 100644
      {
          std::lock_guard mod_lock{ mod_context_mutex };
 -        mod_open_errors = mod_context->scan_mod_folder(config_path / mods_directory);
-+        mod_open_errors = mod_context->scan_mod_folder(data_path / mods_directory);
++        mod_open_errors = mod_context->scan_mod_folder(
++            data_path / mods_directory, mod_filesystem_scanning_enabled);
      }
      for (const auto& cur_error : mod_open_errors) {
          printf("Error opening mod " PATHFMT ": %s (%s)\n", cur_error.mod_path.c_str(), recomp::mods::error_to_string(cur_error.error).c_str(), cur_error.error_param.c_str());
-@@ -121,7 +139,7 @@ void recomp::mods::close_mods() {
+@@ -121,7 +149,7 @@ void recomp::mods::close_mods() {
  }
  
  std::filesystem::path recomp::mods::get_mods_directory() {
@@ -96,7 +105,7 @@ index 8253910..a1617dd 100644
  }
  
  recomp::mods::ModContentTypeId recomp::mods::register_mod_content_type(const ModContentType& type) {
-@@ -188,11 +206,11 @@ bool write_file(const std::filesystem::path& path, const std::vector<uint8_t>& d
+@@ -188,11 +216,11 @@ bool write_file(const std::filesystem::path& path, const std::vector<uint8_t>& d
  }
  
  bool check_stored_rom(const recomp::GameEntry& game_entry) {
@@ -110,7 +119,7 @@ index 8253910..a1617dd 100644
          return false;
      }
  
-@@ -220,11 +238,11 @@ bool recomp::load_stored_rom(std::u8string& game_id) {
+@@ -220,11 +248,11 @@ bool recomp::load_stored_rom(std::u8string& game_id) {
          return false;
      }
      
@@ -124,7 +133,7 @@ index 8253910..a1617dd 100644
          return false;
      }
  
-@@ -398,7 +416,7 @@ recomp::RomValidationError recomp::select_rom(const std::filesystem::path& rom_p
+@@ -398,7 +426,7 @@ recomp::RomValidationError recomp::select_rom(const std::filesystem::path& rom_p
          }
      }
  

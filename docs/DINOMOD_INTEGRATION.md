@@ -181,6 +181,20 @@ and no DinoMod dynamic dependency. Restored and Prototype fallback visual
 smokes pass on the same binary. Evidence:
 `docs/evidence/2026-08-16/dinomod-static-dispatch-macos/`.
 
+Mobile non-executable package result (goal 27c, 2026-08-17):
+`tools/build_static_restoration_data.py` maps the pinned MIPS ELF executable
+segment through `mod_syms.bin`, verifies every declared function lies inside
+it, and zeros all 316,592 executable bytes before deterministically writing an
+embedded package with exactly `mod.json`, `mod_syms.bin`, and
+`mod_binary.bin`. iOS disables writable-filesystem mod scanning and registers
+that bundled data only for Restored; all restoration code remains statically
+linked arm64 code and dispatches without runtime writes. A guarded iPhone run
+visibly reached the restored `PRESS START` title and controllable ship-deck
+cannon tutorial, while a live restart into Prototype omitted package and static
+dispatch markers. The package remains private/ignored pending redistribution
+permission. Evidence:
+`docs/evidence/2026-08-17/iphone-restoration-data/`.
+
 If offline conversion proves incomplete during live binding (goal 21), fall
 back to a generic static bridge or ship Prototype-only until solved (plan
 risk table).
@@ -220,8 +234,6 @@ Restored and Prototype modes must not share saves:
 ## 9. Open questions / blockers
 
 1. Maintainer permission or license (BLOCKED for public Restored).
-2. Embed the permitted non-code package data for iOS and exclude the unused
-   live-recompiler implementation from the mobile target.
-3. Asset patch redistribution (ROM-derived content rules; build from baserom
+2. Asset patch redistribution (ROM-derived content rules; build from baserom
    privately, ship only legally distributable derived assets).
-4. Whether "DinoMod Enhanced" branding is permitted in the app UI.
+3. Whether "DinoMod Enhanced" branding is permitted in the app UI.

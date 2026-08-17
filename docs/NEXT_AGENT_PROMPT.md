@@ -64,34 +64,39 @@ in the plan.
   warned Prototype selection, isolated profile handoff, quit-to-home from live
   gameplay, and a second runtime in the same process. Restart teardown now joins
   all guest threads and prevents queued Plume/UIKit work from outliving windows.
-- Mobile has not proven packaged restoration data or a Restored title/gameplay
-  boot. The first-frame evidence is base/prototype output.
+- Goal 27c now embeds only deterministic non-executable restoration data,
+  disables writable mod scanning, and visibly proves the restored `PRESS START`
+  title plus controllable ship-deck cannon gameplay on iPhone. Same-process
+  Prototype restart omits package/static dispatch. Redistribution permission is
+  still a separate release blocker.
 - iPad Simulator, device builds, physical-device evidence, progression, and
   release packaging remain open.
 - DinoMod redistribution permission is an external release blocker, not a reason
   to stop technical development.
 
-## Immediate next goal: Goal 27c
+## Immediate next goal: Goal 28a
 
-Package only permitted non-code restoration data and prove the statically linked
-Restored path on iPhone without weakening the ROM-free/no-dynamic-code policy.
+Implement independent persisted phone/tablet touch-layout editing and reset as
+the first coherent slice of the section 3.4 native menu contract. Follow the
+pinned PaperPad behavior while retaining DinoPad controls and branding.
 
 Acceptance:
 
 1. Clean patch replay and repository-safety audit pass.
 2. macOS incremental build remains green.
 3. iPhone Simulator build remains ROM-free and arm64.
-4. The app bundles no ROM/save/private fixture, no `.nrm` executable package,
-   no dylib restoration code, and no signing material.
-5. Restored selects the registered static code handle and permitted packaged
-   data with no JIT, runtime writes, or downloaded code.
-6. Runtime and visual evidence prove the Restored PRESS START/title path and a
-   controllable gameplay scene on iPhone.
-7. Prototype in the same build visibly omits restoration and keeps its isolated
-   namespace.
-8. Existing ROM-import, home/restart, input/lifecycle, and macOS smokes remain
-   green with no new crash report or leaked runtime/Simulator.
-9. Curate evidence, update `STATUS`, `TECHNICAL_DEBT`, `UI_PARITY`, patch lock,
+4. The `•••` menu exposes real touch-layout customization and reset actions;
+   no placeholder remains for this slice.
+5. Phone and tablet layouts use independent persistence keys and defaults.
+6. The editor supports the plan/PaperPad behaviors: move, resize, opacity,
+   visibility, group/link where applicable, reset, and undo/cancel semantics.
+7. Safe-area clamping prevents controls from becoming unreachable or sitting
+   under excluded edges; the `•••` button remains reachable.
+8. A deterministic harness proves persistence across relaunch, reset, idiom
+   isolation, input clearing while editing, and restoration after dismissal.
+9. Existing restoration, ROM-import, home/restart, input/lifecycle, and macOS
+   smokes remain green with no new crash report or leaked runtime/Simulator.
+10. Curate evidence, update `STATUS`, `TECHNICAL_DEBT`, `UI_PARITY`, patch lock,
    and commit the smallest coherent milestone.
 
 ## Then continue in this order
@@ -124,8 +129,9 @@ Acceptance:
 - Keep reporting honestly: phases 6-10 are not green until their acceptance
   criteria and evidence are actually satisfied.
 
-Start by inspecting `git status`, `git log -5`, the current patch lock, and the
-Goal 26c source paths. Then execute the smallest verified goal without asking for
+Start by inspecting `git status`, `git log -5`, the current patch lock, the
+current touch/menu implementation, and pinned PaperPad layout-editor sources.
+Then execute the smallest verified goal without asking for
 clarification unless a genuinely consequential unknown cannot be discovered.
 
 ---

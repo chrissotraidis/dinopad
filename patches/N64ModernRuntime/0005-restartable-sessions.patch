@@ -78,15 +78,26 @@ index 57db6f6..ade5eb8 100644
  void init_thread_cleanup();
  
  // Saving
+@@ -75,6 +76,7 @@ struct MessageQueueControl {
+ void set_message_queue_control(const MessageQueueControl& mqc);
+ void enqueue_external_message_src(PTR(OSMesgQueue) mq, OSMesg msg, bool jam, EventMessageSource src);
+ void enqueue_external_message(PTR(OSMesgQueue) mq, OSMesg msg, bool jam, bool requeue_if_blocked);
++void reset_external_messages();
+ void wait_for_external_message(RDRAM_ARG1);
+ void wait_for_external_message_timed(RDRAM_ARG1, u32 millis);
+ 
 diff --git a/ultramodern/src/events.cpp b/ultramodern/src/events.cpp
 index 1333133..218e9cd 100644
 --- a/ultramodern/src/events.cpp
 +++ b/ultramodern/src/events.cpp
-@@ -574,6 +574,34 @@ void ultramodern::send_si_message() {
+@@ -574,6 +574,37 @@ void ultramodern::send_si_message() {
  void ultramodern::init_events(RDRAM_ARG ultramodern::renderer::WindowHandle window_handle) {
      moodycamel::LightweightSemaphore gfx_thread_ready;
      moodycamel::LightweightSemaphore task_thread_ready;
 +
++    // Messages retain guest queue addresses, so none may cross an RDRAM
++    // teardown/restart boundary.
++    ultramodern::reset_external_messages();
 +    total_vis = 0;
 +    renderer_setup_result.store(ultramodern::renderer::SetupResult::Success);
 +    renderer_chosen_api.store(ultramodern::renderer::GraphicsApi::Auto);
@@ -117,6 +128,21 @@ index 1333133..218e9cd 100644
      events_context.rdram = rdram;
      events_context.sp.gfx_thread = std::thread{ gfx_thread_func, rdram, &gfx_thread_ready, window_handle };
      events_context.sp.task_thread = std::thread{ task_thread_func, rdram, &task_thread_ready };
+diff --git a/ultramodern/src/mesgqueue.cpp b/ultramodern/src/mesgqueue.cpp
+--- a/ultramodern/src/mesgqueue.cpp
++++ b/ultramodern/src/mesgqueue.cpp
+@@ -34,6 +34,11 @@ void ultramodern::enqueue_external_message(PTR(OSMesgQueue) mq, OSMesg msg, bool
+     external_messages.enqueue({mq, msg, jam, requeue_if_blocked});
+ }
+ 
++void ultramodern::reset_external_messages() {
++    QueuedMessage stale_message{};
++    while (external_messages.try_dequeue(stale_message)) {}
++}
++
+ bool do_send(RDRAM_ARG PTR(OSMesgQueue) mq_, OSMesg msg, bool jam, bool block);
+ 
+ void dequeue_external_messages(RDRAM_ARG1) {
 diff --git a/ultramodern/src/threads.cpp b/ultramodern/src/threads.cpp
 index 812c556..8d0f952 100644
 --- a/ultramodern/src/threads.cpp

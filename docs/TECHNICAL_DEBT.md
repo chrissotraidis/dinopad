@@ -13,7 +13,7 @@ platform phase, and `P2` is maintainability or test debt that should not be lost
 | Physical-device evidence | No physical iPhone/iPad device run exists. | Build/sign/install and complete the Phase 7/8 device matrix. |
 | Restored progression certification | No start-to-credits Restored device playthrough exists. | Complete and document at least one physical-device playthrough; fix blockers. |
 | ~~iOS ROM ownership flow~~ | **Closed 2026-08-17 (Goal 27a).** A clean install presents the real UIKit Files picker; production code rejects wrong-size/modified ROMs without staging, normalizes z64/v64/n64, verifies the exact MD5, stores atomically/protected/excluded from backup, and provides Replace/Remove actions. | Physical-device Files-provider coverage remains part of Phase 7/8, but the Simulator product gate is green. |
-| Mobile restoration package | The iPhone first frame is base/prototype output; mobile has not proven packaged permitted restoration data and Restored boot. | Package only cleared non-code data and verify static Restored dispatch on iPhone/iPad. |
+| ~~Mobile restoration package~~ | **Closed for iPhone Simulator 2026-08-17 (Goal 27c).** A deterministic builder strips the complete MIPS executable segment from the embedded package, iOS permits only that app-bundled data, and a guarded run visibly proved the restored title plus controllable cannon-tutorial gameplay with static no-write dispatch. | Repeat the same policy/runtime proof on iPad and physical devices. Public redistribution remains blocked separately by the DinoMod permission row above. |
 
 ## P1: iPhone/iPad phase blockers
 

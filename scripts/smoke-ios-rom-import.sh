@@ -75,7 +75,14 @@ export SIMCTL_CHILD_DINOPAD_SHOW_ROM_PICKER_SMOKE=1
 xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
   >"$EVIDENCE_DIR/picker-runtime.log" 2>&1 &
 CONSOLE_PID=$!
-sleep 4
+for _ in {1..60}; do
+  if grep -q '\[dinopad-rom-test\] Files picker presented' \
+      "$EVIDENCE_DIR/picker-runtime.log" 2>/dev/null; then
+    break
+  fi
+  if ! kill -0 "$CONSOLE_PID" 2>/dev/null; then break; fi
+  sleep 0.5
+done
 pgrep -x DinoPad >/dev/null || { echo "ERROR: setup process did not remain alive" >&2; exit 1; }
 grep -q '\[dinopad-rom-test\] First-run setup presented' "$EVIDENCE_DIR/picker-runtime.log" || {
   echo "ERROR: first-run setup marker missing" >&2; exit 1;
@@ -98,7 +105,14 @@ export SIMCTL_CHILD_DINOPAD_ROM_IMPORT_N64="$N64_ROM"
 xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
   >"$EVIDENCE_DIR/import-runtime.log" 2>&1 &
 CONSOLE_PID=$!
-sleep 8
+for _ in {1..60}; do
+  if grep -q '\[dinopad-rom-test\] ALL ROM IMPORT TESTS PASSED' \
+      "$EVIDENCE_DIR/import-runtime.log" 2>/dev/null; then
+    break
+  fi
+  if ! kill -0 "$CONSOLE_PID" 2>/dev/null; then break; fi
+  sleep 0.5
+done
 pgrep -x DinoPad >/dev/null || { echo "ERROR: imported-ROM process did not remain alive" >&2; exit 1; }
 xcrun simctl io "$UDID" screenshot "$EVIDENCE_DIR/imported-runtime.png"
 stop_app
@@ -136,7 +150,14 @@ export SIMCTL_CHILD_DINOPAD_SHOW_ROM_MANAGER_SMOKE=1
 xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
   >"$EVIDENCE_DIR/manager-runtime.log" 2>&1 &
 CONSOLE_PID=$!
-sleep 4
+for _ in {1..60}; do
+  if grep -q '\[dinopad-rom-test\] ROM manager presented with Replace/Remove actions' \
+      "$EVIDENCE_DIR/manager-runtime.log" 2>/dev/null; then
+    break
+  fi
+  if ! kill -0 "$CONSOLE_PID" 2>/dev/null; then break; fi
+  sleep 0.5
+done
 pgrep -x DinoPad >/dev/null || { echo "ERROR: ROM manager process did not remain alive" >&2; exit 1; }
 grep -q '\[dinopad-rom-test\] ROM manager presented with Replace/Remove actions' \
   "$EVIDENCE_DIR/manager-runtime.log" || { echo "ERROR: ROM manager marker missing" >&2; exit 1; }

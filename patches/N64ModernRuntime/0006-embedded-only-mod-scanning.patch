@@ -1,0 +1,21 @@
+diff --git a/librecomp/src/mods.cpp b/librecomp/src/mods.cpp
+--- a/librecomp/src/mods.cpp
++++ b/librecomp/src/mods.cpp
+@@ -837,13 +837,15 @@ void recomp::mods::ModContext::dirty_mod_configuration_thread_process() {
+     }
+ }
+ 
+-std::vector<recomp::mods::ModOpenErrorDetails> recomp::mods::ModContext::scan_mod_folder(const std::filesystem::path& mod_folder) {
++std::vector<recomp::mods::ModOpenErrorDetails> recomp::mods::ModContext::scan_mod_folder(const std::filesystem::path& mod_folder, bool scan_filesystem) {
+     std::vector<recomp::mods::ModOpenErrorDetails> ret{};
+     std::error_code ec;
+     close_mods();
+ 
+     static const std::vector<ModContentTypeId> empty_content_types{};
+-    for (const auto& mod_path : std::filesystem::directory_iterator{mod_folder, std::filesystem::directory_options::skip_permission_denied, ec}) {
++    for (const auto& mod_path : scan_filesystem
++            ? std::filesystem::directory_iterator{mod_folder, std::filesystem::directory_options::skip_permission_denied, ec}
++            : std::filesystem::directory_iterator{}) {
+         bool is_mod = false;
+         bool requires_manifest = true;
+         std::reference_wrapper<const std::vector<ModContentTypeId>> supported_content_types = std::cref(empty_content_types);

@@ -45,18 +45,18 @@ without staging, z64/v64/n64 normalization, private atomic storage, the ROM
 manager, live runtime, ROM-free bundle, and cleanup. `scripts/smoke-ios.sh`
 verifies all 14 digital masks, analog cardinals/zero return, multi-touch,
 menu/lifecycle/controller handoff, a live render, no crash, and clean shutdown.
+`scripts/smoke-ios-restoration.sh` verifies the embedded package byte-for-byte,
+its exact three-member shape, writable-mod omission, static/no-write dispatch,
+an event-driven restored title boundary, and late controllable gameplay input;
+its screenshots require visual acceptance rather than a frame-count-only claim.
 The remaining Phase 5 automation will extend these until it also verifies:
 
-1. native Restored/Prototype home handoff;
-2. Restored title;
-3. first controllable Restored scene;
-4. analog movement in controllable Restored gameplay;
-5. complete menu tree;
-6. settings persistence;
-7. phone layout persistence;
-8. save/relaunch;
-9. 10-minute stability;
-10. clean shutdown.
+1. complete menu tree;
+2. settings persistence;
+3. phone layout persistence;
+4. save/relaunch;
+5. 10-minute stability;
+6. clean shutdown.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
 
@@ -65,6 +65,7 @@ Run the importer and input regressions through the guard:
 ```sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 
@@ -166,6 +167,7 @@ scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

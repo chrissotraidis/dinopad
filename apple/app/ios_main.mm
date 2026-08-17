@@ -171,6 +171,10 @@ void drainUIKitQueue() {
 + (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay;
 @end
 
+@interface DinoPadGameplaySmokeRunner : NSObject
++ (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay;
+@end
+
 @implementation DinoPadTouchOverlayView {
     std::array<TouchControl, kControlCount> _controls;
     NSMapTable<UITouch*, NSNumber*>* _touchRoles;
@@ -1100,6 +1104,93 @@ void drainUIKitQueue() {
 
 @end
 
+@implementation DinoPadGameplaySmokeRunner {
+    DinoPadTouchOverlayView* _overlay;
+    std::vector<double> _delaysAfterA;
+    size_t _step;
+}
+
++ (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay {
+    DinoPadGameplaySmokeRunner* runner =
+        [[DinoPadGameplaySmokeRunner alloc] initWithOverlay:overlay];
+    [runner start];
+}
+
+- (instancetype)initWithOverlay:(DinoPadTouchOverlayView*)overlay {
+    self = [super init];
+    if (self) {
+        _overlay = overlay;
+        _step = 0;
+        // Mirror the proven macOS boot/save/opening replay. The first five A
+        // presses reach and confirm the existing private save; later presses
+        // advance bounded opening prompts before replaying movement in-game.
+        _delaysAfterA = {2.0, 6.0, 2.0, 6.0, 6.0};
+        _delaysAfterA.insert(_delaysAfterA.end(), 20, 20.0);
+    }
+    return self;
+}
+
+- (void)start {
+    fprintf(stderr, "[dinopad-restoration-test] Starting boot-to-gameplay replay\n");
+    fflush(stderr);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(12.0 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{ [self pressNextA]; });
+}
+
+- (void)pressNextA {
+    if (_step >= _delaysAfterA.size()) {
+        [self replayGameplayInput];
+        return;
+    }
+    NSInteger index = [_overlay controlIndexForKey:"a"];
+    [_overlay beginSimulatedTouchWithID:31 atPoint:[_overlay centerForControlIndex:index]];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        [_overlay endSimulatedTouchWithID:31];
+        const double delay = _delaysAfterA[_step++];
+        if (_step == 2) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                         (int64_t)(3.0 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                fprintf(stderr,
+                        "[dinopad-restoration-test] Restored title capture boundary\n");
+                fflush(stderr);
+            });
+        }
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                     (int64_t)(delay * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ [self pressNextA]; });
+    });
+}
+
+- (void)replayGameplayInput {
+    NSInteger index = [_overlay controlIndexForKey:"stick"];
+    CGPoint center = [_overlay centerForControlIndex:index];
+    const CGFloat radius = [_overlay radiusForControlIndex:index];
+    [_overlay beginSimulatedTouchWithID:32 atPoint:center];
+    [_overlay moveSimulatedTouchWithID:32
+                              toPoint:CGPointMake(center.x, center.y - radius)];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        [_overlay endSimulatedTouchWithID:32];
+        NSInteger aIndex = [_overlay controlIndexForKey:"a"];
+        [_overlay beginSimulatedTouchWithID:33
+                                   atPoint:[_overlay centerForControlIndex:aIndex]];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                     (int64_t)(0.40 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            [_overlay endSimulatedTouchWithID:33];
+            fprintf(stderr,
+                    "[dinopad-restoration-test] Late-session input replay completed "
+                    "(polls=%llu)\n",
+                    (unsigned long long)g_gameInputPolls.load(std::memory_order_relaxed));
+            fflush(stderr);
+        });
+    });
+}
+
+@end
+
 static __weak DinoPadTouchOverlayView* g_touchOverlay = nil;
 
 static void scheduleQuitToHomeSmoke(DinoPadTouchOverlayView* overlay, int attemptsRemaining) {
@@ -1149,6 +1240,12 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
         const char* smokeEnv = getenv("DINOPAD_RUN_INPUT_SMOKE");
         if (smokeEnv != nullptr && smokeEnv[0] != '\0' && smokeEnv[0] != '0') {
             [DinoPadInputSmokeRunner runWithOverlay:overlay];
+        }
+
+        const char* gameplaySmoke = getenv("DINOPAD_RUN_GAMEPLAY_SMOKE");
+        if (gameplaySmoke != nullptr && gameplaySmoke[0] != '\0' &&
+            gameplaySmoke[0] != '0') {
+            [DinoPadGameplaySmokeRunner runWithOverlay:overlay];
         }
 
         const char* romManagerSmoke = getenv("DINOPAD_SHOW_ROM_MANAGER_SMOKE");

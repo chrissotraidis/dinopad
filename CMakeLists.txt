@@ -378,6 +378,19 @@ if (DINOPAD_ENABLE_STATIC_RESTORATION)
 endif()
 
 if (DINOPAD_IOS)
+    if (DINOPAD_ENABLE_STATIC_RESTORATION)
+        set(DINOPAD_RESTORATION_DATA
+            "${DINOPAD_RESTORATION}/dinomod_restoration_data.nrm")
+        if (NOT EXISTS "${DINOPAD_RESTORATION_DATA}")
+            message(FATAL_ERROR
+                "Generated restoration data package missing. "
+                "Run scripts/generate-restoration.sh first.")
+        endif()
+        set_source_files_properties("${DINOPAD_RESTORATION_DATA}"
+            PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+        target_sources(DinoPad PRIVATE "${DINOPAD_RESTORATION_DATA}")
+    endif()
+
     configure_file(
         "${DINO_RECOMP}/lib/SDL_GameControllerDB/gamecontrollerdb.txt"
         "${CMAKE_BINARY_DIR}/recompcontrollerdb.txt"

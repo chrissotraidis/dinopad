@@ -17,6 +17,9 @@ input/lifecycle/controller handoff, native Files ROM import, and ROM replacement
 are verified through bounded guarded smokes. A native UIKit home now precedes
 SDL, makes Restored primary, warns before Prototype, and can tear down live
 gameplay back to home before launching a second isolated profile in-process.
+The iPhone app now embeds only a sanitized non-executable restoration data
+package, refuses writable mods, and visibly reaches the restored title and
+controllable tutorial through statically linked no-write arm64 dispatch.
 
 It is not a release-ready iPhone/iPad product. Phase 4 (Apple shell) and Phase 5
 (iPhone Simulator) are partial. Phases 6-10 (iPad, physical devices,
@@ -45,6 +48,9 @@ progression/stability, and release) remain open.
 - Native UIKit Restored/Prototype chooser before SDL, explicit Prototype archival
   warning, reachable quit-to-home action, isolated profile handoff, and a guarded
   live Restored -> home -> Prototype in-process restart with no crash.
+- Deterministic embedded restoration data with the complete MIPS executable
+  segment erased, writable mod scanning disabled, and guarded iPhone proof of
+  restored `PRESS START`, controllable cannon gameplay, and Prototype omission.
 
 ## Current iPhone touch slice
 
@@ -74,17 +80,14 @@ ROM management is live; touch layout/settings and diagnostics remain incomplete.
 
 ### Phase 4/5: finish iPhone
 
-1. Package the permitted non-code restoration data for mobile and prove that
-   Restored—not only the base prototype—boots on iPhone.
-2. Implement independent persisted phone/tablet layout editing and reset.
-3. Replace menu placeholders with the complete plan-listed menu: game/mode,
+1. Implement independent persisted phone/tablet layout editing and reset.
+2. Replace menu placeholders with the complete plan-listed menu: game/mode,
    restoration/save status, controls, display, audio, game data, support,
    diagnostics, and quit-to-home.
-4. Add settings bridges for volume, aspect, internal resolution, frame rate,
+3. Add settings bridges for volume, aspect, internal resolution, frame rate,
    HUD placement, and touch opacity/enablement.
-5. Add bounded diagnostics log/redaction/share flows.
-6. Prove supported ROM -> Restored title -> controllable gameplay, save/relaunch,
-    clean shutdown, and the full 10-minute iPhone Simulator smoke.
+4. Add bounded diagnostics log/redaction/share flows.
+5. Prove save/relaunch and the full 10-minute iPhone Simulator smoke.
 
 ### Phase 6: iPad Simulator
 
@@ -136,5 +139,5 @@ ROM management is live; touch layout/settings and diagnostics remain incomplete.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Implement Goal 27c: package permitted restoration data and prove Restored
-   iPhone title plus controllable gameplay.
+4. Implement Goal 28: independent persisted phone/tablet layout editing and
+   reset, then complete the section 3.4 menu/settings/diagnostics contract.

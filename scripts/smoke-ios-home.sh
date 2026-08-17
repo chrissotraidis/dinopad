@@ -57,7 +57,14 @@ python3 "$ROOT/tools/normalize_rom.py" "$ROM" --out "$DATA_ROOT/dino.z64" >/dev/
 xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
   >"$EVIDENCE_DIR/home-runtime.log" 2>&1 &
 CONSOLE_PID=$!
-sleep 3
+for _ in {1..60}; do
+  if grep -q '\[dinopad-home-test\] Home presented' \
+      "$EVIDENCE_DIR/home-runtime.log" 2>/dev/null; then
+    break
+  fi
+  if ! kill -0 "$CONSOLE_PID" 2>/dev/null; then break; fi
+  sleep 0.5
+done
 pgrep -x DinoPad >/dev/null || { echo "ERROR: home process exited" >&2; exit 1; }
 grep -q '\[dinopad-home-test\] Home presented' "$EVIDENCE_DIR/home-runtime.log" || {
   echo "ERROR: home marker missing" >&2; exit 1;
@@ -75,7 +82,14 @@ export SIMCTL_CHILD_DINOPAD_HOME_SHOW_PROTOTYPE_WARNING=1
 xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
   >"$EVIDENCE_DIR/prototype-warning-runtime.log" 2>&1 &
 CONSOLE_PID=$!
-sleep 3
+for _ in {1..60}; do
+  if grep -q '\[dinopad-home-test\] Prototype warning presented' \
+      "$EVIDENCE_DIR/prototype-warning-runtime.log" 2>/dev/null; then
+    break
+  fi
+  if ! kill -0 "$CONSOLE_PID" 2>/dev/null; then break; fi
+  sleep 0.5
+done
 pgrep -x DinoPad >/dev/null || { echo "ERROR: warning process exited" >&2; exit 1; }
 grep -q '\[dinopad-home-test\] Prototype warning presented' \
   "$EVIDENCE_DIR/prototype-warning-runtime.log" || {
@@ -106,7 +120,7 @@ xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
   >"$EVIDENCE_DIR/profile-switch-runtime.log" 2>&1 &
 CONSOLE_PID=$!
 
-for _ in {1..40}; do
+for _ in {1..60}; do
   if grep -q 'DinoPad profile: Prototype (namespace=Profiles/Prototype)' \
       "$EVIDENCE_DIR/profile-switch-runtime.log" 2>/dev/null; then
     break
@@ -135,6 +149,19 @@ grep -q 'DinoPad profile: Restored (namespace=Profiles/Restored)' \
   "$EVIDENCE_DIR/profile-switch-runtime.log" || { echo "ERROR: Restored namespace missing" >&2; exit 1; }
 grep -q 'DinoPad profile: Prototype (namespace=Profiles/Prototype)' \
   "$EVIDENCE_DIR/profile-switch-runtime.log" || { echo "ERROR: Prototype namespace missing" >&2; exit 1; }
+[[ "$(grep -c 'Bundled restoration data registered' "$EVIDENCE_DIR/profile-switch-runtime.log")" -eq 1 ]] || {
+  echo "ERROR: restoration data was not exclusive to the Restored runtime" >&2; exit 1;
+}
+[[ "$(grep -c 'Using statically linked code for mod dinomod_enhanced' "$EVIDENCE_DIR/profile-switch-runtime.log")" -eq 1 ]] || {
+  echo "ERROR: static restoration code was not exclusive to Restored" >&2; exit 1;
+}
+prototype_profile_line="$(grep -n 'DinoPad profile: Prototype (namespace=Profiles/Prototype)' \
+  "$EVIDENCE_DIR/profile-switch-runtime.log" | tail -1 | cut -d: -f1)"
+if tail -n "+$prototype_profile_line" "$EVIDENCE_DIR/profile-switch-runtime.log" \
+    | grep -Eq 'Bundled restoration data registered|Using statically linked code for mod dinomod_enhanced'; then
+  echo "ERROR: Prototype runtime activated restoration" >&2
+  exit 1
+fi
 [[ "$(grep -c '\[dinopad-touch\] overlay attached' "$EVIDENCE_DIR/profile-switch-runtime.log")" -ge 2 ]] || {
   echo "ERROR: second runtime touch overlay missing" >&2; exit 1;
 }

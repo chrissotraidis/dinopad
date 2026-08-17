@@ -54,6 +54,8 @@ tmp/**/*
 # IDE
 .idea/
 .vscode/
+__pycache__/
+*.pyc
 *.swp
 *.swo
 *~
