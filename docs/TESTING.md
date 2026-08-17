@@ -39,24 +39,33 @@ tools/check_patchable_aot.py build-macos/DinoPad \
 
 ### Automated smoke
 
-The completed macOS smoke verifies the full list below. The current
-`scripts/smoke-ios.sh` is intentionally the first bounded subset: ROM
-fingerprint validation, ROM-free bundle audit, install/launch, a live process
-for 20 seconds, rendered-frame capture, no new crash report, and clean guarded
-shutdown. It will be extended goal-by-goal until it verifies:
+The completed macOS smoke verifies the full list below. On iPhone Simulator,
+`scripts/smoke-ios-rom-import.sh` verifies the real Files picker, exact rejection
+without staging, z64/v64/n64 normalization, private atomic storage, the ROM
+manager, live runtime, ROM-free bundle, and cleanup. `scripts/smoke-ios.sh`
+verifies all 14 digital masks, analog cardinals/zero return, multi-touch,
+menu/lifecycle/controller handoff, a live render, no crash, and clean shutdown.
+The remaining Phase 5 automation will extend these until it also verifies:
 
-1. app launch;
-2. ROM validation;
-3. title;
-4. first controllable scene;
-5. analog movement;
-6. A/B/Z/Start;
-7. menu open/close;
-8. settings persistence;
-9. save/relaunch;
+1. native Restored/Prototype home handoff;
+2. Restored title;
+3. first controllable Restored scene;
+4. analog movement in controllable Restored gameplay;
+5. complete menu tree;
+6. settings persistence;
+7. phone layout persistence;
+8. save/relaunch;
+9. 10-minute stability;
 10. clean shutdown.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
+
+Run the importer and input regressions through the guard:
+
+```sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
+```
 
 The macOS Metal teardown regression has a shorter focused smoke. It repeatedly
 closes the native window through the SDL quit path and fails on a nonzero exit,

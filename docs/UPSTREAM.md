@@ -53,6 +53,7 @@ Ordered, numbered, replayable with `scripts/apply-patches.sh`:
 | 0006-session-profiles.patch | main/config/mod registration | Adds Restored-default and explicit Prototype session selection; Prototype disables mod scanning/registration | DinoPad product policy |
 | 0007-ios-ui-platform-guards.patch | desktop RmlUi state/config/mod menu | Leaves the uninitialized desktop UI inert while UIKit owns the iOS shell; avoids desktop folder commands and null model access | Yes (iOS-only shell boundary) |
 | 0008-ios-touch-input-bridge.patch | src/input/input.cpp | Reports physical-controller add/remove state to the UIKit overlay; CoreSimulator's synthetic controller is filtered in the DinoPad-owned bridge | Yes (iOS-only UI/input handoff) |
+| 0009-ios-noop-choice-prompt.patch | src/ui/ui_prompt.cpp | Keeps the desktop RmlUi choice prompt inert while UIKit owns the iOS shell | Yes (iOS-only UI boundary) |
 
 Additional patch: `patches/hlslpp/0001-scalar-labs.patch` (hlslpp scalar
 platform header fix required by the pinned RT64/hlslpp combination on Apple).
@@ -73,8 +74,8 @@ Nested upstream patches applied by checkout basename:
 | `patches/N64ModernRuntime/0004-no-dynamic-code.patch` | runtime CMake/mod loader | Excludes LiveRecomp/SLJIT and makes live handles inert for mobile no-code-generation builds | Yes (opt-in build mode) |
 | `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
-The twenty-file patch set is locked in `dependencies.lock.json` at SHA-256
-`f01b4ff2c74190171d37b7821a34f0af221675bf6edd9a371b4d9c05c3bfdbe4`.
+The twenty-one-file patch set is locked in `dependencies.lock.json` at SHA-256
+`1c20fc595de97ddc92fb7287eeed1065f4ed4ecfdb604267a516e8436d75143c`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested

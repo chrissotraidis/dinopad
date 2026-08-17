@@ -326,6 +326,7 @@ set(DINOPAD_APP_SOURCES
 if (DINOPAD_IOS)
     list(APPEND DINOPAD_APP_SOURCES
         "${DINOPAD_ROOT}/apple/app/ios_main.mm"
+        "${DINOPAD_ROOT}/apple/app/rom_setup.mm"
         "${DINOPAD_ROOT}/src/app/dinopad_support.mm")
 else()
     list(APPEND DINOPAD_APP_SOURCES
@@ -406,6 +407,7 @@ if (DINOPAD_IOS)
         "-framework AudioToolbox"
         "-framework CoreHaptics"
         "-framework GameController"
+        "-framework UniformTypeIdentifiers"
         "-framework Foundation")
 elseif (APPLE)
     target_link_libraries(DinoPad PRIVATE

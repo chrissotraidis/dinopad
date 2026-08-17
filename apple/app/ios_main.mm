@@ -9,6 +9,7 @@
 
 #include <SDL.h>
 #include <TargetConditionals.h>
+#import "rom_setup.h"
 #import <UIKit/UIKit.h>
 
 extern "C" int dinopad_recomp_main(int argc, char **argv);
@@ -208,6 +209,8 @@ TouchTapLatch g_touchTaps;
                               name:UIApplicationDidEnterBackgroundNotification object:nil];
         [notifications addObserver:self selector:@selector(clearInput)
                               name:UIApplicationDidBecomeActiveNotification object:nil];
+        [notifications addObserver:self selector:@selector(romManagerDidDismiss)
+                              name:@"DinoPadROMManagerDidDismissNotification" object:nil];
     }
     return self;
 }
@@ -454,9 +457,9 @@ TouchTapLatch g_touchTaps;
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
             [self setModalControlsHidden:NO];
         }]];
-    [menu addAction:[UIAlertAction actionWithTitle:@"Game Data & Diagnostics (Coming Next)"
+    [menu addAction:[UIAlertAction actionWithTitle:@"Manage Game ROM"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
-            [self setModalControlsHidden:NO];
+            dinopad_present_rom_manager((__bridge void*)presenter);
         }]];
     UIPopoverPresentationController* popover = menu.popoverPresentationController;
     if (popover != nil) {
@@ -465,6 +468,10 @@ TouchTapLatch g_touchTaps;
         popover.permittedArrowDirections = UIPopoverArrowDirectionUp;
     }
     [presenter presentViewController:menu animated:YES completion:nil];
+}
+
+- (void)romManagerDidDismiss {
+    [self setModalControlsHidden:NO];
 }
 
 - (void)dismissUtilityMenu {
@@ -1092,6 +1099,16 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
         if (smokeEnv != nullptr && smokeEnv[0] != '\0' && smokeEnv[0] != '0') {
             [DinoPadInputSmokeRunner runWithOverlay:overlay];
         }
+
+        const char* romManagerSmoke = getenv("DINOPAD_SHOW_ROM_MANAGER_SMOKE");
+        if (romManagerSmoke != nullptr && romManagerSmoke[0] != '\0' &&
+            romManagerSmoke[0] != '0') {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.60 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                [overlay setModalControlsHidden:YES];
+                dinopad_present_rom_manager((__bridge void*)[overlay topPresenter]);
+            });
+        }
     });
 }
 
@@ -1128,6 +1145,13 @@ extern "C" void dinopad_set_physical_controller_connected(int connected) {
 extern "C" int SDL_main(int, char **) {
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
     SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "1");
+
+    // Phase 5 (Goal 27a): verify the private supported ROM via UIKit before
+    // entering the runtime. Missing/invalid ROM presents an in-app Files
+    // picker that normalizes and stores the December 2000 prototype.
+    if (!dinopad_prepare_rom_setup()) {
+        return EXIT_FAILURE;
+    }
 
     char app_name[] = "DinoPad";
     char skip_launcher[] = "--skip-launcher";

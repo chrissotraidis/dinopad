@@ -1,6 +1,6 @@
 # Building DinoPad
 
-Status: macOS arm64 build active (updated 2026-08-16); iOS scripts remain to be written.
+Status: macOS arm64 and iPhone Simulator arm64 builds active (updated 2026-08-17).
 
 DinoPad does not distribute a ROM or ROM-derived playable output. All generation output is private and ignored.
 
@@ -20,7 +20,8 @@ The target top-level entry point is:
 
 ```sh
 scripts/build-macos-app.sh --rom /absolute/path/to/your/rom
-# later: scripts/build-ios-simulator.sh --rom ... and scripts/build-ios-device.sh --rom ...
+scripts/build-ios-simulator.sh
+# later: scripts/build-ios-device.sh and scripts/package-ios.sh
 ```
 
 The pipeline (mirroring `ref/dino-recomp/BUILDING.md` sections 3-5, plus PaperPad's Apple flow):
@@ -86,17 +87,26 @@ xcrun simctl install booted build-ios-simulator/Release-iphonesimulator/DinoPad.
 xcrun simctl launch booted com.chrissotraidis.dinopad
 ```
 
-The reproducible first-frame smoke stages a private supported ROM only in the
-Simulator app container, verifies the installed process remains live, captures
+The importer smoke starts from a clean app container, captures the real Files
+picker, rejects invalid private fixtures without staging, verifies all three
+byte orders and the in-game ROM manager, then checks the imported runtime:
+
+```sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh
+```
+
+The input/lifecycle smoke stages a private supported ROM only in the Simulator
+container, verifies every N64 input plus lifecycle/controller behavior, captures
 a frame, checks CrashReporter, and shuts down the Simulator:
 
 ```sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 
-The current iOS shell enters the engine directly for bring-up. Native Files
-import, touch controls, menu, orientation correction, save/relaunch, and the
-10-minute Phase 5 run remain required before the iPhone Simulator is green.
+The iOS shell now has native Files import/replacement and complete default touch
+input/lifecycle verification. The Restored/Prototype home boundary, editable
+layouts, complete menu/settings/diagnostics, save/relaunch, Restored data, and
+the 10-minute Phase 5 run remain required before iPhone Simulator is green.
 
 Choose the ROM from the first-run screen. The app validates, normalizes, and stores it privately. Use the `•••` menu > Manage Game ROM to replace or remove it.
 

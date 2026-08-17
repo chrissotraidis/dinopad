@@ -1,0 +1,19 @@
+[dinopad-rom-test] PASS: wrong-size ROM rejected without staging
+[dinopad-rom-test] PASS: modified ROM rejected without staging
+[DinoPad] ROM import accepted: December 2000 prototype
+[dinopad-rom-test] PASS: z64 normalized to exact supported z64
+[DinoPad] ROM import accepted: December 2000 prototype
+[dinopad-rom-test] PASS: v64 normalized to exact supported z64
+[DinoPad] ROM import accepted: December 2000 prototype
+[dinopad-rom-test] PASS: n64 normalized to exact supported z64
+[dinopad-rom-test] PASS: exact MD5; private atomic storage; excluded from backup
+[dinopad-rom-test] ALL ROM IMPORT TESTS PASSED
+Failed to preload executable!
+DinoPad profile: Restored (namespace=Profiles/Restored)
+[dinopad-touch] overlay attached (phone)
+2026-08-17 14:55:46.450 DinoPad[96255:19309600] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1049dc500>.
+2026-08-17 14:55:46.450 DinoPad[96255:19309600] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1049dc500>.
+objc[96255]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10c4b4310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108b38398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!
+com.chrissotraidis.dinopad: 96255

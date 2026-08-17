@@ -1,0 +1,4 @@
+[dinopad-rom-test] First-run setup presented
+[dinopad-rom-test] Files picker presented
+objc[96209]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10cb60310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10c014398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+com.chrissotraidis.dinopad: 96209

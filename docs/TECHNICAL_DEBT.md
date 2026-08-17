@@ -1,6 +1,6 @@
 # DinoPad Technical Debt Register
 
-Last updated: 2026-08-16
+Last updated: 2026-08-17
 
 Severity is relative to Preview 1. `P0` blocks correctness/release, `P1` blocks a
 platform phase, and `P2` is maintainability or test debt that should not be lost.
@@ -12,7 +12,7 @@ platform phase, and `P2` is maintainability or test debt that should not be lost
 | DinoMod permission/license | The pinned restoration source declares no conventional redistribution license and its policy is restrictive. Technical static integration exists, but public redistribution is not authorized. | Obtain explicit maintainer permission and record the granted scope before shipping restoration code/data. |
 | Physical-device evidence | No physical iPhone/iPad device run exists. | Build/sign/install and complete the Phase 7/8 device matrix. |
 | Restored progression certification | No start-to-credits Restored device playthrough exists. | Complete and document at least one physical-device playthrough; fix blockers. |
-| iOS ROM ownership flow | Simulator smoke currently stages a private ROM with `simctl`; users cannot yet import through Files. | Port PaperPad-style UIKit document picker, normalization, exact fingerprint validation, atomic storage, replacement, and error recovery. |
+| ~~iOS ROM ownership flow~~ | **Closed 2026-08-17 (Goal 27a).** A clean install presents the real UIKit Files picker; production code rejects wrong-size/modified ROMs without staging, normalizes z64/v64/n64, verifies the exact MD5, stores atomically/protected/excluded from backup, and provides Replace/Remove actions. | Physical-device Files-provider coverage remains part of Phase 7/8, but the Simulator product gate is green. |
 | Mobile restoration package | The iPhone first frame is base/prototype output; mobile has not proven packaged permitted restoration data and Restored boot. | Package only cleared non-code data and verify static Restored dispatch on iPhone/iPad. |
 
 ## P1: iPhone/iPad phase blockers
@@ -26,7 +26,7 @@ platform phase, and `P2` is maintainability or test debt that should not be lost
 | ~~Lifecycle proof absent~~ | **Closed 2026-08-17 (Goal 26c).** A guarded smoke-ios.sh run delivers background/foreground notifications while holding a button+stick, verifies the snapshot clears to zero and resumes cleanly with no crash, and leaves no booted Simulator. | Explicit in-engine pause policy during modal sheets still needs validation once the full menu tree lands. |
 | Controller handoff only event-driven | Add/remove events hide touch; the CoreSimulator synthetic controller exception is verified (touch stays available). Real MFi hardware, reconnect loops, rumble, and initial-state behavior remain unverified. | Test a real MFi/SDL controller on a physical device with repeated connect/disconnect (Phase 7/8). |
 | No mobile home/profile UI | iOS launches Restored directly with `--skip-launcher`; Prototype warning/selection is absent. | Add UIKit setup/home boundary before SDL runtime startup and quit-to-home behavior. |
-| No diagnostics/ROM manager | Native share/log and replacement workflows are absent. | Port bounded private logging, redaction, share sheet, and ROM manager. |
+| No diagnostics | The ROM manager is green (Goal 27a), but bounded private logging, redaction, and a diagnostics share sheet are absent. | Port diagnostics capture/redaction/share and wire it into the complete menu tree. |
 | iPad untested | Tablet defaults exist in code but have never run. | Complete Phase 6 only after iPhone is green and shut down. |
 
 ## P1: orientation and presentation
@@ -48,11 +48,11 @@ physical iPhone/iPad the final authority.
 |---|---|---|
 | `ios_main.mm` is becoming monolithic | Touch rendering, input state, menu, lifecycle, and startup now share one file. | Split into `touch/`, `ui/`, `rom_setup`, `diagnostics`, and a small startup coordinator as behavior lands. |
 | Drawn controls lack individual accessibility elements | The menu button is accessible; canvas-drawn controls are not exposed as named adjustable/buttons. | Add `UIAccessibilityElement` frames/labels/traits while preserving multi-touch rendering. |
-| Touch smoke uses manual Computer Use coordinates | Fragile across Simulator chrome/scale and not CI-suitable. | Add a deterministic test-only injection boundary or a pure touch-state unit harness; keep release behavior unchanged. |
+| ~~Touch smoke uses manual Computer Use coordinates~~ | **Closed 2026-08-17 (Goal 26c).** `DinoPadInputSmokeRunner` drives the production snapshot bridge without Simulator-window coordinates. | Keep the environment gate release-inert and rerun after touch changes. |
 | ~~`smoke-ios.sh` error cleanup can wait on console~~ | **Closed 2026-08-17 (Goal 26c).** A persistent EXIT/INT/TERM cleanup() trap now terminates the app and kills TERM then KILL the simctl console child even on early failure. | Unit-covered by the 8-second green run plus the bounded failure path. |
 | Upstream mixed line endings | Dino source mixes CRLF/LF, causing content-correct patches to fail exact whitespace matching. | Patch replay/safety now use `git apply --ignore-space-change`; preserve semantic hunk checks and consider normalizing only during a future upstream rebase. |
 | Touch tap duration is poll-count based | Six polls work for current runtime cadence but are not time-based. | Keep evidence across 30/60 Hz modes; convert only if missed or overlong taps appear. |
-| Touch/controller merge has no isolated unit test | Runtime evidence exists for several masks but regression localization is weak. | Add a small arm64 host/Simulator harness covering masks, axis clamp/range, multi-touch, menu clearing, and controller hiding. |
+| ~~Touch/controller merge has no isolated unit test~~ | **Closed 2026-08-17 (Goal 26c).** `tools/touch_unit_test.cpp` covers masks, latch decay, deadzone, cardinal/diagonal math, and clamp; the Simulator harness covers merge/menu/controller behavior. | Extend only when settings make range/deadzone configurable. |
 | CoreSimulator synthetic controller special case | Simulator always forces controller-disconnected so touch stays visible. | Keep the explicit exception documented and test real controller handoff on device. |
 | Mobile display/Metal layer metrics rely on upstream adapters | First frame is green but repeated resize/orientation/memory-pressure behavior is unproven. | Add resize/orientation/device stress tests and compare drawable size to safe-area/window metrics. |
 | macOS physical controller remains externally blocked | Paired controllers were not connected; only the exact SDL mapping path is verified via a virtual controller. | Re-test when hardware is connected, then record physical evidence. |

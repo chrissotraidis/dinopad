@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-16T20:11:57Z
+Last updated: 2026-08-17T00:00:00Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -12,8 +12,9 @@ It complements `docs/STATUS.md` (chronological evidence),
 DinoPad has a real ROM-free, native arm64 runtime. The macOS implementation is
 mature enough to boot both Restored and Prototype profiles, import and validate
 the supported ROM, play with audio and input, and persist saves. The iPhone
-Simulator target builds and renders through RT64 Metal, and the first native
-touch slice now reaches the actual N64 input poll path.
+Simulator target builds and renders through RT64 Metal. Full default N64 touch,
+input/lifecycle/controller handoff, native Files ROM import, and ROM replacement
+are now verified through bounded guarded smokes.
 
 It is not a release-ready iPhone/iPad product. Phase 4 (Apple shell) and Phase 5
 (iPhone Simulator) are partial. Phases 6-10 (iPad, physical devices,
@@ -30,14 +31,15 @@ progression/stability, and release) remain open.
 - Verified macOS title flow, controllable gameplay, audio pipeline, input, save
   persistence, clean shutdown, and bounded smoke automation.
 - ROM-free arm64 iPhone Simulator build with RT64 Metal first frame and audio.
-- Initial iPhone touch overlay with every N64 control, PaperPad-derived phone and
+- iPhone touch overlay with every N64 control, PaperPad-derived phone and
   tablet defaults, safe-area placement, tap latching, analog response, lifecycle
   clearing hooks, controller hiding, and an accessible persistent menu button.
-- Live iPhone input evidence for A (`0x8000`), Z (`0x2000`), Start (`0x1000`),
-  and C-left (`0x0002`) reaching `get_n64_input`.
-- The menu visibly hides gameplay controls and reports controller status.
-- The latest guarded iPhone run remained live for 90 seconds, captured a frame,
-  created no crash report, and left zero booted Simulators/processes.
+- Deterministic runtime evidence for all 14 digital masks, all analog cardinal
+  directions/zero return, simultaneous stick+A+B+Z, modal/background clearing,
+  foreground resume, and controller handoff through the actual N64 poll.
+- Native first-run Files picker and in-game ROM manager with exact 64 MiB/MD5
+  validation, z64/v64/n64 normalization, atomic protected private storage,
+  invalid rejection without staging, and ROM-free bundle proof.
 
 ## Current iPhone touch slice
 
@@ -56,30 +58,24 @@ Controller add/remove events drive touch visibility. CoreSimulator's synthetic
 controller is deliberately ignored so Simulator testing can show touch controls.
 
 The current menu is a functional scaffold, not the Definition-of-Done menu.
-`Touch Layout & Settings` and `Game Data & Diagnostics` are explicitly marked
-as coming next.
+ROM management is live; touch layout/settings and diagnostics remain incomplete.
 
 ## What is actually left
 
 ### Phase 4/5: finish iPhone
 
-1. Add the native UIKit Files importer, exact rejection messages, normalization,
-   atomic private storage, and ROM replacement.
-2. Add DinoPad home/mode choice before runtime startup: Restored primary,
+1. Add DinoPad home/mode choice before runtime startup: Restored primary,
    explicit warning for Prototype, and isolated profile handoff.
-3. Package the permitted non-code restoration data for mobile and prove that
+2. Package the permitted non-code restoration data for mobile and prove that
    Restored—not only the base prototype—boots on iPhone.
-4. Verify analog through the real N64 poll path, then exercise B, L, R, all
-   D-pad/C directions, A/Z/Start, and simultaneous multi-touch.
-5. Implement independent persisted phone/tablet layout editing and reset.
-6. Replace menu placeholders with the complete plan-listed menu: game/mode,
+3. Implement independent persisted phone/tablet layout editing and reset.
+4. Replace menu placeholders with the complete plan-listed menu: game/mode,
    restoration/save status, controls, display, audio, game data, support,
    diagnostics, and quit-to-home.
-7. Add settings bridges for volume, aspect, internal resolution, frame rate,
+5. Add settings bridges for volume, aspect, internal resolution, frame rate,
    HUD placement, and touch opacity/enablement.
-8. Add diagnostics log/share and ROM manager flows.
-9. Prove background/foreground clears held input and safely pauses/resumes.
-10. Prove supported ROM -> Restored title -> controllable gameplay, save/relaunch,
+6. Add bounded diagnostics log/redaction/share flows.
+7. Prove supported ROM -> Restored title -> controllable gameplay, save/relaunch,
     clean shutdown, and the full 10-minute iPhone Simulator smoke.
 
 ### Phase 6: iPad Simulator
@@ -132,6 +128,5 @@ as coming next.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Finish Goal 26c: fully verify and harden touch/lifecycle/menu behavior.
-5. Then implement the UIKit ROM setup/home boundary before expanding settings.
-
+4. Implement Goal 27b: UIKit Restored-primary/warned-Prototype home boundary.
+5. Then package permitted restoration data and prove Restored iPhone gameplay.
