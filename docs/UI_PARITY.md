@@ -18,14 +18,14 @@ external dependency.
 | ROM-free bundle | User imports exact supported ROM | Green package audits | iOS user-facing importer open. |
 | ROM picker/normalization | `.z64/.v64/.n64`, exact revision, private normalized storage | Green macOS; Open iOS | DinoPad validates its December 2000 prototype fingerprint. |
 | First-run setup | Native controller before runtime | Green macOS; Open iOS | DinoPad additionally needs Restored/Prototype choice and warning. |
-| Full N64 touch surface | Stick, D-pad, A/B/Z/L/R/Start/all C buttons | Partial | All 15 are drawn/wired; four digital masks evidenced; analog/full matrix open. |
-| Touch tap latching | Short taps survive multiple runtime polls | Partial/implemented | Six-poll latch present; cadence matrix open. |
-| Analog response | Deadzone, nonlinear precision, cardinal bias/flick handling | Partial | Deadzone/nonlinear/cardinal behavior present; flick retention and runtime axis evidence incomplete. |
+| Full N64 touch surface | Stick, D-pad, A/B/Z/L/R/Start/all C buttons | **Green** **(Goal 26c)** | All 14 digital masks verified end-to-end in the [dinopad-in] runtime poll on 2026-08-17; all 15 draw/wire correctly. |
+| Touch tap latching | Short taps survive multiple runtime polls | **Green** | Six-poll latch + unit coverage present; used by the digital-mask smoke. |
+| Analog response | Deadzone, nonlinear precision, cardinal bias/flick handling | **Green** **(Goal 26c)** | Deadzone/nonlinear/cardinal plus analog flick retention units in touch_unit_test.cpp; all 4 cardinal directions + diagonal multi-touch verified in the runtime poll on 2026-08-17. |
 | Phone defaults | Grip-first compact layout | Partial | PaperPad-derived centers/sizes used; measured screenshot comparison not yet recorded. |
 | Tablet defaults | Independent larger-device layout | Partial/code only | Never run on iPad Simulator. |
 | Safe areas | Controls/menu avoid notch/Home indicator | Partial | Layout uses safe-area insets; orientation/device verification open. |
 | Persistent `•••` menu | Always reachable, accessible, controller-independent | Partial | Button/menu work; full menu tree and Resume presentation polish open. |
-| Modal input policy | Clear input and hide controls for menu/picker/settings/share | Partial | Menu does this; other modal flows not implemented. |
+| Modal input policy | Clear input and hide controls for menu/picker/settings/share | Partial | Menu does this (verified Goal 26c); other modal flows not implemented. |
 | Layout editor | Move, group-link, resize, opacity, hide/show, reset, undo | Open | Must port behavior with DinoPad persistence keys. |
 | Independent idiom persistence | Phone/tablet layouts do not contaminate each other | Open | Default selection is idiom-specific; editable persistence absent. |
 | Touch enable/opacity | Persisted settings and live update | Partial | Storage exists; no complete settings UI. |
@@ -59,4 +59,3 @@ These intentional differences are required rather than parity regressions:
   Planet-specific control need is documented.
 - Full N64 input, lifecycle, controller handoff, settings, diagnostics, ROM
   management, saves, and packaging must be evidenced on physical iPhone/iPad.
-

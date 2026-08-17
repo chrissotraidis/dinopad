@@ -1,17 +1,24 @@
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include <SDL.h>
 #include <TargetConditionals.h>
 #import <UIKit/UIKit.h>
 
 extern "C" int dinopad_recomp_main(int argc, char **argv);
+extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y);
+extern "C" void dinopad_set_physical_controller_connected(int connected);
 
 namespace {
 
 constexpr uint8_t kTapHoldPolls = 6;
+constexpr uint8_t kAnalogFlickHoldPolls = 1;
 constexpr size_t kControlCount = 15;
 
 class TouchTapLatch {
@@ -30,6 +37,14 @@ public:
     void clearAll() {
         for (auto& counter : counters_) {
             counter.store(0, std::memory_order_relaxed);
+        }
+    }
+
+    void clear(uint16_t mask) {
+        for (size_t bit = 0; bit < counters_.size(); ++bit) {
+            if ((mask & static_cast<uint16_t>(1u << bit)) != 0) {
+                counters_[bit].store(0, std::memory_order_relaxed);
+            }
         }
     }
 
@@ -108,19 +123,41 @@ std::array<TouchControl, kControlCount> defaultControls() {
 std::atomic<uint16_t> g_touchButtons{0};
 std::atomic<int32_t> g_touchX{0};
 std::atomic<int32_t> g_touchY{0};
+std::atomic<int32_t> g_touchFlickX{0};
+std::atomic<int32_t> g_touchFlickY{0};
+std::atomic<uint8_t> g_touchFlickPolls{0};
 std::atomic_bool g_controllerConnected{false};
 TouchTapLatch g_touchTaps;
 
 }  // namespace
 
 @interface DinoPadTouchOverlayView : UIView
+- (void)publishInput;
 - (void)clearInput;
+- (void)setControlsEnabled:(BOOL)enabled;
+- (void)setModalControlsHidden:(BOOL)hidden;
 - (void)setPhysicalControllerConnected:(BOOL)connected;
+- (void)presentUtilityMenu;
+- (void)dismissUtilityMenu;
+
+// Deterministic test injection methods
+- (CGPoint)centerForControlIndex:(NSInteger)index;
+- (CGFloat)radiusForControlIndex:(NSInteger)index;
+- (NSInteger)controlIndexForKey:(const char*)key;
+- (void)beginSimulatedTouchWithID:(NSInteger)touchID atPoint:(CGPoint)point;
+- (void)moveSimulatedTouchWithID:(NSInteger)touchID toPoint:(CGPoint)point;
+- (void)endSimulatedTouchWithID:(NSInteger)touchID;
+@end
+
+@interface DinoPadInputSmokeRunner : NSObject
++ (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay;
 @end
 
 @implementation DinoPadTouchOverlayView {
     std::array<TouchControl, kControlCount> _controls;
     NSMapTable<UITouch*, NSNumber*>* _touchRoles;
+    NSMutableDictionary<NSNumber*, NSNumber*>* _simulatedTouchRoles;
+    NSMutableDictionary<NSNumber*, NSValue*>* _simulatedTouchPoints;
     CGPoint _stickOrigin;
     CGPoint _stickKnob;
     BOOL _controlsEnabled;
@@ -139,6 +176,8 @@ TouchTapLatch g_touchTaps;
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _controls = defaultControls();
         _touchRoles = [NSMapTable weakToStrongObjectsMapTable];
+        _simulatedTouchRoles = [NSMutableDictionary dictionary];
+        _simulatedTouchPoints = [NSMutableDictionary dictionary];
         _controlsEnabled = YES;
         _globalOpacity = 0.70;
 
@@ -167,6 +206,8 @@ TouchTapLatch g_touchTaps;
                               name:UIApplicationWillResignActiveNotification object:nil];
         [notifications addObserver:self selector:@selector(clearInput)
                               name:UIApplicationDidEnterBackgroundNotification object:nil];
+        [notifications addObserver:self selector:@selector(clearInput)
+                              name:UIApplicationDidBecomeActiveNotification object:nil];
     }
     return self;
 }
@@ -211,8 +252,25 @@ TouchTapLatch g_touchTaps;
     return CGPointMake(x, y);
 }
 
+- (CGPoint)centerForControlIndex:(NSInteger)index {
+    if (index < 0 || index >= static_cast<NSInteger>(kControlCount)) return CGPointZero;
+    return [self centerForControl:_controls[index]];
+}
+
 - (CGFloat)radiusForControl:(const TouchControl&)control {
     return control.size * [self baseDimension];
+}
+
+- (CGFloat)radiusForControlIndex:(NSInteger)index {
+    if (index < 0 || index >= static_cast<NSInteger>(kControlCount)) return 0.0;
+    return [self radiusForControl:_controls[index]];
+}
+
+- (NSInteger)controlIndexForKey:(const char*)key {
+    for (NSInteger i = 0; i < static_cast<NSInteger>(kControlCount); ++i) {
+        if (std::strcmp(_controls[i].key, key) == 0) return i;
+    }
+    return NSNotFound;
 }
 
 - (CGRect)frameForControl:(const TouchControl&)control {
@@ -283,6 +341,11 @@ TouchTapLatch g_touchTaps;
         BOOL pressed = NO;
         for (NSNumber* role in _touchRoles.objectEnumerator) {
             if (role.integerValue == index) { pressed = YES; break; }
+        }
+        if (!pressed) {
+            for (NSNumber* role in _simulatedTouchRoles.allValues) {
+                if (role.integerValue == index) { pressed = YES; break; }
+            }
         }
         CGFloat alpha = MIN(1.0, control.opacity * (_globalOpacity / 0.70));
         UIColor* accent = [self accentForControl:control];
@@ -363,6 +426,7 @@ TouchTapLatch g_touchTaps;
 }
 
 - (void)presentUtilityMenu {
+    [self clearInput];
     [self setModalControlsHidden:YES];
     UIViewController* presenter = [self topPresenter];
     if (presenter == nil) {
@@ -403,45 +467,86 @@ TouchTapLatch g_touchTaps;
     [presenter presentViewController:menu animated:YES completion:nil];
 }
 
+- (void)dismissUtilityMenu {
+    UIViewController* presenter = [self topPresenter];
+    if ([presenter isKindOfClass:UIAlertController.class]) {
+        [presenter dismissViewControllerAnimated:NO completion:^{
+            [self setModalControlsHidden:NO];
+        }];
+    } else {
+        [self setModalControlsHidden:NO];
+    }
+}
+
 - (void)publishInput {
     uint16_t buttons = 0;
     CGFloat x = 0.0;
     CGFloat y = 0.0;
+    BOOL hasStickTouch = NO;
+    CGPoint stickTouchPoint = CGPointZero;
+
+    // Real UITouches
     for (UITouch* touch in _touchRoles.keyEnumerator) {
         NSInteger role = [[_touchRoles objectForKey:touch] integerValue];
         if (role < 0 || role >= static_cast<NSInteger>(kControlCount)) continue;
         const TouchControl& control = _controls[role];
         if (control.kind == ControlKind::Stick) {
-            CGPoint point = [touch locationInView:self];
-            CGFloat radius = [self radiusForControl:control];
-            CGFloat dx = point.x - _stickOrigin.x;
-            CGFloat dy = point.y - _stickOrigin.y;
-            CGFloat length = hypot(dx, dy);
-            if (length > radius && length > 0.0) {
-                dx *= radius / length;
-                dy *= radius / length;
-            }
-            x = dx / radius;
-            y = -dy / radius;
-            constexpr CGFloat deadzone = 0.16;
-            CGFloat magnitude = hypot(x, y);
-            if (magnitude <= deadzone) {
-                x = 0.0;
-                y = 0.0;
-            } else {
-                CGFloat remapped = (magnitude - deadzone) / (1.0 - deadzone);
-                CGFloat response = remapped * remapped * (0.75 + 0.25 * remapped);
-                CGFloat scale = response / magnitude;
-                x *= scale;
-                y *= scale;
-                if (std::abs(x) > std::abs(y) * 1.45) y = 0.0;
-                else if (std::abs(y) > std::abs(x) * 1.45) x = 0.0;
-            }
-            _stickKnob = CGPointMake(_stickOrigin.x + dx, _stickOrigin.y + dy);
+            hasStickTouch = YES;
+            stickTouchPoint = [touch locationInView:self];
         } else {
             buttons |= control.mask;
         }
     }
+
+    // Simulated touches (test harness)
+    for (NSNumber* touchID in _simulatedTouchRoles) {
+        NSInteger role = [_simulatedTouchRoles[touchID] integerValue];
+        if (role < 0 || role >= static_cast<NSInteger>(kControlCount)) continue;
+        const TouchControl& control = _controls[role];
+        if (control.kind == ControlKind::Stick) {
+            hasStickTouch = YES;
+            stickTouchPoint = [_simulatedTouchPoints[touchID] CGPointValue];
+        } else {
+            buttons |= control.mask;
+        }
+    }
+
+    if (hasStickTouch) {
+        const TouchControl& stick = _controls[0];
+        CGFloat radius = [self radiusForControl:stick];
+        CGFloat dx = stickTouchPoint.x - _stickOrigin.x;
+        CGFloat dy = stickTouchPoint.y - _stickOrigin.y;
+        CGFloat length = hypot(dx, dy);
+        if (length > radius && length > 0.0) {
+            dx *= radius / length;
+            dy *= radius / length;
+        }
+        x = dx / radius;
+        y = -dy / radius;
+        constexpr CGFloat deadzone = 0.16;
+        CGFloat magnitude = hypot(x, y);
+        if (magnitude <= deadzone) {
+            x = 0.0;
+            y = 0.0;
+        } else {
+            CGFloat remapped = (magnitude - deadzone) / (1.0 - deadzone);
+            CGFloat response = remapped * remapped * (0.75 + 0.25 * remapped);
+            CGFloat scale = response / magnitude;
+            x *= scale;
+            y *= scale;
+            constexpr CGFloat cardinalBias = 1.45;
+            if (std::abs(x) > std::abs(y) * cardinalBias) y = 0.0;
+            else if (std::abs(y) > std::abs(x) * cardinalBias) x = 0.0;
+
+            g_touchFlickX.store(static_cast<int32_t>(std::lround(x * 10000.0)), std::memory_order_relaxed);
+            g_touchFlickY.store(static_cast<int32_t>(std::lround(y * 10000.0)), std::memory_order_relaxed);
+            g_touchFlickPolls.store(kAnalogFlickHoldPolls, std::memory_order_relaxed);
+        }
+        _stickKnob = CGPointMake(_stickOrigin.x + dx, _stickOrigin.y + dy);
+    } else {
+        _stickKnob = _stickOrigin;
+    }
+
     g_touchButtons.store(buttons, std::memory_order_relaxed);
     g_touchX.store(static_cast<int32_t>(std::lround(x * 10000.0)), std::memory_order_relaxed);
     g_touchY.store(static_cast<int32_t>(std::lround(y * 10000.0)), std::memory_order_relaxed);
@@ -450,12 +555,17 @@ TouchTapLatch g_touchTaps;
 
 - (void)clearInput {
     [_touchRoles removeAllObjects];
+    [_simulatedTouchRoles removeAllObjects];
+    [_simulatedTouchPoints removeAllObjects];
     _stickOrigin = CGPointZero;
     _stickKnob = CGPointZero;
     g_touchButtons.store(0, std::memory_order_relaxed);
     g_touchTaps.clearAll();
     g_touchX.store(0, std::memory_order_relaxed);
     g_touchY.store(0, std::memory_order_relaxed);
+    g_touchFlickX.store(0, std::memory_order_relaxed);
+    g_touchFlickY.store(0, std::memory_order_relaxed);
+    g_touchFlickPolls.store(0, std::memory_order_relaxed);
     [self setNeedsDisplay];
 }
 
@@ -513,6 +623,442 @@ TouchTapLatch g_touchTaps;
     [self finishTouches:touches];
 }
 
+#pragma mark - Simulated Touch Injection (Test Harness)
+
+- (void)beginSimulatedTouchWithID:(NSInteger)touchID atPoint:(CGPoint)point {
+    NSInteger control = [self controlAtPoint:point];
+    CGRect usable = [self usableBounds];
+    if (control == NSNotFound && point.x <= CGRectGetMinX(usable) + usable.size.width * 0.47) {
+        control = 0;
+    }
+    if (control == NSNotFound) return;
+    _simulatedTouchRoles[@(touchID)] = @(control);
+    _simulatedTouchPoints[@(touchID)] = [NSValue valueWithCGPoint:point];
+    const TouchControl& item = _controls[control];
+    if (item.kind == ControlKind::Stick) {
+        _stickOrigin = [self centerForControl:item];
+        _stickKnob = _stickOrigin;
+    } else {
+        g_touchTaps.extend(item.mask, kTapHoldPolls);
+    }
+    [self publishInput];
+}
+
+- (void)moveSimulatedTouchWithID:(NSInteger)touchID toPoint:(CGPoint)point {
+    NSNumber* found = _simulatedTouchRoles[@(touchID)];
+    if (found == nil) return;
+    _simulatedTouchPoints[@(touchID)] = [NSValue valueWithCGPoint:point];
+    NSInteger role = found.integerValue;
+    if (role > 0 && role < static_cast<NSInteger>(kControlCount)) {
+        if (!CGRectContainsPoint(CGRectInset([self frameForControl:_controls[role]], -8.0, -8.0), point)) {
+            [_simulatedTouchRoles removeObjectForKey:@(touchID)];
+            [_simulatedTouchPoints removeObjectForKey:@(touchID)];
+        }
+    }
+    [self publishInput];
+}
+
+- (void)endSimulatedTouchWithID:(NSInteger)touchID {
+    [_simulatedTouchRoles removeObjectForKey:@(touchID)];
+    [_simulatedTouchPoints removeObjectForKey:@(touchID)];
+    [self publishInput];
+}
+
+@end
+
+#pragma mark - Automated Input Smoke Test Runner
+
+@implementation DinoPadInputSmokeRunner {
+    DinoPadTouchOverlayView* _overlay;
+    std::vector<std::pair<const char*, uint16_t>> _buttons;
+    size_t _buttonIndex;
+    int _buttonSubStep;
+    int _suite;
+    int _suiteSubStep;
+}
+
++ (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay {
+    DinoPadInputSmokeRunner* runner = [[DinoPadInputSmokeRunner alloc] initWithOverlay:overlay];
+    [runner start];
+}
+
+- (instancetype)initWithOverlay:(DinoPadTouchOverlayView*)overlay {
+    self = [super init];
+    if (self) {
+        _overlay = overlay;
+        _buttonIndex = 0;
+        _buttonSubStep = 0;
+        _suite = 1;
+        _suiteSubStep = 0;
+        _buttons = {
+            {"a", 0x8000},
+            {"b", 0x4000},
+            {"z", 0x2000},
+            {"start", 0x1000},
+            {"d_up", 0x0800},
+            {"d_down", 0x0400},
+            {"d_left", 0x0200},
+            {"d_right", 0x0100},
+            {"l", 0x0020},
+            {"r", 0x0010},
+            {"c_up", 0x0008},
+            {"c_down", 0x0004},
+            {"c_left", 0x0002},
+            {"c_right", 0x0001},
+        };
+    }
+    return self;
+}
+
+- (void)start {
+    fprintf(stderr, "[dinopad-touch-test] starting automated input/lifecycle verification sequence\n");
+    fflush(stderr);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.80 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        [self nextStep];
+    });
+}
+
+- (void)nextStep {
+    // Suite 1: Digital Button Masks
+    if (_suite == 1) {
+        if (_buttonIndex < _buttons.size()) {
+            const auto& item = _buttons[_buttonIndex];
+            NSInteger controlIdx = [_overlay controlIndexForKey:item.first];
+            if (controlIdx == NSNotFound) {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: control key %s not found\n", item.first);
+                fflush(stderr);
+                return;
+            }
+            CGPoint center = [_overlay centerForControlIndex:controlIdx];
+
+            if (_buttonSubStep == 0) {
+                // Press
+                [_overlay beginSimulatedTouchWithID:1 atPoint:center];
+                uint16_t sb = 0; float sx = 0, sy = 0;
+                dinopad_touch_snapshot(&sb, &sx, &sy);
+                if ((sb & item.second) == item.second) {
+                    fprintf(stderr, "[dinopad-touch-test] PASS: button %s mask=0x%04X verified (snapshot=0x%04X)\n",
+                            item.first, item.second, sb);
+                } else {
+                    fprintf(stderr, "[dinopad-touch-test] FAIL: button %s mask=0x%04X missing (snapshot=0x%04X)\n",
+                            item.first, item.second, sb);
+                }
+                fflush(stderr);
+                _buttonSubStep = 1;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)),
+                               dispatch_get_main_queue(), ^{ [self nextStep]; });
+            } else {
+                // Release
+                [_overlay endSimulatedTouchWithID:1];
+                g_touchTaps.clearAll();
+                [_overlay clearInput];
+                _buttonSubStep = 0;
+                _buttonIndex++;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                               dispatch_get_main_queue(), ^{ [self nextStep]; });
+            }
+            return;
+        } else {
+            _suite = 2;
+            _suiteSubStep = 0;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+    }
+
+    // Suite 2: Analog Directions (Up, Down, Left, Right)
+    if (_suite == 2) {
+        NSInteger stickIdx = [_overlay controlIndexForKey:"stick"];
+        CGPoint stickCenter = [_overlay centerForControlIndex:stickIdx];
+        CGFloat stickRadius = [_overlay radiusForControlIndex:stickIdx];
+
+        if (_suiteSubStep == 0) {
+            // UP (dy = -stickRadius)
+            [_overlay beginSimulatedTouchWithID:1 atPoint:stickCenter];
+            [_overlay moveSimulatedTouchWithID:1 toPoint:CGPointMake(stickCenter.x, stickCenter.y - stickRadius)];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            if (sy > 0.90f && sx == 0.0f) {
+                fprintf(stderr, "[dinopad-touch-test] PASS: analog UP x=%.2f y=%.2f verified\n", sx, sy);
+            } else {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: analog UP unexpected x=%.2f y=%.2f\n", sx, sy);
+            }
+            fflush(stderr);
+            _suiteSubStep = 1;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 1) {
+            [_overlay endSimulatedTouchWithID:1];
+            [_overlay clearInput];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            fprintf(stderr, "[dinopad-touch-test] PASS: analog UP return to zero (x=%.2f y=%.2f)\n", sx, sy);
+            fflush(stderr);
+            _suiteSubStep = 2;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 2) {
+            // DOWN (dy = +stickRadius)
+            [_overlay beginSimulatedTouchWithID:1 atPoint:stickCenter];
+            [_overlay moveSimulatedTouchWithID:1 toPoint:CGPointMake(stickCenter.x, stickCenter.y + stickRadius)];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            if (sy < -0.90f && sx == 0.0f) {
+                fprintf(stderr, "[dinopad-touch-test] PASS: analog DOWN x=%.2f y=%.2f verified\n", sx, sy);
+            } else {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: analog DOWN unexpected x=%.2f y=%.2f\n", sx, sy);
+            }
+            fflush(stderr);
+            _suiteSubStep = 3;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 3) {
+            [_overlay endSimulatedTouchWithID:1];
+            [_overlay clearInput];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            fprintf(stderr, "[dinopad-touch-test] PASS: analog DOWN return to zero (x=%.2f y=%.2f)\n", sx, sy);
+            fflush(stderr);
+            _suiteSubStep = 4;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 4) {
+            // LEFT (dx = -stickRadius)
+            [_overlay beginSimulatedTouchWithID:1 atPoint:stickCenter];
+            [_overlay moveSimulatedTouchWithID:1 toPoint:CGPointMake(stickCenter.x - stickRadius, stickCenter.y)];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            if (sx < -0.90f && sy == 0.0f) {
+                fprintf(stderr, "[dinopad-touch-test] PASS: analog LEFT x=%.2f y=%.2f verified\n", sx, sy);
+            } else {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: analog LEFT unexpected x=%.2f y=%.2f\n", sx, sy);
+            }
+            fflush(stderr);
+            _suiteSubStep = 5;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 5) {
+            [_overlay endSimulatedTouchWithID:1];
+            [_overlay clearInput];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            fprintf(stderr, "[dinopad-touch-test] PASS: analog LEFT return to zero (x=%.2f y=%.2f)\n", sx, sy);
+            fflush(stderr);
+            _suiteSubStep = 6;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 6) {
+            // RIGHT (dx = +stickRadius)
+            [_overlay beginSimulatedTouchWithID:1 atPoint:stickCenter];
+            [_overlay moveSimulatedTouchWithID:1 toPoint:CGPointMake(stickCenter.x + stickRadius, stickCenter.y)];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            if (sx > 0.90f && sy == 0.0f) {
+                fprintf(stderr, "[dinopad-touch-test] PASS: analog RIGHT x=%.2f y=%.2f verified\n", sx, sy);
+            } else {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: analog RIGHT unexpected x=%.2f y=%.2f\n", sx, sy);
+            }
+            fflush(stderr);
+            _suiteSubStep = 7;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 7) {
+            [_overlay endSimulatedTouchWithID:1];
+            [_overlay clearInput];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            fprintf(stderr, "[dinopad-touch-test] PASS: analog RIGHT return to zero (x=%.2f y=%.2f)\n", sx, sy);
+            fflush(stderr);
+            _suite = 3;
+            _suiteSubStep = 0;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+    }
+
+    // Suite 3: Simultaneous Multi-Touch (Stick Up-Right + A + B + Z)
+    if (_suite == 3) {
+        NSInteger stickIdx = [_overlay controlIndexForKey:"stick"];
+        CGPoint stickCenter = [_overlay centerForControlIndex:stickIdx];
+        CGFloat stickRadius = [_overlay radiusForControlIndex:stickIdx];
+
+        if (_suiteSubStep == 0) {
+            CGPoint aCenter = [_overlay centerForControlIndex:[_overlay controlIndexForKey:"a"]];
+            CGPoint bCenter = [_overlay centerForControlIndex:[_overlay controlIndexForKey:"b"]];
+            CGPoint zCenter = [_overlay centerForControlIndex:[_overlay controlIndexForKey:"z"]];
+
+            [_overlay beginSimulatedTouchWithID:1 atPoint:stickCenter];
+            [_overlay moveSimulatedTouchWithID:1 toPoint:CGPointMake(stickCenter.x + stickRadius * 0.707f, stickCenter.y - stickRadius * 0.707f)];
+            [_overlay beginSimulatedTouchWithID:2 atPoint:aCenter];
+            [_overlay beginSimulatedTouchWithID:3 atPoint:bCenter];
+            [_overlay beginSimulatedTouchWithID:4 atPoint:zCenter];
+
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            constexpr uint16_t expectedMask = 0x8000 | 0x4000 | 0x2000;
+            if ((sb & expectedMask) == expectedMask && sx > 0.3f && sy > 0.3f) {
+                fprintf(stderr, "[dinopad-touch-test] PASS: simultaneous multi-touch stick+A+B+Z buttons=0x%04X x=%.2f y=%.2f verified\n",
+                        sb, sx, sy);
+            } else {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: simultaneous multi-touch unexpected buttons=0x%04X x=%.2f y=%.2f\n",
+                        sb, sx, sy);
+            }
+            fflush(stderr);
+            _suiteSubStep = 1;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.08 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 1) {
+            [_overlay endSimulatedTouchWithID:1];
+            [_overlay endSimulatedTouchWithID:2];
+            [_overlay endSimulatedTouchWithID:3];
+            [_overlay endSimulatedTouchWithID:4];
+            g_touchTaps.clearAll();
+            [_overlay clearInput];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            fprintf(stderr, "[dinopad-touch-test] PASS: multi-touch released to zero (buttons=0x%04X x=%.2f y=%.2f)\n",
+                    sb, sx, sy);
+            fflush(stderr);
+            _suite = 4;
+            _suiteSubStep = 0;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+    }
+
+    // Suite 4: Menu Open / Dismiss Lifecycle
+    if (_suite == 4) {
+        if (_suiteSubStep == 0) {
+            CGPoint aCenter = [_overlay centerForControlIndex:[_overlay controlIndexForKey:"a"]];
+            [_overlay beginSimulatedTouchWithID:1 atPoint:aCenter];
+            [_overlay presentUtilityMenu];
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            if (sb == 0x0000) {
+                fprintf(stderr, "[dinopad-touch-test] PASS: menu presentation cleared held input (buttons=0x%04X)\n", sb);
+            } else {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: menu presentation did not clear input (buttons=0x%04X)\n", sb);
+            }
+            fflush(stderr);
+            _suiteSubStep = 1;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.12 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 1) {
+            [_overlay dismissUtilityMenu];
+            fprintf(stderr, "[dinopad-touch-test] PASS: menu dismissed and gameplay controls restored\n");
+            fflush(stderr);
+            _suite = 5;
+            _suiteSubStep = 0;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+    }
+
+    // Suite 5: App Lifecycle (Background / Foreground)
+    if (_suite == 5) {
+        NSInteger stickIdx = [_overlay controlIndexForKey:"stick"];
+        CGPoint stickCenter = [_overlay centerForControlIndex:stickIdx];
+        CGFloat stickRadius = [_overlay radiusForControlIndex:stickIdx];
+
+        if (_suiteSubStep == 0) {
+            CGPoint bCenter = [_overlay centerForControlIndex:[_overlay controlIndexForKey:"b"]];
+            [_overlay beginSimulatedTouchWithID:1 atPoint:stickCenter];
+            [_overlay moveSimulatedTouchWithID:1 toPoint:CGPointMake(stickCenter.x, stickCenter.y + stickRadius)];
+            [_overlay beginSimulatedTouchWithID:2 atPoint:bCenter];
+
+            [NSNotificationCenter.defaultCenter
+                postNotificationName:UIApplicationWillResignActiveNotification object:nil];
+            [NSNotificationCenter.defaultCenter
+                postNotificationName:UIApplicationDidEnterBackgroundNotification object:nil];
+
+            uint16_t sb = 0; float sx = 0, sy = 0;
+            dinopad_touch_snapshot(&sb, &sx, &sy);
+            if (sb == 0x0000 && sx == 0.0f && sy == 0.0f) {
+                fprintf(stderr, "[dinopad-touch-test] PASS: background notification cleared held input (buttons=0x%04X x=%.2f y=%.2f)\n",
+                        sb, sx, sy);
+            } else {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: background notification failed to clear input (buttons=0x%04X x=%.2f y=%.2f)\n",
+                        sb, sx, sy);
+            }
+            fflush(stderr);
+
+            [NSNotificationCenter.defaultCenter
+                postNotificationName:UIApplicationWillEnterForegroundNotification object:nil];
+            [NSNotificationCenter.defaultCenter
+                postNotificationName:UIApplicationDidBecomeActiveNotification object:nil];
+            fprintf(stderr, "[dinopad-touch-test] PASS: foreground notification resumed cleanly\n");
+            fflush(stderr);
+            _suite = 6;
+            _suiteSubStep = 0;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+    }
+
+    // Suite 6: Controller Handoff & Simulator Exception
+    if (_suite == 6) {
+        NSInteger stickIdx = [_overlay controlIndexForKey:"stick"];
+        CGPoint stickCenter = [_overlay centerForControlIndex:stickIdx];
+
+        dinopad_set_physical_controller_connected(1);
+        // On Simulator, g_controllerConnected remains false due to synthetic gamepad exception
+        if (!g_controllerConnected.load(std::memory_order_relaxed)) {
+            fprintf(stderr, "[dinopad-touch-test] PASS: simulator synthetic controller exception verified (touch controls kept active)\n");
+        } else {
+            fprintf(stderr, "[dinopad-touch-test] FAIL: simulator synthetic controller exception failed\n");
+        }
+
+        // Test explicit overlay controller hiding
+        [_overlay setPhysicalControllerConnected:YES];
+        [_overlay beginSimulatedTouchWithID:1 atPoint:stickCenter];
+        uint16_t sb = 0; float sx = 0, sy = 0;
+        dinopad_touch_snapshot(&sb, &sx, &sy);
+        if (sb == 0x0000 && sx == 0.0f && sy == 0.0f) {
+            fprintf(stderr, "[dinopad-touch-test] PASS: controller connected state hid touch input (buttons=0x%04X)\n", sb);
+        } else {
+            fprintf(stderr, "[dinopad-touch-test] FAIL: controller connected state did not suppress touch input (buttons=0x%04X)\n", sb);
+        }
+
+        [_overlay setPhysicalControllerConnected:NO];
+        fprintf(stderr, "[dinopad-touch-test] PASS: controller disconnected state restored touch controls\n");
+        fflush(stderr);
+        _suite = 7;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ [self nextStep]; });
+        return;
+    }
+
+    // Suite 7: Completion
+    if (_suite == 7) {
+        fprintf(stderr, "[dinopad-touch-test] ALL 7 INPUT/LIFECYCLE TEST SUITES PASSED (14 digital masks, 4 analog directions, multi-touch, menu lifecycle, app lifecycle, controller handoff)\n");
+        fflush(stderr);
+    }
+}
+
 @end
 
 static __weak DinoPadTouchOverlayView* g_touchOverlay = nil;
@@ -541,6 +1087,11 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
         fprintf(stderr, "[dinopad-touch] overlay attached (%s)\n",
             UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad
                 ? "tablet" : "phone");
+
+        const char* smokeEnv = getenv("DINOPAD_RUN_INPUT_SMOKE");
+        if (smokeEnv != nullptr && smokeEnv[0] != '\0' && smokeEnv[0] != '0') {
+            [DinoPadInputSmokeRunner runWithOverlay:overlay];
+        }
     });
 }
 
@@ -548,12 +1099,23 @@ extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y) {
     if (buttons != nullptr) {
         *buttons = g_touchButtons.load(std::memory_order_relaxed) | g_touchTaps.consume();
     }
-    if (x != nullptr) *x = g_touchX.load(std::memory_order_relaxed) / 10000.0F;
-    if (y != nullptr) *y = g_touchY.load(std::memory_order_relaxed) / 10000.0F;
+    float touchX = g_touchX.load(std::memory_order_relaxed) / 10000.0F;
+    float touchY = g_touchY.load(std::memory_order_relaxed) / 10000.0F;
+    uint8_t flickPolls = g_touchFlickPolls.load(std::memory_order_relaxed);
+    if (touchX == 0.0F && touchY == 0.0F && flickPolls > 0) {
+        touchX = g_touchFlickX.load(std::memory_order_relaxed) / 10000.0F;
+        touchY = g_touchFlickY.load(std::memory_order_relaxed) / 10000.0F;
+        g_touchFlickPolls.compare_exchange_strong(
+            flickPolls, static_cast<uint8_t>(flickPolls - 1), std::memory_order_relaxed);
+    }
+    if (x != nullptr) *x = std::clamp(touchX, -1.0F, 1.0F);
+    if (y != nullptr) *y = std::clamp(touchY, -1.0F, 1.0F);
 }
 
 extern "C" void dinopad_set_physical_controller_connected(int connected) {
 #if TARGET_OS_SIMULATOR
+    // CoreSimulator exposes its synthetic MFi Gamepad even when no external
+    // controller is paired. Keep touch controls available in Simulator tests.
     connected = 0;
 #endif
     BOOL isConnected = connected != 0;

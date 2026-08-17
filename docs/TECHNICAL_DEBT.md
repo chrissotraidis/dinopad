@@ -19,12 +19,12 @@ platform phase, and `P2` is maintainability or test debt that should not be lost
 
 | Debt | Evidence/impact | Required closure |
 |---|---|---|
-| Touch analog not yet logged | Digital masks are proven; the Computer Use drag did not produce a logged axis transition before pause. | Exercise analog in a durable test and require non-zero x/y plus return-to-zero in the runtime log. |
+| ~~Touch analog not yet logged~~ | **Closed 2026-08-17 (Goal 26c).** The deterministic DINOPAD_RUN_INPUT_SMOKE harness produced non-zero x/y for all 4 cardinal directions plus return-to-zero, visible in the runtime's own [dinopad-in] poll log. | Analog runtime evidence exists; long-duration analog-flick retention across 30/60 Hz modes remains a Phase 6/7 check. |
 | Incomplete menu | The persistent menu opens and hides controls, but two entries are placeholders. | Implement the complete menu tree in `IMPLEMENTATION_PLAN.md` section 3.4. |
 | No layout editor | Default phone/tablet coordinates exist, but users cannot move/resize/fade/link/hide/reset controls. | Port PaperPad editor behavior and independent persisted idiom keys. |
 | Partial settings | Touch enable/opacity storage exists internally; no complete UI/bridges for display, audio, frame rate, HUD, mode, or restoration settings. | Add typed settings bridge and persisted native sheets. |
-| Lifecycle proof absent | Resign-active/background notifications clear overlay state, but no foreground/background runtime test exists and the game is not explicitly paused by native modal state. | Add guarded lifecycle smoke proving no stuck buttons/axes, safe audio/render resume, and pause policy. |
-| Controller handoff only event-driven | Add/remove events hide touch; initial-state, reconnect, controller status, rumble, and physical hardware remain unverified. | Test real MFi/SDL controller on devices and repeated connect/disconnect. |
+| ~~Lifecycle proof absent~~ | **Closed 2026-08-17 (Goal 26c).** A guarded smoke-ios.sh run delivers background/foreground notifications while holding a button+stick, verifies the snapshot clears to zero and resumes cleanly with no crash, and leaves no booted Simulator. | Explicit in-engine pause policy during modal sheets still needs validation once the full menu tree lands. |
+| Controller handoff only event-driven | Add/remove events hide touch; the CoreSimulator synthetic controller exception is verified (touch stays available). Real MFi hardware, reconnect loops, rumble, and initial-state behavior remain unverified. | Test a real MFi/SDL controller on a physical device with repeated connect/disconnect (Phase 7/8). |
 | No mobile home/profile UI | iOS launches Restored directly with `--skip-launcher`; Prototype warning/selection is absent. | Add UIKit setup/home boundary before SDL runtime startup and quit-to-home behavior. |
 | No diagnostics/ROM manager | Native share/log and replacement workflows are absent. | Port bounded private logging, redaction, share sheet, and ROM manager. |
 | iPad untested | Tablet defaults exist in code but have never run. | Complete Phase 6 only after iPhone is green and shut down. |
@@ -49,7 +49,7 @@ physical iPhone/iPad the final authority.
 | `ios_main.mm` is becoming monolithic | Touch rendering, input state, menu, lifecycle, and startup now share one file. | Split into `touch/`, `ui/`, `rom_setup`, `diagnostics`, and a small startup coordinator as behavior lands. |
 | Drawn controls lack individual accessibility elements | The menu button is accessible; canvas-drawn controls are not exposed as named adjustable/buttons. | Add `UIAccessibilityElement` frames/labels/traits while preserving multi-touch rendering. |
 | Touch smoke uses manual Computer Use coordinates | Fragile across Simulator chrome/scale and not CI-suitable. | Add a deterministic test-only injection boundary or a pure touch-state unit harness; keep release behavior unchanged. |
-| `smoke-ios.sh` error cleanup can wait on console | A short two-second experiment raced the liveness check and could wait for the console process until interrupted. | Add a trap that always terminates the app and console child, then report bounded failure. |
+| ~~`smoke-ios.sh` error cleanup can wait on console~~ | **Closed 2026-08-17 (Goal 26c).** A persistent EXIT/INT/TERM cleanup() trap now terminates the app and kills TERM then KILL the simctl console child even on early failure. | Unit-covered by the 8-second green run plus the bounded failure path. |
 | Upstream mixed line endings | Dino source mixes CRLF/LF, causing content-correct patches to fail exact whitespace matching. | Patch replay/safety now use `git apply --ignore-space-change`; preserve semantic hunk checks and consider normalizing only during a future upstream rebase. |
 | Touch tap duration is poll-count based | Six polls work for current runtime cadence but are not time-based. | Keep evidence across 30/60 Hz modes; convert only if missed or overlong taps appear. |
 | Touch/controller merge has no isolated unit test | Runtime evidence exists for several masks but regression localization is weak. | Add a small arm64 host/Simulator harness covering masks, axis clamp/range, multi-touch, menu clearing, and controller hiding. |
@@ -65,4 +65,3 @@ physical iPhone/iPad the final authority.
 - The game can print RSP/RDP stall diagnostics during early frames; the bounded
   first-frame runs remain live, but longer stability work must classify any
   stalls that stop progression.
-

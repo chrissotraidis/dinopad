@@ -422,3 +422,10 @@ elseif (APPLE)
         "-framework GameController"
         "-framework Foundation")
 endif()
+
+# ---- DinoPad unit tests (host-only; deterministic input/latch/math) --------
+if (NOT DINOPAD_IOS)
+    enable_testing()
+    add_executable(touch_unit_test tools/touch_unit_test.cpp)
+    add_test(NAME touch_unit_test COMMAND touch_unit_test)
+endif()
