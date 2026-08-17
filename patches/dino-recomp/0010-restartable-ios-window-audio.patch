@@ -1,0 +1,81 @@
+diff --git a/src/renderer/hooks.cpp b/src/renderer/hooks.cpp
+index bb505a1..95ed44a 100644
+--- a/src/renderer/hooks.cpp
++++ b/src/renderer/hooks.cpp
+@@ -23,6 +23,12 @@ void add_hook(RT64::RenderHookInit *init, RT64::RenderHookDraw *draw, RT64::Rend
+         set_rt64_hook();
+     }
+ 
++    for (const Hook& hook : hooks) {
++        if (hook.init == init && hook.draw == draw && hook.deinit == deinit) {
++            return;
++        }
++    }
++
+     hooks.push_back(Hook {
+         .init = init,
+         .draw = draw,
+diff --git a/src/runtime/audio.cpp b/src/runtime/audio.cpp
+index 7f14b93..db14c79 100644
+--- a/src/runtime/audio.cpp
++++ b/src/runtime/audio.cpp
+@@ -161,5 +161,18 @@ void update_audio_converter() {
+     discarded_output_frames = duplicated_input_frames * output_sample_rate / sample_rate;
+ }
+ 
++void shutdown_audio() {
++    if (audio_device != 0) {
++        SDL_ClearQueuedAudio(audio_device);
++        SDL_CloseAudioDevice(audio_device);
++        audio_device = 0;
++    }
++    if (audio_dump_file != nullptr) {
++        fclose(audio_dump_file);
++        audio_dump_file = nullptr;
++    }
++    audio_dump_bytes = 0;
++}
++
+ void set_frequency(uint32_t freq) {
+     sample_rate = freq;
+diff --git a/src/runtime/audio.hpp b/src/runtime/audio.hpp
+index f7f0a84..5b90ee8 100644
+--- a/src/runtime/audio.hpp
++++ b/src/runtime/audio.hpp
+@@ -9,5 +9,6 @@ void queue_samples(int16_t* audio_data, size_t sample_count);
+ size_t get_frames_remaining();
+ void set_frequency(uint32_t freq);
+ bool reset_audio(uint32_t output_freq);
++void shutdown_audio();
+ 
+ }
+diff --git a/src/runtime/gfx.cpp b/src/runtime/gfx.cpp
+index 1d784d8..36c7c60 100644
+--- a/src/runtime/gfx.cpp
++++ b/src/runtime/gfx.cpp
+@@ -149,6 +149,13 @@ SDL_Window *get_window() {
+     return window;
+ }
+ 
++void destroy_window() {
++    if (window != nullptr) {
++        SDL_DestroyWindow(window);
++        window = nullptr;
++    }
++}
++
+ void update_gfx(void*) {
+     dino::input::handle_events();
+ }
+diff --git a/src/runtime/gfx.hpp b/src/runtime/gfx.hpp
+index 5942487..99a1f16 100644
+--- a/src/runtime/gfx.hpp
++++ b/src/runtime/gfx.hpp
+@@ -7,6 +7,7 @@ namespace dino::runtime {
+ ultramodern::gfx_callbacks_t::gfx_data_t create_gfx();
+ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::gfx_data_t, int width, int height);
+ SDL_Window *get_window();
++void destroy_window();
+ void update_gfx(void*);
+ 
+ }

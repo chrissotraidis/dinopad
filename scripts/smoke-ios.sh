@@ -56,6 +56,7 @@ python3 "$ROOT/tools/normalize_rom.py" "$ROM"   --out "$DATA_CONTAINER/Library/A
 export SIMCTL_CHILD_DINOPAD_LOG_INPUT=1
 export SIMCTL_CHILD_DINOPAD_RUN_INPUT_SMOKE=1
 
+export SIMCTL_CHILD_DINOPAD_HOME_AUTOMATION_SEQUENCE=restored
 xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID"   >"$EVIDENCE_DIR/runtime.log" 2>&1 &
 CONSOLE_PID=$!
 sleep "$DURATION"

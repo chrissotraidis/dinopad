@@ -47,19 +47,23 @@ in the plan.
 - Phases 0-3 are substantially green: repository/pins, macOS native arm64,
   static DinoMod integration, no-write dispatch, profiles, macOS native setup,
   ROM import, gameplay/audio/input/saves, clean shutdown, and smoke tests.
-- Phase 4 is partial and Phase 5 is an early playable integration.
+- Phase 4 is partial and Phase 5 is a playable integration.
 - The ROM-free iPhone Simulator arm64 app builds and renders RT64 Metal/audio.
 - The initial UIKit touch overlay draws all 15 N64 controls plus an accessible
   persistent `•••` button using PaperPad-derived phone/tablet defaults.
 - The overlay is attached to SDL's UIKit window and merged into the actual
   `dino::input::get_n64_input` callback.
-- A guarded live run proved A `0x8000`, Z `0x2000`, Start `0x1000`, and C-left
-  `0x0002`; the menu opens, hides gameplay controls, reports controller state,
-  and the app survived 90 seconds without a new crash.
-- Analog motion was not proven in the runtime log before pause.
+- Goal 26c proved every digital N64 mask, all analog cardinals/zero return,
+  simultaneous stick+A+B+Z, modal/background clearing, foreground resume, and
+  controller handoff through the actual runtime input callback.
 - The menu still has explicit settings/diagnostics placeholders.
-- iOS still stages the private ROM through `simctl`; no user-facing Files picker
-  or mode/home boundary exists yet.
+- Goal 27a added and evidenced the real UIKit Files importer and ROM manager:
+  exact size/MD5, z64/v64/n64 normalization, useful rejection, atomic protected
+  private storage, replacement/removal, and ROM-free bundle proof.
+- Goal 27b added and evidenced the native Restored-primary home before SDL,
+  warned Prototype selection, isolated profile handoff, quit-to-home from live
+  gameplay, and a second runtime in the same process. Restart teardown now joins
+  all guest threads and prevents queued Plume/UIKit work from outliving windows.
 - Mobile has not proven packaged restoration data or a Restored title/gameplay
   boot. The first-frame evidence is base/prototype output.
 - iPad Simulator, device builds, physical-device evidence, progression, and
@@ -67,53 +71,38 @@ in the plan.
 - DinoMod redistribution permission is an external release blocker, not a reason
   to stop technical development.
 
-## Immediate next goal: Goal 26c
+## Immediate next goal: Goal 27c
 
-Finish and harden the iPhone input/lifecycle slice before adding more native UI.
+Package only permitted non-code restoration data and prove the statically linked
+Restored path on iPhone without weakening the ROM-free/no-dynamic-code policy.
 
 Acceptance:
 
 1. Clean patch replay and repository-safety audit pass.
 2. macOS incremental build remains green.
 3. iPhone Simulator build remains ROM-free and arm64.
-4. Runtime evidence proves every digital N64 mask: A, B, Z, L, R, Start, all
-   D-pad directions, and all C directions.
-5. Runtime evidence proves analog x/y non-zero in every cardinal direction,
-   clamps to configured N64 range, and returns to zero after release.
-6. Simultaneous touch proves analog plus at least two buttons without loss.
-7. Opening/dismissing the menu clears held input and hides/restores gameplay
-   controls while leaving the menu reachable.
-8. A background/foreground round trip proves no held button/axis, render/audio
-   resume, process remains live, and no crash report appears.
-9. Controller add/remove behavior is covered as far as Simulator permits; retain
-   the documented synthetic-controller exception.
-10. The iPhone run is bounded, uses exactly one runtime through
-    `scripts/runtime-guard.sh`, terminates cleanly, and leaves zero booted
-    Simulators/processes.
-11. Curate evidence, update `STATUS`, `TECHNICAL_DEBT`, `UI_PARITY`, patch lock,
-    and commit the smallest coherent milestone.
-
-Prefer a deterministic test-only touch injection boundary or pure input harness
-over fragile Simulator-window pixel coordinates, provided release behavior is
-unchanged and no private API ships. Harden `scripts/smoke-ios.sh` cleanup so an
-early liveness failure cannot wait indefinitely on its console child.
+4. The app bundles no ROM/save/private fixture, no `.nrm` executable package,
+   no dylib restoration code, and no signing material.
+5. Restored selects the registered static code handle and permitted packaged
+   data with no JIT, runtime writes, or downloaded code.
+6. Runtime and visual evidence prove the Restored PRESS START/title path and a
+   controllable gameplay scene on iPhone.
+7. Prototype in the same build visibly omits restoration and keeps its isolated
+   namespace.
+8. Existing ROM-import, home/restart, input/lifecycle, and macOS smokes remain
+   green with no new crash report or leaked runtime/Simulator.
+9. Curate evidence, update `STATUS`, `TECHNICAL_DEBT`, `UI_PARITY`, patch lock,
+   and commit the smallest coherent milestone.
 
 ## Then continue in this order
 
-1. UIKit Files ROM setup/import/replacement with `.z64/.v64/.n64`
-   normalization, exact MD5 validation, useful rejection, atomic private storage,
-   and ROM-free bundle proof.
-2. UIKit DinoPad home: Restored primary, warned Prototype, profile/save isolation,
-   and quit-to-home behavior before SDL startup.
-3. Package only permitted non-code restoration data and prove Restored title and
-   controllable gameplay on iPhone.
-4. Complete the native menu/settings/layout editor/diagnostics/ROM manager to
+1. Complete the native menu/settings/layout editor/diagnostics/ROM manager to
    PaperPad feature parity and the plan's section 3.4 menu contract.
-5. Finish iPhone save/relaunch and 10-minute smoke.
-6. Shut down iPhone Simulator, then complete iPad Simulator Phase 6.
-7. Complete physical iPhone and iPad phases.
-8. Run progression/stability matrix and start-to-credits Restored playthrough.
-9. Finish legal/release/docs/package gates and ROM-free unsigned IPA.
+2. Finish iPhone save/relaunch and 10-minute smoke.
+3. Shut down iPhone Simulator, then complete iPad Simulator Phase 6.
+4. Complete physical iPhone and iPad phases.
+5. Run progression/stability matrix and start-to-credits Restored playthrough.
+6. Finish legal/release/docs/package gates and ROM-free unsigned IPA.
 
 ## Hard constraints
 

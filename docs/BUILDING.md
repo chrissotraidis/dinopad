@@ -103,8 +103,17 @@ a frame, checks CrashReporter, and shuts down the Simulator:
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 
+The native-home smoke verifies that UIKit waits before SDL, warns before
+Prototype, starts Restored through the real gameplay input poll, returns from a
+live runtime to home, then starts Prototype in the same process with isolated
+profile state:
+
+```sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
+```
+
 The iOS shell now has native Files import/replacement and complete default touch
-input/lifecycle verification. The Restored/Prototype home boundary, editable
+input/lifecycle verification plus the Restored/Prototype home boundary. Editable
 layouts, complete menu/settings/diagnostics, save/relaunch, Restored data, and
 the 10-minute Phase 5 run remain required before iPhone Simulator is green.
 

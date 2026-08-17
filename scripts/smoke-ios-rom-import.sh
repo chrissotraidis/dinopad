@@ -47,6 +47,7 @@ if find "$APP" -type f \( -iname '*.z64' -o -iname '*.v64' -o -iname '*.n64' -o 
 fi
 python3 "$ROOT/tools/normalize_rom.py" "$ROM" >/dev/null
 mkdir -p "$EVIDENCE_DIR"
+export SIMCTL_CHILD_DINOPAD_HOME_AUTOMATION_SEQUENCE=restored
 
 crashes_before="$(find "$REPORTS" -type f -name 'DinoPad-*.ips' 2>/dev/null | wc -l | tr -d ' ')"
 xcrun simctl boot "$UDID"

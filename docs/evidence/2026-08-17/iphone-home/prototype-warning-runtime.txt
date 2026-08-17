@@ -1,0 +1,4 @@
+[dinopad-home-test] Home presented
+[dinopad-home-test] Prototype warning presented
+objc[14485]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10b72c310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10b5b0398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+com.chrissotraidis.dinopad: 14485

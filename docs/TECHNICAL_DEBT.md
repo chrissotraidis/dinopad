@@ -25,7 +25,7 @@ platform phase, and `P2` is maintainability or test debt that should not be lost
 | Partial settings | Touch enable/opacity storage exists internally; no complete UI/bridges for display, audio, frame rate, HUD, mode, or restoration settings. | Add typed settings bridge and persisted native sheets. |
 | ~~Lifecycle proof absent~~ | **Closed 2026-08-17 (Goal 26c).** A guarded smoke-ios.sh run delivers background/foreground notifications while holding a button+stick, verifies the snapshot clears to zero and resumes cleanly with no crash, and leaves no booted Simulator. | Explicit in-engine pause policy during modal sheets still needs validation once the full menu tree lands. |
 | Controller handoff only event-driven | Add/remove events hide touch; the CoreSimulator synthetic controller exception is verified (touch stays available). Real MFi hardware, reconnect loops, rumble, and initial-state behavior remain unverified. | Test a real MFi/SDL controller on a physical device with repeated connect/disconnect (Phase 7/8). |
-| No mobile home/profile UI | iOS launches Restored directly with `--skip-launcher`; Prototype warning/selection is absent. | Add UIKit setup/home boundary before SDL runtime startup and quit-to-home behavior. |
+| ~~No mobile home/profile UI~~ | **Closed 2026-08-17 (Goal 27b).** UIKit presents Restored as the primary action before SDL, requires an archival warning for Prototype, passes isolated profile roots, and supports live quit-to-home plus a second runtime in the same process. | Device presentation remains part of Phase 7/8; the Simulator product gate is green. |
 | No diagnostics | The ROM manager is green (Goal 27a), but bounded private logging, redaction, and a diagnostics share sheet are absent. | Port diagnostics capture/redaction/share and wire it into the complete menu tree. |
 | iPad untested | Tablet defaults exist in code but have never run. | Complete Phase 6 only after iPhone is green and shut down. |
 
@@ -46,7 +46,8 @@ physical iPhone/iPad the final authority.
 
 | Debt | Impact | Preferred direction |
 |---|---|---|
-| `ios_main.mm` is becoming monolithic | Touch rendering, input state, menu, lifecycle, and startup now share one file. | Split into `touch/`, `ui/`, `rom_setup`, `diagnostics`, and a small startup coordinator as behavior lands. |
+| `ios_main.mm` is becoming monolithic | Home and ROM setup are split out, but touch rendering, input state, menu, lifecycle, and startup coordination still share one file. | Continue splitting into `touch/`, `ui/`, `diagnostics`, and a small startup coordinator as behavior lands. |
+| ~~iOS runtime assumed process-exit teardown~~ | **Closed 2026-08-17 (Goal 27b).** Quit-to-home originally exposed a Plume queued-block use-after-free and parked N64 guest threads accessing released RDRAM. Window metrics are now synchronously cached on iOS; timer/event/mod/overlay state resets; guest contexts are registered, signaled, joined, and deleted before RDRAM release. | Keep the two-runtime home smoke and macOS smoke as regressions; add repeated-switch soak later in Phase 9. |
 | Drawn controls lack individual accessibility elements | The menu button is accessible; canvas-drawn controls are not exposed as named adjustable/buttons. | Add `UIAccessibilityElement` frames/labels/traits while preserving multi-touch rendering. |
 | ~~Touch smoke uses manual Computer Use coordinates~~ | **Closed 2026-08-17 (Goal 26c).** `DinoPadInputSmokeRunner` drives the production snapshot bridge without Simulator-window coordinates. | Keep the environment gate release-inert and rerun after touch changes. |
 | ~~`smoke-ios.sh` error cleanup can wait on console~~ | **Closed 2026-08-17 (Goal 26c).** A persistent EXIT/INT/TERM cleanup() trap now terminates the app and kills TERM then KILL the simctl console child even on early failure. | Unit-covered by the 8-second green run plus the bounded failure path. |
@@ -62,6 +63,10 @@ physical iPhone/iPad the final authority.
 - RT64 Metal reports that RenderPool is not implemented and creates resources
   directly; currently non-fatal.
 - The iOS Simulator may print duplicate accessibility-bundle class warnings.
+- SDL's UIKit view controller may report unbalanced appearance transitions when
+  the native home hands off to the SDL window. Both runtime launches render and
+  tear down cleanly; classify this during the full menu/orientation lifecycle
+  pass rather than treating console text alone as a crash.
 - The game can print RSP/RDP stall diagnostics during early frames; the bounded
   first-frame runs remain live, but longer stability work must classify any
   stalls that stop progression.

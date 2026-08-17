@@ -64,8 +64,15 @@ Run the importer and input regressions through the guard:
 
 ```sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
+
+`smoke-ios-home.sh` starts from a private data-container ROM, proves the native
+home and Prototype warning do not initialize SDL, then runs Restored until the
+actual N64 input callback polls. It requests quit-to-home, verifies the same
+process returns to UIKit, confirms warned Prototype, starts a second renderer
+and game runtime, checks profile sentinels, CrashReporter, and guard cleanup.
 
 The macOS Metal teardown regression has a shorter focused smoke. It repeatedly
 closes the native window through the SDL quit path and fails on a nonzero exit,
@@ -158,6 +165,7 @@ scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

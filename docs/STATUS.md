@@ -1,9 +1,9 @@
 # DinoPad Status
 
 Last updated: 2026-08-17T00:00:00Z
-Current commit: Goal 27a milestone pending on main (predecessor c33a4d7)
+Current commit: Goal 27b milestone pending on main (predecessor a5b7d86)
 Current phase: Phase 5 - iPhone Simulator
-Active goal: Goal 27b (UIKit DinoPad home/mode boundary)
+Active goal: Goal 27c (package permitted mobile restoration data and prove Restored boot/gameplay)
 
 ## Green
 
@@ -45,8 +45,9 @@ Active goal: Goal 27b (UIKit DinoPad home/mode boundary)
 - Initial iPhone touch/menu bridge green at pause point (2026-08-16): a DinoPad-owned UIKit overlay attaches to SDL's real window, draws all 15 N64 targets plus an accessible persistent menu button from PaperPad-derived safe-area phone/tablet defaults, latches taps, implements analog response, clears state on lifecycle notifications, and hides controls for native modal/controller state. A guarded 90-second live run delivered A=0x8000, Z=0x2000, Start=0x1000, and C-left=0x0002 through the actual `get_n64_input` path; the menu visibly hid controls and the run ended with no crash or remaining Simulator/process. Analog and the full mask/lifecycle matrix remain open, so this is not Phase 5 completion.
 - Goal 26c input/lifecycle hardening green (2026-08-17): a deterministic in-app injection harness (DinoPadInputSmokeRunner, enabled only via DINOPAD_RUN_INPUT_SMOKE) plus a hardened smoke-ios.sh cleanup trap verified every digital N64 mask (14 masks A/B/Z/Start/D-pad*4/L/R/C*4), all 4 analog cardinal directions with return-to-zero, diagonal analog in a simultaneous stick+A+B+Z multi-touch suite, menu open clearing held input and hiding/restoring gameplay controls, background/foreground notification round-trip clearing and resuming state, and controller-handoff with the CoreSimulator synthetic-controller exception. Unit coverage in tools/touch_unit_test.cpp (21 ctest checks). The runtime's own [dinopad-in] poll log confirms every mask and analog value reaching the actual N64 input path; the bounded 8-second guarded run leaves no process, no booted Simulator, and no crash report. This completes the Goal 26c acceptance criteria; Phase 5 remains open for the UIKit ROM importer, Restored packaging, and 10-minute smoke. Evidence: docs/evidence/2026-08-17/iphone-touch-lifecycle/.
 - Goal 27a UIKit ROM import/replacement green (2026-08-17): a clean ROM-free install presents DinoPad's native first-run setup and the real Files picker. The production importer requires the exact 64 MiB December 2000 prototype, rejects wrong-size and fingerprint-modified files without staging, normalizes valid z64/v64/n64 inputs to z64 magic `80371240`, verifies MD5 `49f7bb346ade39d1915c22e090ffd748`, writes atomically with file protection and backup exclusion, and exposes reachable Replace/Remove actions from the in-game menu. A three-launch guarded smoke captured the picker, live imported runtime, and ROM manager with no crash or leaked process/Simulator; the full Goal 26c regression remained green afterward. Evidence: docs/evidence/2026-08-17/iphone-rom-import/.
+- Goal 27b native UIKit home/profile boundary green (2026-08-17): after ROM setup and before SDL startup, DinoPad now presents a landscape-safe Restored-primary home with accessible native actions and an explicit archival/incompleteness warning before Prototype Mode. The in-game menu exposes Quit to DinoPad Home. Runtime teardown is restartable in-process: renderer/window/audio teardown is ordered, queued UIKit/Plume work cannot outlive its window, timers/events/mod overlays reset, and every guest N64 host thread is signaled and joined before RDRAM is released. A guarded three-phase smoke proved no SDL startup while home/warning UI was waiting, real gameplay input polling before quit, return to the native home in the same process, warned Prototype selection, a second live RT64/game runtime, isolated Restored/Prototype sentinels, no crash, and zero leaked runtime/Simulator. Full iPhone input/lifecycle and ROM-import regressions and macOS smoke 22/22 remained green. Evidence: docs/evidence/2026-08-17/iphone-home/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
-- docs/UPSTREAM.md written and current (2026-08-17): pinned sources table, 21-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
+- docs/UPSTREAM.md written and current (2026-08-17): pinned sources table, 23-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
 - scripts/smoke-macos.sh added and green (2026-08-16): bounded automated input-replay smoke of boot -> GAME SELECT -> save load -> playable scene -> input (A/B/Z/Start/WASD) -> clean shutdown. First run FAILED because B was never exercised; B added to the replay, rerun PASS 22/22 (commit def59ac). Evidence: docs/evidence/2026-08-16/macos-smoke/.
@@ -66,13 +67,13 @@ Active goal: Goal 27b (UIKit DinoPad home/mode boundary)
 - RmlUi launcher not exercised on Metal (--skip-launcher used).
 - Physical controller play on macOS: BLOCKED (external) - both paired pads (8BitDo Lite 2, Xbox Wireless) are Not Connected; SDL sees 0 joysticks. Code path verified via virtual controller; see docs/KNOWN_ISSUES.md.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
-- iPhone Simulator is not Phase 5 green yet: home/mode choice, mobile Restored package data, editable phone layout, complete menu/settings/diagnostics, save/relaunch, controllable Restored gameplay, and the 10-minute smoke remain open. Native Files import/replacement and the full input/lifecycle matrix are green.
+- iPhone Simulator is not Phase 5 green yet: mobile Restored package data, editable phone layout, complete menu/settings/diagnostics, save/relaunch, controllable Restored gameplay, and the 10-minute smoke remain open. Native Files import/replacement, the Restored/Prototype home boundary with quit-to-home restart, and the full input/lifecycle matrix are green.
 - iPad Simulator, physical iPhone/iPad, progression certification, and release packaging remain open; see docs/HANDOFF.md and docs/TECHNICAL_DEBT.md.
 
 ## Last successful commands
 
 ```sh
-./scripts/apply-patches.sh                           # PASS: all 21 maintained patches applied
+./scripts/apply-patches.sh                           # PASS: all 23 maintained patches applied
 ./scripts/check-repo-safety.sh                       # PASS: clean (private paths, patches covered)
 cmake --build build-macos --parallel 4 --target DinoPad   # PASS: incremental, arm64 executable
 DINOPAD_MAX_JOBS=4 scripts/generate-restoration.sh       # PASS: C + macOS offline AOT artifacts
@@ -90,11 +91,13 @@ scripts/runtime-guard.sh macos bash <session>        # PASS: full restored and p
 md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090ffd748 (private, untracked)
 scripts/build-ios-simulator.sh                      # PASS: ROM-free arm64 Simulator app
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh  # PASS: picker/rejection/all byte orders/replacement
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh  # PASS: native home/warning, gameplay -> home -> second profile/runtime, no crash
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: full input/lifecycle regression, no crash, clean shutdown
 ```
 
 ## Current evidence
 
+- iPhone native home/profile boundary and live restart (2026-08-17): docs/evidence/2026-08-17/iphone-home/.
 - iPhone Files ROM import/replacement (2026-08-17): docs/evidence/2026-08-17/iphone-rom-import/ (real picker, invalid rejection, z64/v64/n64 normalization, exact MD5, private atomic storage, manager, clean runtime).
 - iPhone deterministic input/lifecycle completion (2026-08-17): docs/evidence/2026-08-17/iphone-touch-lifecycle/.
 - iPhone touch/menu runtime pause point (2026-08-16): docs/evidence/2026-08-16/iphone-touch-runtime/ (90-second guarded result and actual N64 input-log excerpt; explicitly partial).
@@ -139,16 +142,21 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: f
 
 ## Next three candidate goals
 
-1. Add the UIKit DinoPad home: Restored primary, warned Prototype, profile/save isolation, and quit-to-home before SDL startup.
-2. Package only permitted non-code restoration data and prove Restored title/gameplay on iPhone.
-3. Complete the native menu/settings/layout editor/diagnostics, then save/relaunch and the 10-minute iPhone smoke.
+1. Package only permitted non-code restoration data and prove Restored title/gameplay on iPhone.
+2. Complete the native menu/settings/layout editor/diagnostics.
+3. Prove mobile save/relaunch and finish the 10-minute iPhone smoke.
 
 ## Selected next goal
 
-Goal 27b: add the UIKit DinoPad home/mode boundary before SDL startup. Restored
-Adventure must be primary, Prototype must require the archival warning, both
-profiles must hand off to the existing isolated roots, and quit-to-home must
-clear input and return to the native shell without exposing the desktop UI.
+Goal 27c: package only permitted non-code restoration data, preserve the static
+no-write code path, and prove a Restored title plus controllable gameplay on
+iPhone while the same build's Prototype profile visibly omits restoration.
+
+Goal 27b outcome: the UIKit DinoPad home is green before SDL startup. Restored
+is primary, Prototype requires the archival warning, both profiles use isolated
+roots, and live gameplay can quit to home before a second profile/runtime starts
+in the same process without a crash. Evidence:
+docs/evidence/2026-08-17/iphone-home/.
 
 Goal 27a outcome: native first-run Files import and in-game ROM replacement are
 green for z64/v64/n64, exact size/fingerprint rejection, atomic protected

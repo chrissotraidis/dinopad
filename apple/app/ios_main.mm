@@ -9,8 +9,13 @@
 
 #include <SDL.h>
 #include <TargetConditionals.h>
+#import "home.h"
 #import "rom_setup.h"
 #import <UIKit/UIKit.h>
+
+#include "runtime/audio.hpp"
+#include "runtime/gfx.hpp"
+#include "ultramodern/ultramodern.hpp"
 
 extern "C" int dinopad_recomp_main(int argc, char **argv);
 extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y);
@@ -128,7 +133,18 @@ std::atomic<int32_t> g_touchFlickX{0};
 std::atomic<int32_t> g_touchFlickY{0};
 std::atomic<uint8_t> g_touchFlickPolls{0};
 std::atomic_bool g_controllerConnected{false};
+std::atomic_bool g_quitToHome{false};
+std::atomic<int> g_currentProfile{0};
+std::atomic_bool g_quitSmokeTriggered{false};
+std::atomic<uint64_t> g_gameInputPolls{0};
 TouchTapLatch g_touchTaps;
+
+void drainUIKitQueue() {
+    for (int pass = 0; pass < 4; ++pass) {
+        [NSRunLoop.currentRunLoop runMode:NSDefaultRunLoopMode
+                                beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.025]];
+    }
+}
 
 }  // namespace
 
@@ -140,6 +156,7 @@ TouchTapLatch g_touchTaps;
 - (void)setPhysicalControllerConnected:(BOOL)connected;
 - (void)presentUtilityMenu;
 - (void)dismissUtilityMenu;
+- (void)quitToHome;
 
 // Deterministic test injection methods
 - (CGPoint)centerForControlIndex:(NSInteger)index;
@@ -438,11 +455,13 @@ TouchTapLatch g_touchTaps;
     }
 
     NSString* controllerStatus = _controllerConnected ? @"Connected" : @"Not Connected";
+    NSString* profileTitle = g_currentProfile.load(std::memory_order_relaxed) == 0
+        ? @"Restored Adventure" : @"Prototype Mode";
     NSString* touchTitle = _controlsEnabled ? @"Disable Touch Controls" : @"Enable Touch Controls";
     UIAlertController* menu = [UIAlertController
         alertControllerWithTitle:@"DinoPad"
                          message:[NSString stringWithFormat:
-                             @"Restored Adventure\nController: %@", controllerStatus]
+                             @"%@\nController: %@", profileTitle, controllerStatus]
                   preferredStyle:UIAlertControllerStyleActionSheet];
     [menu addAction:[UIAlertAction actionWithTitle:@"Resume"
         style:UIAlertActionStyleCancel handler:^(__unused UIAlertAction* action) {
@@ -461,6 +480,10 @@ TouchTapLatch g_touchTaps;
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
             dinopad_present_rom_manager((__bridge void*)presenter);
         }]];
+    [menu addAction:[UIAlertAction actionWithTitle:@"Quit to DinoPad Home"
+        style:UIAlertActionStyleDestructive handler:^(__unused UIAlertAction* action) {
+            [self quitToHome];
+        }]];
     UIPopoverPresentationController* popover = menu.popoverPresentationController;
     if (popover != nil) {
         popover.sourceView = self;
@@ -468,6 +491,15 @@ TouchTapLatch g_touchTaps;
         popover.permittedArrowDirections = UIPopoverArrowDirectionUp;
     }
     [presenter presentViewController:menu animated:YES completion:nil];
+}
+
+- (void)quitToHome {
+    [self clearInput];
+    [self setModalControlsHidden:YES];
+    g_quitToHome.store(true, std::memory_order_relaxed);
+    std::fprintf(stderr, "[dinopad-home-test] Quit to home requested\n");
+    std::fflush(stderr);
+    ultramodern::quit();
 }
 
 - (void)romManagerDidDismiss {
@@ -1070,6 +1102,25 @@ TouchTapLatch g_touchTaps;
 
 static __weak DinoPadTouchOverlayView* g_touchOverlay = nil;
 
+static void scheduleQuitToHomeSmoke(DinoPadTouchOverlayView* overlay, int attemptsRemaining) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.10 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        if (g_gameInputPolls.load(std::memory_order_relaxed) > 0) {
+            std::fprintf(stderr, "[dinopad-home-test] Gameplay input polled before quit\n");
+            std::fflush(stderr);
+            [overlay quitToHome];
+            return;
+        }
+        if (attemptsRemaining > 0) {
+            scheduleQuitToHomeSmoke(overlay, attemptsRemaining - 1);
+            return;
+        }
+        std::fprintf(stderr, "[dinopad-home-test] Gameplay input poll timed out\n");
+        std::fflush(stderr);
+        [overlay quitToHome];
+    });
+}
+
 extern "C" void dinopad_touch_attach(void* windowPointer) {
     if (windowPointer == nullptr) return;
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -1109,10 +1160,17 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
                 dinopad_present_rom_manager((__bridge void*)[overlay topPresenter]);
             });
         }
+
+        const char* quitSmoke = getenv("DINOPAD_QUIT_TO_HOME_SMOKE");
+        if (quitSmoke != nullptr && quitSmoke[0] != '\0' && quitSmoke[0] != '0' &&
+            !g_quitSmokeTriggered.exchange(true, std::memory_order_relaxed)) {
+            scheduleQuitToHomeSmoke(overlay, 100);
+        }
     });
 }
 
 extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y) {
+    g_gameInputPolls.fetch_add(1, std::memory_order_relaxed);
     if (buttons != nullptr) {
         *buttons = g_touchButtons.load(std::memory_order_relaxed) | g_touchTaps.consume();
     }
@@ -1153,16 +1211,40 @@ extern "C" int SDL_main(int, char **) {
         return EXIT_FAILURE;
     }
 
-    char app_name[] = "DinoPad";
-    char skip_launcher[] = "--skip-launcher";
-    char profile_flag[] = "--profile";
-    char profile_name[] = "restored";
-    char *arguments[] = {
-        app_name,
-        skip_launcher,
-        profile_flag,
-        profile_name,
-        nullptr,
-    };
-    return dinopad_recomp_main(4, arguments);
+    for (;;) {
+        const int selectedProfile = dinopad_present_home();
+        g_currentProfile.store(selectedProfile, std::memory_order_relaxed);
+        g_quitToHome.store(false, std::memory_order_relaxed);
+        g_gameInputPolls.store(0, std::memory_order_relaxed);
+
+        char appName[] = "DinoPad";
+        char skipLauncher[] = "--skip-launcher";
+        char profileFlag[] = "--profile";
+        char restored[] = "restored";
+        char prototype[] = "prototype";
+        char* arguments[] = {
+            appName,
+            skipLauncher,
+            profileFlag,
+            selectedProfile == 0 ? restored : prototype,
+            nullptr,
+        };
+
+        const int result = dinopad_recomp_main(4, arguments);
+        dino::runtime::shutdown_audio();
+        // RT64/Plume may have already queued UIKit window-attribute work from
+        // its renderer thread. The renderer is joined now, so drain those
+        // final blocks while the SDL window is still valid, then drain SDL's
+        // own UIKit teardown before presenting the home again.
+        drainUIKitQueue();
+        dino::runtime::destroy_window();
+        drainUIKitQueue();
+
+        if (result != EXIT_SUCCESS ||
+            !g_quitToHome.exchange(false, std::memory_order_relaxed)) {
+            return result;
+        }
+        std::fprintf(stderr, "[dinopad-home-test] Runtime returned to home\n");
+        std::fflush(stderr);
+    }
 }

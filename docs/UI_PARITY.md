@@ -17,14 +17,15 @@ external dependency.
 | Metal presentation | SDL UIKit/AppKit window -> CAMetalLayer -> RT64 | Green first frame | Resize/orientation/device stress open. |
 | ROM-free bundle | User imports exact supported ROM | **Green** macOS + iPhone Simulator | Device/IPA audit remains Phase 10. |
 | ROM picker/normalization | `.z64/.v64/.n64`, exact revision, private normalized storage | **Green** macOS + iPhone Simulator **(Goal 27a)** | DinoPad validates its December 2000 prototype fingerprint; physical Files providers remain open. |
-| First-run setup | Native controller before runtime | Green macOS; Partial iOS | iOS ROM setup is green; Restored/Prototype home choice and warning are Goal 27b. |
+| First-run setup | Native controller before runtime | **Green** macOS + iPhone Simulator | iOS ROM setup and the post-setup mode chooser both precede SDL; device proof remains. |
+| Restored/Prototype home | Primary recommended mode, explicit archival alternative | **Green iPhone Simulator (Goal 27b)** | Restored is primary; Prototype requires a prominent warning; both hand off isolated namespaces and quit-to-home can launch a second runtime. |
 | Full N64 touch surface | Stick, D-pad, A/B/Z/L/R/Start/all C buttons | **Green** **(Goal 26c)** | All 14 digital masks verified end-to-end in the [dinopad-in] runtime poll on 2026-08-17; all 15 draw/wire correctly. |
 | Touch tap latching | Short taps survive multiple runtime polls | **Green** | Six-poll latch + unit coverage present; used by the digital-mask smoke. |
 | Analog response | Deadzone, nonlinear precision, cardinal bias/flick handling | **Green** **(Goal 26c)** | Deadzone/nonlinear/cardinal plus analog flick retention units in touch_unit_test.cpp; all 4 cardinal directions + diagonal multi-touch verified in the runtime poll on 2026-08-17. |
 | Phone defaults | Grip-first compact layout | Partial | PaperPad-derived centers/sizes used; measured screenshot comparison not yet recorded. |
 | Tablet defaults | Independent larger-device layout | Partial/code only | Never run on iPad Simulator. |
 | Safe areas | Controls/menu avoid notch/Home indicator | Partial | Layout uses safe-area insets; orientation/device verification open. |
-| Persistent `•••` menu | Always reachable, accessible, controller-independent | Partial | Button/menu work; full menu tree and Resume presentation polish open. |
+| Persistent `•••` menu | Always reachable, accessible, controller-independent | Partial | Button/menu and Quit to DinoPad Home work; full menu tree and Resume presentation polish remain open. |
 | Modal input policy | Clear input and hide controls for menu/picker/settings/share | Partial | Menu and ROM manager do this (Goals 26c/27a); settings/share flows remain. |
 | Layout editor | Move, group-link, resize, opacity, hide/show, reset, undo | Open | Must port behavior with DinoPad persistence keys. |
 | Independent idiom persistence | Phone/tablet layouts do not contaminate each other | Open | Default selection is idiom-specific; editable persistence absent. |

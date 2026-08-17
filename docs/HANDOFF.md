@@ -14,7 +14,9 @@ mature enough to boot both Restored and Prototype profiles, import and validate
 the supported ROM, play with audio and input, and persist saves. The iPhone
 Simulator target builds and renders through RT64 Metal. Full default N64 touch,
 input/lifecycle/controller handoff, native Files ROM import, and ROM replacement
-are now verified through bounded guarded smokes.
+are verified through bounded guarded smokes. A native UIKit home now precedes
+SDL, makes Restored primary, warns before Prototype, and can tear down live
+gameplay back to home before launching a second isolated profile in-process.
 
 It is not a release-ready iPhone/iPad product. Phase 4 (Apple shell) and Phase 5
 (iPhone Simulator) are partial. Phases 6-10 (iPad, physical devices,
@@ -40,15 +42,23 @@ progression/stability, and release) remain open.
 - Native first-run Files picker and in-game ROM manager with exact 64 MiB/MD5
   validation, z64/v64/n64 normalization, atomic protected private storage,
   invalid rejection without staging, and ROM-free bundle proof.
+- Native UIKit Restored/Prototype chooser before SDL, explicit Prototype archival
+  warning, reachable quit-to-home action, isolated profile handoff, and a guarded
+  live Restored -> home -> Prototype in-process restart with no crash.
 
 ## Current iPhone touch slice
 
 The pause-point changes are centered in:
 
 - `apple/app/ios_main.mm`
+- `apple/app/home.h`
+- `apple/app/home.mm`
 - `patches/dino-recomp/0001-macos-sdl-metal-window.patch`
 - `patches/dino-recomp/0004-input-debug-log.patch`
 - `patches/dino-recomp/0008-ios-touch-input-bridge.patch`
+- `patches/dino-recomp/0010-restartable-ios-window-audio.patch`
+- `patches/N64ModernRuntime/0005-restartable-sessions.patch`
+- `patches/plume/0002-ios-metal-platform.patch`
 - `CMakeLists.txt`
 
 The overlay is attached to SDL's UIKit window after its Metal view is created.
@@ -64,18 +74,16 @@ ROM management is live; touch layout/settings and diagnostics remain incomplete.
 
 ### Phase 4/5: finish iPhone
 
-1. Add DinoPad home/mode choice before runtime startup: Restored primary,
-   explicit warning for Prototype, and isolated profile handoff.
-2. Package the permitted non-code restoration data for mobile and prove that
+1. Package the permitted non-code restoration data for mobile and prove that
    Restored—not only the base prototype—boots on iPhone.
-3. Implement independent persisted phone/tablet layout editing and reset.
-4. Replace menu placeholders with the complete plan-listed menu: game/mode,
+2. Implement independent persisted phone/tablet layout editing and reset.
+3. Replace menu placeholders with the complete plan-listed menu: game/mode,
    restoration/save status, controls, display, audio, game data, support,
    diagnostics, and quit-to-home.
-5. Add settings bridges for volume, aspect, internal resolution, frame rate,
+4. Add settings bridges for volume, aspect, internal resolution, frame rate,
    HUD placement, and touch opacity/enablement.
-6. Add bounded diagnostics log/redaction/share flows.
-7. Prove supported ROM -> Restored title -> controllable gameplay, save/relaunch,
+5. Add bounded diagnostics log/redaction/share flows.
+6. Prove supported ROM -> Restored title -> controllable gameplay, save/relaunch,
     clean shutdown, and the full 10-minute iPhone Simulator smoke.
 
 ### Phase 6: iPad Simulator
@@ -128,5 +136,5 @@ ROM management is live; touch layout/settings and diagnostics remain incomplete.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Implement Goal 27b: UIKit Restored-primary/warned-Prototype home boundary.
-5. Then package permitted restoration data and prove Restored iPhone gameplay.
+4. Implement Goal 27c: package permitted restoration data and prove Restored
+   iPhone title plus controllable gameplay.
