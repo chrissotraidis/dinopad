@@ -52,10 +52,34 @@ fi
 if strings -a "$EXE" | grep -Eq '/Users/[A-Za-z0-9_.-]+/'; then
   fail "personal absolute path found in executable"
 fi
+if strings -a "$EXE" | grep -Eq \
+    'DinoFont\.otf|NotoEmoji-Regular\.ttf|images/DPLogo\.png|images/krazoa\.png'; then
+  fail "removed launcher font/art reference found in executable"
+fi
 if grep -RIlE '/Users/[A-Za-z0-9_.-]+/' "$APP/Contents/Resources" \
     2>/dev/null | grep -q .; then
   fail "personal absolute path found in resources"
 fi
+
+for removed_resource in \
+    assets/DinoFont.otf \
+    assets/NotoEmoji-Regular.ttf \
+    assets/images/DPLogo.png \
+    assets/images/krazoa.png \
+    assets/scss; do
+  [ ! -e "$APP/Contents/Resources/$removed_resource" ] || \
+    fail "unreviewed/development-only resource packaged: $removed_resource"
+done
+if grep -RIEq 'DinoFont|NotoEmoji|DPLogo|krazoa\.png|PriskaSerif|font-family:chiaro' \
+    "$APP/Contents/Resources/assets" 2>/dev/null; then
+  fail "removed font/art resource is still referenced by packaged UI files"
+fi
+cmp -s "$ROOT/notices/Lato-NOTICE.txt" \
+  "$APP/Contents/Resources/Notices/Lato-NOTICE.txt" || \
+  fail "Lato notice is missing or modified"
+cmp -s "$ROOT/ref/dino-recomp/assets/promptfont/LICENSE.txt" \
+  "$APP/Contents/Resources/Notices/OFL-1.1.txt" || \
+  fail "SIL Open Font License text is missing or modified"
 
 codesign --verify --deep --strict "$APP" >/dev/null 2>&1 || \
   fail "bundle signature verification failed"
@@ -65,5 +89,6 @@ signature="$(codesign -dvv "$APP" 2>&1 | awk -F= '/^Signature=/{print $2}')"
 echo "DinoPad macOS app safety audit passed: $APP"
 echo "  executable: arm64, macOS 11.0+, system runtime dependencies only"
 echo "  ROM/save/log/private paths: absent"
+echo "  removed launcher fonts/art and development-only Sass: absent"
 echo "  signing state: ad-hoc development signature"
 echo "NOTE: rights/notices, physical testing, notarization, and release remain separate blockers."

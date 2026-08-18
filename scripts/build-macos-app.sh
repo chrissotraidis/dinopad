@@ -61,6 +61,30 @@ cp "$BIN" "$APP/Contents/MacOS/DinoPad"
 # CMake exposes this source tree through a build-directory symlink. Resolve it
 # while copying so the app never contains an absolute checkout-path symlink.
 cp -RL build-macos/assets "$APP/Contents/Resources/assets"
+# Remove resources with no affirmative package provenance and development-only
+# Sass/npm inputs. The maintained launcher patch uses text plus the OFL Lato
+# family, so these files are neither loaded nor needed at runtime.
+rm -f \
+  "$APP/Contents/Resources/assets/DinoFont.otf" \
+  "$APP/Contents/Resources/assets/NotoEmoji-Regular.ttf" \
+  "$APP/Contents/Resources/assets/images/DPLogo.png" \
+  "$APP/Contents/Resources/assets/images/krazoa.png"
+rm -rf "$APP/Contents/Resources/assets/scss"
+
+# The pinned compiled stylesheet still names the removed upstream display font.
+# Rewrite only those family names in the generated bundle copy; tracked source
+# remains represented by the replayable launcher patch and this deterministic
+# packaging step.
+/usr/bin/sed -i '' \
+  -e 's/PriskaSerif-NotThatFat/LatoLatin/g' \
+  -e 's/font-family:chiaro/font-family:LatoLatin/g' \
+  "$APP/Contents/Resources/assets/recomp.rcss"
+
+mkdir -p "$APP/Contents/Resources/Notices"
+cp "$ROOT/notices/Lato-NOTICE.txt" \
+  "$APP/Contents/Resources/Notices/Lato-NOTICE.txt"
+cp "$ROOT/ref/dino-recomp/assets/promptfont/LICENSE.txt" \
+  "$APP/Contents/Resources/Notices/OFL-1.1.txt"
 # Controller mappings file is read from program_path directly.
 cp build-macos/recompcontrollerdb.txt "$APP/Contents/Resources/recompcontrollerdb.txt"
 

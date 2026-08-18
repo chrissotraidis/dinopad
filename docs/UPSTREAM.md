@@ -56,6 +56,7 @@ Ordered, numbered, replayable with `scripts/apply-patches.sh`:
 | 0008-ios-touch-input-bridge.patch | src/input/input.cpp | Reports physical-controller add/remove state to the UIKit overlay; CoreSimulator's synthetic controller is filtered in the DinoPad-owned bridge | Yes (iOS-only UI/input handoff) |
 | 0009-ios-noop-choice-prompt.patch | src/ui/ui_prompt.cpp | Keeps the desktop RmlUi choice prompt inert while UIKit owns the iOS shell | Yes (iOS-only UI boundary) |
 | 0010-restartable-ios-window-audio.patch | renderer/runtime startup and audio/window teardown | Makes iOS renderer hooks idempotent and explicitly closes audio plus destroys the SDL window so a second runtime can start in-process | Yes (iOS lifecycle fix; desktop behavior preserved) |
+| 0011-rights-safe-launcher-assets.patch | desktop launcher RML/image loading and font registration | Replaces unproven logo/character bitmap use with text and uses the already-pinned OFL Lato family instead of DinoFont/Noto fallback | Product packaging policy; gameplay behavior preserved |
 
 Additional patch: `patches/hlslpp/0001-scalar-labs.patch` (hlslpp scalar
 platform header fix required by the pinned RT64/hlslpp combination on Apple).
@@ -79,8 +80,8 @@ Nested upstream patches applied by checkout basename:
 | `patches/N64ModernRuntime/0007-static-extended-imports.patch` | librecomp static import binding | Lets a static code handle bind extended exports directly when runtime shim generation is disabled | Yes (opt-in static binding; dynamic/live handles unchanged) |
 | `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
-The twenty-five-file patch set is locked in `dependencies.lock.json` at SHA-256
-`0ced288c398859a955484d17ce7cd46e9c8b1f9eea8501ec0ae7fe0dba39b1a6`.
+The twenty-six-file patch set is locked in `dependencies.lock.json` at SHA-256
+`2b66b9147f8b2cae2e96728a3841ef6e0a84e0c74c1a7ef83fe0d749c27233be`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested

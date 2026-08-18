@@ -57,15 +57,15 @@ The package-specific engineering inventory is
 [`PACKAGE_RIGHTS_INVENTORY.json`](PACKAGE_RIGHTS_INVENTORY.json), validated by
 `tools/validate_package_rights_inventory.py`. Its first macOS pass proves exact
 pins/license-text hashes for 17 directly linked components and exact hashes for
-10 selected packaged resources. It does not claim transitive completeness or
+8 selected packaged resources. The package removes DinoFont, Noto Emoji, the
+unproven game logo, and Krazoa artwork; its remaining Lato faces have exact
+attribution and SIL OFL 1.1 text in the app. It does not claim transitive completeness or
 legal clearance. The strict release mode currently fails closed on:
 
 - the root DinoPad-owned license decision;
 - GPL corresponding-source/combined-work obligations;
 - DinoMod redistribution permission;
 - rights for the compiled private game AOT;
-- missing or unresolved provenance/notices for DinoFont, Noto Emoji, the Lato
-  faces, the game logo, and Krazoa artwork;
 - the remaining full compiler/header dependency and iOS-product notice audit.
 
 The repository currently has no root license file or complete assembled
@@ -96,7 +96,8 @@ the project must at minimum:
 1. determine and state the license for DinoPad-owned work;
 2. satisfy Dino Recompiled's GPL source and notice obligations;
 3. collect the exact required license/notice files for every shipped dependency;
-4. resolve compiled game-AOT and packaged font/art redistribution rights;
+4. resolve compiled game-AOT redistribution rights and re-audit every final
+   packaged resource;
 5. obtain and record DinoMod redistribution permission or remove all material
    requiring it;
 6. complete physical-device and progression gates;

@@ -1,0 +1,63 @@
+diff --git a/assets/launcher.rml b/assets/launcher.rml
+index 222076a..09ed7a8 100644
+--- a/assets/launcher.rml
++++ b/assets/launcher.rml
+@@ -40,14 +40,10 @@
+ 				<svg src="images/star-red.svg" class="launcher-star launcher-star--far" style="left: 18%; top: 36%" />
+ 				<svg src="images/star-blu.svg" class="launcher-star launcher-star--far" style="left: 3%; top: 37%" />
+ 
+-				<div class="launcher-krazoa-wrapper">
+-					<img class="launcher-krazoa" src="images/krazoa.png" />
+-				</div>
+-
+ 				<div class="launcher__vertical-split">
+ 					<div class="launcher__title-quadrant">
+-						<img class="game-logo" src="images/DPLogo.png" />
++						<h1 class="game-logo">DINOSAUR PLANET</h1>
+ 					</div>
+ 					<div class="launcher__content-quadrant"></div>
+ 				</div>
+ 				<div class="launcher__vertical-split launcher__vertical-split--right">
+diff --git a/src/ui/ui_launcher.cpp b/src/ui/ui_launcher.cpp
+index c60976d..c6d078a 100644
+--- a/src/ui/ui_launcher.cpp
++++ b/src/ui/ui_launcher.cpp
+@@ -110,20 +110,10 @@ recompui::ContextId recompui::get_launcher_context_id() {
+ 
+ class LauncherMenu : public recompui::MenuController {
+ public:
+-    std::filesystem::path logo_filepath = dino::runtime::get_asset_path("images/DPLogo.png");
+-    std::filesystem::path krazoa_filepath = dino::runtime::get_asset_path("images/krazoa.png");
+-
+     LauncherMenu() {
+         rom_valid = recomp::is_rom_valid(supported_games[0].game_id);
+     }
+-    ~LauncherMenu() override {
+-        recompui::release_image(logo_filepath.string());
+-        recompui::release_image(krazoa_filepath.string());
+-    }
+     void load_document() override {
+-        recompui::queue_image_from_file(logo_filepath);
+-        recompui::queue_image_from_file(krazoa_filepath);
+-
+ 		launcher_context = recompui::create_context(dino::runtime::get_asset_path("launcher.rml"));
+     }
+     void register_events(recompui::UiEventListenerInstancer& listener) override {
+diff --git a/src/ui/ui_state.cpp b/src/ui/ui_state.cpp
+index 1791870..0d73588 100644
+--- a/src/ui/ui_state.cpp
++++ b/src/ui/ui_state.cpp
+@@ -245,12 +245,10 @@ public:
+                 bool fallback_face;
+             };
+             FontFace font_faces[] = {
+-                {"DinoFont.otf", false},
+-                {"LatoLatin-Regular.ttf", false},
++                {"LatoLatin-Regular.ttf", true},
+                 {"LatoLatin-Italic.ttf", false},
+                 {"LatoLatin-Bold.ttf", false},
+                 {"LatoLatin-BoldItalic.ttf", false},
+-                {"NotoEmoji-Regular.ttf", true},
+                 {"promptfont/promptfont.ttf", false},
+             };
+ 

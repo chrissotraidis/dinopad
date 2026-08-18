@@ -19,7 +19,7 @@ package or publish while any P0 gate below is red.
 | DinoPad-owned root license decision | P0 | **Red** | Root license file and scope decision required. |
 | Complete shipped third-party licenses/notices | P0 | **Red** | First direct-link/resource inventory is validated; full transitive notices remain required. [`PACKAGE_RIGHTS_INVENTORY.json`](PACKAGE_RIGHTS_INVENTORY.json) |
 | Written DinoMod redistribution permission or removal | P0 | **Red** | Written permission/compatible published license, or a release configuration with all restricted integration removed, required. |
-| Compiled game-AOT and packaged-asset rights | P0 | **Red** | ROM-free binaries still contain private generated AOT; launcher font/art provenance is incomplete. Rights determination or removal/replacement required. |
+| Compiled game-AOT rights | P0 | **Red** | ROM-free binaries still contain private generated AOT. Rights determination or source-only local generation required. |
 | App privacy manifest | P1 | Green | Exact packaged manifest and negative-control audit in [`privacy-manifest`](evidence/2026-08-17/privacy-manifest/). |
 | Final transitive privacy report | P0 | **Red** | Final Xcode privacy report and exact linked-SDK/API review required. |
 | ROM-free unsigned IPA and clean self-sign install | P0 | **Red** | No public IPA exists; exact artifact build, audit, install, relaunch, and update evidence required. |
@@ -159,9 +159,9 @@ scripts/check-package-safety.sh build-ios-device/Release-iphoneos/DinoPad.app
 - [ ] Run
   `python3 tools/validate_package_rights_inventory.py --require-release-ready`
   against the exact macOS product; any nonzero result is a release stop.
-- [ ] Obtain an explicit rights determination for compiled ROM-derived AOT and
-  each retained launcher font/art asset, or remove/replace the unresolved
-  material and rerun the package inventory.
+- [ ] Obtain an explicit rights determination for compiled ROM-derived AOT or
+  limit delivery to source-only local generation. Keep the selected-resource
+  inventory exact if final package contents change.
 - [ ] Obtain and archive written DinoMod integration/redistribution permission,
   or remove all material and claims requiring it.
 - [ ] Preserve the ROM/game-data prohibition, non-affiliation language, and

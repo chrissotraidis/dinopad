@@ -1,7 +1,7 @@
 # DinoPad Status
 
-Last updated: 2026-08-18T05:04:10Z
-Current commit: Goal 31f package-rights inventory pending on main (predecessor 852c1d8)
+Last updated: 2026-08-18T05:22:31Z
+Current commit: Goal 31g rights-safe launcher assets pending on main (predecessor 9c0449c)
 Current phase: Phase 7 - Physical iPhone
 Active goal: Goal 31a (physical iPhone build/install and product validation)
 
@@ -60,8 +60,9 @@ Active goal: Goal 31a (physical iPhone build/install and product validation)
 - Goal 31d gated release checklist is green (2026-08-18): `docs/RELEASE_CHECKLIST.md` records a fail-closed P0 status matrix, explicit no-override stop conditions, clean source/build checks, the exact physical iPhone/iPad duration and update-in-place matrices, start-to-credits and fixture requirements, rights/notices/privacy gates, an unsigned-IPA audit/install sequence, and a release-record template. Physical devices/signing, progression, the root license/notices, final transitive privacy review, DinoMod permission, IPA, tag, and checksums remain red; no package or release is claimed. Evidence: docs/evidence/2026-08-17/release-checklist/.
 - Goal 31e self-contained macOS bundle is green (2026-08-18): link-graph inspection found the previous app depended on absolute Homebrew FreeType/libpng paths, contained an absolute checkout-path `assets` symlink, and mixed a macOS 11 executable claim with macOS 26 SDL objects. FreeType 2.13.3 is now pinned at `42608f7`, push-disabled, and built statically with optional external dependencies disabled; pinned SDL2 now builds in-tree at the app deployment target and linker warnings are fatal. Bundle assembly resolves assets, aligns metadata to 0.1.0 build 1, implements the documented atomic `--rom` import, and runs `scripts/check-macos-package-safety.sh`. The rebuilt 30 MB arm64 app has macOS 11 load commands, only system runtime dependencies, no symlinks/private paths/game/save/log material, and a valid ad-hoc signature; guarded gameplay smoke passed 22/22 and cleaned to zero runtimes. Rights/notices and notarization remain open. Evidence: docs/evidence/2026-08-17/macos-self-contained-bundle/.
 - Goal 31f package-rights inventory is green as an engineering audit and red as a release gate (2026-08-18): `docs/PACKAGE_RIGHTS_INVENTORY.json` plus its validator bind 17 direct macOS linked components to exact Git pins, archive tokens, and hashed license texts, and bind 10 selected packaged resources to exact source/app hashes. The strict no-override mode correctly fails with 10 unresolved/restricted states and 6 blockers. Newly explicit P0s are redistribution rights for compiled private ROM-derived AOT and unresolved macOS launcher font/art provenance (DinoFont, Noto/Lato notices, game logo, Krazoa art), in addition to root-license, GPL source, DinoMod, and full transitive/iOS notice work. No legal clearance or release is claimed. Evidence: docs/evidence/2026-08-17/package-rights-inventory/.
+- Goal 31g rights-safe launcher packaging is green as bounded remediation and remains red for release (2026-08-18): the macOS app no longer includes DinoFont, Noto Emoji, the bitmap logo, Krazoa art, or development Sass. The dormant RML launcher now uses text plus the pinned Lato family, with exact attribution and SIL OFL 1.1 text under `Contents/Resources/Notices`. Source/executable/resource checks and negative controls reject stale references, asset reintroduction, or notice modification. The rebuilt 29 MB app passes its self-contained audit; guarded gameplay smoke remains 22/22 with zero runtime residue; the unsigned device-arm64 iOS build also remains package-audit green. The validated inventory is now 17 linked components, 8 selected resources, 2 unresolved states, and 5 release blockers. Compiled private AOT, DinoMod, root-license, GPL-source, full transitive notices, physical devices, and progression remain open; no legal clearance or release is claimed. Evidence: docs/evidence/2026-08-18/rights-safe-launcher-assets/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
-- docs/UPSTREAM.md written and current (2026-08-17): pinned sources table, 25-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
+- docs/UPSTREAM.md written and current (2026-08-18): pinned sources table, 26-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
 - scripts/smoke-macos.sh added and green (2026-08-16): bounded automated input-replay smoke of boot -> GAME SELECT -> save load -> playable scene -> input (A/B/Z/Start/WASD) -> clean shutdown. First run FAILED because B was never exercised; B added to the replay, rerun PASS 22/22 (commit def59ac). Evidence: docs/evidence/2026-08-16/macos-smoke/.
@@ -78,7 +79,7 @@ Active goal: Goal 31a (physical iPhone build/install and product validation)
 ## Red / blocked
 
 - Acoustic playback (speaker/headphones) not checked; audio verified at the pipeline/SDL-device level.
-- RmlUi launcher not exercised on Metal (--skip-launcher used).
+- The legacy RmlUi launcher is dormant in normal macOS flows (native home for implicit profile; direct runtime for explicit profile) and is not separately exercised on Metal.
 - Physical controller play on macOS: BLOCKED (external) - both paired pads (8BitDo Lite 2, Xbox Wireless) are Not Connected; SDL sees 0 joysticks. Code path verified via virtual controller; see docs/KNOWN_ISSUES.md.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
 - Physical iPhone/iPad, progression certification, and release packaging remain open; see docs/HANDOFF.md and docs/TECHNICAL_DEBT.md.
@@ -86,7 +87,7 @@ Active goal: Goal 31a (physical iPhone build/install and product validation)
 ## Last successful commands
 
 ```sh
-./scripts/apply-patches.sh                           # PASS: all 25 maintained patches applied; fresh-clone replay also PASS
+./scripts/apply-patches.sh                           # PASS: all 26 maintained patches applied; replay check PASS
 ./scripts/check-repo-safety.sh                       # PASS: clean (private paths, patches covered)
 cmake --build build-macos --parallel 4 --target DinoPad   # PASS: incremental, arm64 executable
 DINOPAD_MAX_JOBS=4 scripts/generate-restoration.sh       # PASS: C + macOS offline AOT artifacts
@@ -103,6 +104,9 @@ scripts/runtime-guard.sh macos bash <session>        # PASS: full restored and p
 # full flow: A x3 (boot) -> A x5 (name AAAAA) -> S x3, D x1 (END) -> A (PLAY THIS GAME?) -> A (YES) -> opening cinematic -> playable tutorial scene
 md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090ffd748 (private, untracked)
 scripts/build-ios-simulator.sh                      # PASS: ROM-free arm64 Simulator app
+scripts/build-ios-device.sh                         # PASS: unsigned ROM-free arm64 iOS app; package audit green
+scripts/check-macos-package-safety.sh               # PASS: self-contained app, rights-safe selected resources/notices
+python3 tools/validate_package_rights_inventory.py  # PASS: 17 components, 8 resources, 2 unresolved states, 5 blockers
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-phase5.sh  # PASS: 600 s gameplay + game-save relaunch/isolation
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh  # PASS: bounded redaction/share/modal cleanup
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-settings.sh  # PASS: live typed settings + two-launch persistence/modal/profile isolation

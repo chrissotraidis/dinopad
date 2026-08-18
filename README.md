@@ -41,7 +41,7 @@ fixture, signing identity, or redistributable Restored package.
 | iPhone Simulator arm64 | Phase 5 green: complete native shell/touch matrix, Restored gameplay, a 600-second run, and same-install save relaunch. |
 | iPad Simulator arm64 | Phase 6 green: complete tablet matrix, independent layout persistence, a 600-second run, save relaunch, and measured PaperPad parity. |
 | Physical iPhone/iPad | Device-arm64 compile is green and ROM-free. Install/runtime validation is blocked because no device or Apple Development identity was available. |
-| Public package | Not available. Physical testing, start-to-credits progression, notices, DinoMod permission, packaged-asset provenance, and compiled-AOT redistribution rights remain release blockers. |
+| Public package | Not available. Physical testing, start-to-credits progression, complete notices, DinoMod permission, and compiled-AOT redistribution rights remain release blockers. |
 
 The detailed source of truth is [docs/STATUS.md](docs/STATUS.md); verified play
 sessions are listed in [docs/PLAYTEST_MATRIX.md](docs/PLAYTEST_MATRIX.md).
@@ -199,9 +199,10 @@ These runs support “playable on the verified targets,” not “complete” or
 - Canvas-drawn touch controls are not yet individual accessibility elements;
   the persistent menu button is accessible.
 - The prototype's name-entry cursor has documented upstream navigation quirks.
-- DinoMod redistribution permission, compiled game-AOT rights, several macOS
-  launcher asset/font provenance items, and the complete transitive
-  license/notice set are unresolved, so no public binary is authorized.
+- DinoMod redistribution permission, compiled game-AOT rights, and the complete
+  transitive license/notice set are unresolved, so no public binary is
+  authorized. The selected macOS launcher fonts/art have been remediated or
+  removed, but that bounded package audit is not complete rights clearance.
 
 See [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) and
 [docs/TECHNICAL_DEBT.md](docs/TECHNICAL_DEBT.md) for the full register.

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "audited_target": "macos",
-  "basis": "Direct static archives in the warning-fatal Ninja link for build-macos/DinoPad plus selected files copied into build-macos/DinoPad.app at commit 852c1d8. This is an engineering inventory, not a legal conclusion or a complete transitive notice set.",
+  "basis": "Direct static archives in the warning-fatal Ninja link for build-macos/DinoPad plus selected files copied into build-macos/DinoPad.app for Goal 31g (predecessor 9c0449c). This is an engineering inventory, not a legal conclusion or a complete transitive notice set.",
   "components": [
     {
       "id": "dino-recomp",
@@ -200,52 +200,36 @@
   ],
   "packaged_resources": [
     {
-      "id": "dinofont",
-      "source_path": "ref/dino-recomp/assets/DinoFont.otf",
-      "package_path": "Contents/Resources/assets/DinoFont.otf",
-      "sha256": "4c2974ee085de97aaec8d7fe64137475392e541de97d051ff9e1c8f67a49bd41",
-      "state": "rights-unresolved",
-      "note": "Embedded metadata names Alessio Systems/AAFonts copyright; no matching redistribution license accompanies the pinned asset."
-    },
-    {
       "id": "lato-regular",
       "source_path": "ref/dino-recomp/assets/LatoLatin-Regular.ttf",
       "package_path": "Contents/Resources/assets/LatoLatin-Regular.ttf",
       "sha256": "d785334ac4e7810f571def986bbad41161f68ac385db8813f798bf04d71478e1",
-      "state": "notice-missing",
-      "note": "Embedded metadata states SIL OFL 1.1 and identifies the authors/reserved name, but an exact Lato notice is not assembled in the package."
+      "state": "notice-recorded",
+      "note": "Embedded SIL OFL 1.1 metadata, author/reserved-name attribution, and exact license text are assembled under Contents/Resources/Notices."
     },
     {
       "id": "lato-italic",
       "source_path": "ref/dino-recomp/assets/LatoLatin-Italic.ttf",
       "package_path": "Contents/Resources/assets/LatoLatin-Italic.ttf",
       "sha256": "1121daa4b0f0510074f54b046b2a25016614cca419974b992e2b8a2b2231f5da",
-      "state": "notice-missing",
-      "note": "Same Lato SIL OFL 1.1 notice gap as the regular face."
+      "state": "notice-recorded",
+      "note": "Covered by the exact packaged Lato attribution and SIL OFL 1.1 text."
     },
     {
       "id": "lato-bold",
       "source_path": "ref/dino-recomp/assets/LatoLatin-Bold.ttf",
       "package_path": "Contents/Resources/assets/LatoLatin-Bold.ttf",
       "sha256": "74dc638cf436cce77a0217a2a55ce7906a4cc9e4c595c6f1dcd9dd858078c1b6",
-      "state": "notice-missing",
-      "note": "Same Lato SIL OFL 1.1 notice gap as the regular face."
+      "state": "notice-recorded",
+      "note": "Covered by the exact packaged Lato attribution and SIL OFL 1.1 text."
     },
     {
       "id": "lato-bold-italic",
       "source_path": "ref/dino-recomp/assets/LatoLatin-BoldItalic.ttf",
       "package_path": "Contents/Resources/assets/LatoLatin-BoldItalic.ttf",
       "sha256": "116bd3f939070d9df8c73acb76faa8f6b582bcce3c391eb6b3695f40e5ae404a",
-      "state": "notice-missing",
-      "note": "Same Lato SIL OFL 1.1 notice gap as the regular face."
-    },
-    {
-      "id": "noto-emoji",
-      "source_path": "ref/dino-recomp/assets/NotoEmoji-Regular.ttf",
-      "package_path": "Contents/Resources/assets/NotoEmoji-Regular.ttf",
-      "sha256": "415dc6290378574135b64c808dc640c1df7531973290c4970c51fdeb849cb0c5",
-      "state": "notice-missing",
-      "note": "Embedded metadata states Google copyright/all rights reserved; no matching license text accompanies the pinned asset."
+      "state": "notice-recorded",
+      "note": "Covered by the exact packaged Lato attribution and SIL OFL 1.1 text."
     },
     {
       "id": "promptfont",
@@ -264,20 +248,20 @@
       "note": "Exact SIL Open Font License 1.1 text packaged beside promptfont."
     },
     {
-      "id": "dinosaur-planet-logo",
-      "source_path": "ref/dino-recomp/assets/images/DPLogo.png",
-      "package_path": "Contents/Resources/assets/images/DPLogo.png",
-      "sha256": "b48d8e9ae9647781863a086e9d2694d0fdbffec23edf8d4da842f5d1248aacbc",
-      "state": "rights-unresolved",
-      "note": "Game-logo artwork is shipped in the macOS launcher; no asset-specific provenance or redistribution grant is recorded."
+      "id": "lato-notice",
+      "source_path": "notices/Lato-NOTICE.txt",
+      "package_path": "Contents/Resources/Notices/Lato-NOTICE.txt",
+      "sha256": "29372c7637ac2fe2f399988a10c89c79fb932cd630eae04a7c6a883be4e6df0c",
+      "state": "notice-recorded",
+      "note": "Exact packaged Lato copyright, authorship, reserved-name, and license-pointer notice."
     },
     {
-      "id": "krazoa-art",
-      "source_path": "ref/dino-recomp/assets/images/krazoa.png",
-      "package_path": "Contents/Resources/assets/images/krazoa.png",
-      "sha256": "7e3268672cf917213e004ecc204621f6db5c1480431bd8f7be22fa940e424e07",
-      "state": "rights-unresolved",
-      "note": "Character artwork is shipped in the macOS launcher; no asset-specific provenance or redistribution grant is recorded."
+      "id": "lato-ofl-license",
+      "source_path": "ref/dino-recomp/assets/promptfont/LICENSE.txt",
+      "package_path": "Contents/Resources/Notices/OFL-1.1.txt",
+      "sha256": "91db5ab511830ae7b393be382e64423c5a783da51faf6211b3d42ac836ac0ce3",
+      "state": "notice-recorded",
+      "note": "Exact SIL Open Font License 1.1 text packaged beside the Lato attribution."
     }
   ],
   "release_blockers": [
@@ -300,11 +284,6 @@
       "id": "rom-derived-binary-rights",
       "summary": "The ROM-free executable still embeds privately generated AOT derived from copyrighted game data.",
       "required_closure": "Obtain a rights/counsel determination for binary redistribution or limit delivery to a source-only local-generation workflow."
-    },
-    {
-      "id": "unlicensed-packaged-assets",
-      "summary": "DinoFont, logo, character art, Noto Emoji, and Lato notice/provenance are not all release-cleared.",
-      "required_closure": "Remove or replace unresolved assets and include exact notices for retained fonts/art before packaging."
     },
     {
       "id": "transitive-notice-completeness",

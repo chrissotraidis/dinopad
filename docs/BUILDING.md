@@ -104,6 +104,11 @@ Unknown profile values fail before runtime initialization. ROM/package data is
 shared under the DinoPad data root; configs and saves are isolated under
 `Profiles/Restored/` and `Profiles/Prototype/`.
 
+The macOS bundle intentionally omits the upstream DinoFont, Noto Emoji, logo,
+Krazoa bitmap, and development Sass sources. Desktop UI fallback uses the
+pinned Lato faces, and the app carries `Notices/Lato-NOTICE.txt` plus the exact
+SIL OFL 1.1 text. `scripts/check-macos-package-safety.sh` enforces this shape.
+
 ## One runtime at a time
 
 Every launch goes through `scripts/runtime-guard.sh <target> [udid] <command...>`, which terminates any DinoPad process, shuts down all Simulators, verifies zero booted devices, then launches exactly one target and cleans up on exit. Never launch a macOS DinoPad and a Simulator together, and never boot iPhone and iPad Simulators together.

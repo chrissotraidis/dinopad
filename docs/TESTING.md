@@ -37,7 +37,9 @@ rejected; final transitive privacy-report review remains a release task.
 The macOS gate verifies an arm64 Mach-O for platform macOS with minimum 11.0,
 system-only runtime dependencies, no bundle symlinks or private paths, matching
 0.1.0 build 1 metadata, no game/save/log/signing material, and a valid ad-hoc
-development signature.
+development signature. It also rejects the removed DinoFont, Noto Emoji, logo,
+Krazoa art, and Sass tree; scans the executable and UI resources for stale
+references; and requires exact Lato attribution and SIL OFL 1.1 notice copies.
 
 Package-content hygiene is distinct from rights readiness. Validate the current
 macOS direct-link/resource inventory with:
