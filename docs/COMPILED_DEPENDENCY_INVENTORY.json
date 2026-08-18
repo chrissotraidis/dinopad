@@ -8,7 +8,16 @@
     "macos": [],
     "ios-device": ["freetype", "plainargs", "rmlui-containers", "sljit", "spirv-cross"]
   },
-  "basis": "Every ref/ source or header path in the current macOS Ninja database and physical-iOS Xcode dependency files. Deepest-prefix ownership prevents a parent project license from hiding a vendored dependency. Target exclusions are checked against actual absence. Notice sources are hash-bound but not yet a complete assembled app notice set.",
+  "inline_notice_assemblies": [
+    {"id":"runtime-concurrentqueue","path":"notices/inline/ConcurrentQueue-NOTICE.txt","sha256":"6516dce780f0186d1a6fc30762235881aca9fc7805ad25144de46ce0106e3e6c"},
+    {"id":"runtime-json","path":"notices/inline/nlohmann-json-NOTICE.txt","sha256":"b0fdbce36dfdaadc67f4b6471598cafa87953b5e3e37ea3c8464c1fd27a095b4"},
+    {"id":"runtime-sse2neon","path":"notices/inline/SSE2NEON-NOTICE.txt","sha256":"39ffd9370cc94a09591b1aa621148530c42509a340640e0db1a8d2db5ba93be3"},
+    {"id":"concurrentqueue","path":"notices/inline/ConcurrentQueue-NOTICE.txt","sha256":"6516dce780f0186d1a6fc30762235881aca9fc7805ad25144de46ce0106e3e6c"},
+    {"id":"rt64-json","path":"notices/inline/nlohmann-json-NOTICE.txt","sha256":"b0fdbce36dfdaadc67f4b6471598cafa87953b5e3e37ea3c8464c1fd27a095b4"},
+    {"id":"rt64-miniz","path":"notices/inline/miniz-NOTICE.txt","sha256":"831cd551941abd2aa47213a79faa0ece548883d3b6a0f2e317acdab73394b851"},
+    {"id":"plainargs","path":"notices/inline/plainargs-NOTICE.txt","sha256":"afc436c29907c59363800b7edcc4e17ca0e97e5d36e7d8790f1d32d72a26fe1a"}
+  ],
+  "basis": "Every ref/ source or header path in the current macOS Ninja database and physical-iOS Xcode dependency files. Deepest-prefix ownership prevents a parent project license from hiding a vendored dependency. Target exclusions are checked against actual absence. Primary standalone and mechanically assembled inline notices are hash-bound; secondary-notice and legal review remain open.",
   "components": [
     {"id":"sdl2","coverage_prefix":"ref/SDL2","notice_source":"ref/SDL2/LICENSE.txt","notice_kind":"file","sha256":"97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127"},
     {"id":"sdl2-hidapi","coverage_prefix":"ref/SDL2/src/hidapi","notice_source":"ref/SDL2/src/hidapi/LICENSE.txt","notice_kind":"file","sha256":"7d3b087c34f35d4d538e3bcddd1ff8f66e92f9ef336881999482800ddf840913"},

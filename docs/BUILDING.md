@@ -109,8 +109,9 @@ Krazoa bitmap, and development Sass sources. Desktop UI fallback uses the
 pinned Lato faces, and the app carries `Notices/Lato-NOTICE.txt` plus the exact
 SIL OFL 1.1 text. `scripts/check-macos-package-safety.sh` enforces this shape.
 It also assembles `Notices/Compiled/INDEX.json` and exact standalone license
-files from `docs/COMPILED_DEPENDENCY_INVENTORY.json`. Entries with a null
-package path are inline notice sources still pending review, not cleared gaps.
+files from `docs/COMPILED_DEPENDENCY_INVENTORY.json`. Inline-primary entries use
+the tracked mechanical assemblies under `notices/inline/`; these are package
+inputs, not a claim that secondary or legal review is complete.
 The physical-iOS build stages its target-specific notice subset before CMake
 configuration so Xcode includes the files in unsigned and signed bundle resource
 phases; the package gate verifies the resulting root `Notices/Compiled` tree.

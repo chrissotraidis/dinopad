@@ -22,6 +22,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "docs" / "COMPILED_DEPENDENCY_INVENTORY.json"
 ENTRY_KEYS = {"id", "coverage_prefix", "notice_source", "notice_kind", "sha256"}
+ASSEMBLY_KEYS = {"id", "path", "sha256"}
 NOTICE_KINDS = {"file", "inline"}
 
 
@@ -78,7 +79,8 @@ def compiler_dependencies(build_dir: pathlib.Path, dependency_format: str) -> se
 def validate(manifest_path: pathlib.Path, selected_target: str | None) -> None:
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     expected_top = {
-        "schema_version", "targets", "target_exclusions", "basis", "components"
+        "schema_version", "targets", "target_exclusions", "inline_notice_assemblies",
+        "basis", "components"
     }
     if set(data) != expected_top:
         fail("top-level schema mismatch")
@@ -142,6 +144,30 @@ def validate(manifest_path: pathlib.Path, selected_target: str | None) -> None:
         if digest(source_path) != expected:
             fail(f"{component_id}: notice source hash mismatch")
 
+    assemblies = data["inline_notice_assemblies"]
+    if not isinstance(assemblies, list):
+        fail("inline_notice_assemblies must be a list")
+    inline_ids = {entry["id"] for entry in components if entry["notice_kind"] == "inline"}
+    assembly_ids: set[str] = set()
+    for index, assembly in enumerate(assemblies):
+        if not isinstance(assembly, dict) or set(assembly) != ASSEMBLY_KEYS:
+            fail(f"inline assembly {index}: schema mismatch")
+        assembly_id = assembly["id"]
+        if assembly_id in assembly_ids or assembly_id not in inline_ids:
+            fail(f"inline assembly {index}: duplicate or non-inline id")
+        assembly_ids.add(assembly_id)
+        path = assembly["path"]
+        if not isinstance(path, str):
+            fail(f"{assembly_id}: assembly path must be a string")
+        notice = repo_path(path, f"{assembly_id}.assembly")
+        expected = assembly["sha256"]
+        if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
+            fail(f"{assembly_id}: invalid assembly SHA-256")
+        if digest(notice) != expected:
+            fail(f"{assembly_id}: assembled notice hash mismatch")
+    if assembly_ids != inline_ids:
+        fail(f"inline assembly set mismatch: {sorted(inline_ids - assembly_ids)}")
+
     target_names = [selected_target] if selected_target else list(targets)
     for target_name in target_names:
         target = targets[target_name]
@@ -188,7 +214,7 @@ def validate(manifest_path: pathlib.Path, selected_target: str | None) -> None:
         print(
             f"COMPILED DEPENDENCY INVENTORY ({target_name}): VALID "
             f"({len(dependencies)} source/header files, {len(actual)} components, "
-            f"{active_inline} inline notice sources, 0 uncovered)"
+            f"{active_inline} assembled inline notice sources, 0 uncovered)"
         )
     print("NOTE: compiler coverage is not license interpretation or shipped-notice completeness.")
 

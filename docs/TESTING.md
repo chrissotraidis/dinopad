@@ -42,11 +42,12 @@ Krazoa art, and Sass tree; scans the executable and UI resources for stale
 references; and requires exact Lato attribution and SIL OFL 1.1 notice copies.
 The same gate validates all 2,227 current Ninja-tracked `ref/` source/header
 dependencies against 46 deepest-prefix component records, then verifies the
-indexed byte-exact package copy of 39 standalone licenses. Seven inline notice
-sources remain explicitly pending and therefore do not close release readiness.
+indexed byte-exact package copy of 39 standalone and 7 mechanically assembled
+inline-primary notices. Secondary and legal review remain explicitly pending
+and therefore do not close release readiness.
 The physical-iOS gate performs the equivalent check over 1,032 Xcode dependency
-files: 2,578 unique paths, 41 active roots, 35 packaged standalone licenses, 6
-target-present inline notice sources, and zero uncovered paths.
+files: 2,578 unique paths, 41 active roots, 35 standalone plus 6 mechanically
+assembled inline-primary notices, and zero uncovered paths.
 
 Package-content hygiene is distinct from rights readiness. Validate the current
 macOS direct-link/resource inventory with:

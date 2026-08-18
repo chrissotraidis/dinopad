@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T05:37:22Z
+Last updated: 2026-08-18T05:42:23Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -53,8 +53,10 @@ findings without claiming a complete transitive notice audit.
 Both Apple compiler graphs are now separately fail-closed. macOS maps 2,227
 pinned source/header dependencies to 46 ownership roots and packages 39 exact
 standalone licenses; physical iOS maps 2,578 dependencies to 41 roots and
-packages 35. Both have zero uncovered paths. Seven union inline-primary roots
-and possible secondary-notice review remain explicitly pending.
+packages 35. Both have zero uncovered paths. The seven union inline-primary
+roots now have mechanically assembled, hash-bound notices too, so every 46/41
+root has a package entry. Secondary-notice and second-person completeness review
+remain explicitly pending.
 
 ## Completed foundation
 
@@ -72,6 +74,9 @@ and possible secondary-notice review remain explicitly pending.
 - Compiler-derived physical-iOS notice coverage for 2,578 paths across 41
   components, with zero uncovered and exact packaging for 35 standalone
   license files; 6 target-present inline-source cases remain open.
+- Mechanically assembled and hash-bound inline-primary notices for all 7 union
+  roots (6 present on iOS), producing complete 46/41 component package indexes;
+  secondary and legal review remain open.
 - Static arm64 DinoMod code plus no-write replacement/hook dispatch.
 - Restored-default and warned Prototype profiles with isolated config/save roots.
 - Native macOS ROM setup, exact fingerprint validation, byte-order normalization,

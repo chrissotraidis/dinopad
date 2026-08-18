@@ -28,6 +28,7 @@ def sha256(path: pathlib.Path) -> str:
 def expected_index(target: str) -> tuple[dict[str, object], dict[pathlib.PurePosixPath, pathlib.Path]]:
     data = json.loads(MANIFEST.read_text(encoding="utf-8"))
     excluded = set(data["target_exclusions"][target])
+    assemblies = {entry["id"]: entry for entry in data["inline_notice_assemblies"]}
     copies: dict[pathlib.PurePosixPath, pathlib.Path] = {}
     records: list[dict[str, object]] = []
     for component in data["components"]:
@@ -37,13 +38,21 @@ def expected_index(target: str) -> tuple[dict[str, object], dict[pathlib.PurePos
         source = ROOT / source_rel
         if sha256(source) != component["sha256"]:
             fail(f"notice source hash mismatch: {component['id']}")
-        package_rel: str | None = None
+        package_source = source
+        package_hash = component["sha256"]
         if component["notice_kind"] == "file":
             destination = pathlib.PurePosixPath(component["id"]) / source_rel.name
-            if destination in copies:
-                fail(f"duplicate notice destination: {destination}")
-            copies[destination] = source
-            package_rel = destination.as_posix()
+        else:
+            assembly = assemblies[component["id"]]
+            package_source = ROOT / assembly["path"]
+            package_hash = assembly["sha256"]
+            if sha256(package_source) != package_hash:
+                fail(f"assembled notice hash mismatch: {component['id']}")
+            destination = pathlib.PurePosixPath(component["id"]) / package_source.name
+        if destination in copies:
+            fail(f"duplicate notice destination: {destination}")
+        copies[destination] = package_source
+        package_rel = destination.as_posix()
         records.append(
             {
                 "id": component["id"],
@@ -52,12 +61,13 @@ def expected_index(target: str) -> tuple[dict[str, object], dict[pathlib.PurePos
                 "notice_source": component["notice_source"],
                 "sha256": component["sha256"],
                 "package_path": package_rel,
+                "package_sha256": package_hash,
             }
         )
     index = {
         "schema_version": 1,
         "target": target,
-        "basis": "Generated from docs/COMPILED_DEPENDENCY_INVENTORY.json; null package paths identify inline notice sources that still require assembly review.",
+        "basis": "Generated from docs/COMPILED_DEPENDENCY_INVENTORY.json; inline package files are mechanically assembled primary notices and do not close secondary-notice or legal review.",
         "components": records,
     }
     return index, copies
@@ -78,8 +88,8 @@ def assemble(target: str, destination: pathlib.Path) -> None:
         shutil.copyfile(source, target)
     (destination / "INDEX.json").write_bytes(encoded_index(index))
     print(
-        f"Compiled dependency notices assembled: {len(copies)} standalone files, "
-        f"{len(index['components']) - len(copies)} inline sources pending"
+        f"Compiled dependency notices assembled: {len(copies)} component notice files, "
+        "including mechanically assembled inline-primary notices"
     )
 
 
@@ -102,8 +112,8 @@ def verify(target: str, destination: pathlib.Path) -> None:
         if packaged.read_bytes() != source.read_bytes():
             fail(f"compiled notice differs from source: {relative}")
     print(
-        f"Compiled dependency notices verified: {len(copies)} standalone files, "
-        f"{len(index['components']) - len(copies)} inline sources pending"
+        f"Compiled dependency notices verified: {len(copies)} component notice files, "
+        "including mechanically assembled inline-primary notices"
     )
 
 

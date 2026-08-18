@@ -60,8 +60,9 @@ pins/license-text hashes for 17 directly linked components and exact hashes for
 8 selected packaged resources. A second compiler-derived inventory maps all
 2,227 current macOS `ref/` source/header dependencies to 46 deepest-prefix
 ownership roots; physical iOS maps 2,578 paths to 41 roots. The apps index exact
-copies of 39 and 35 standalone license files respectively. Seven union roots
-whose primary notice is inline remain unassembled pending review. The package removes DinoFont, Noto Emoji, the
+copies of 39 and 35 standalone license files respectively, plus mechanically
+assembled inline-primary notices for all 7 union roots (6 on iOS). Every 46/41
+component root therefore has a package entry. The package removes DinoFont, Noto Emoji, the
 unproven game logo, and Krazoa artwork; its remaining Lato faces have exact
 attribution and SIL OFL 1.1 text in the app. These engineering inventories do
 not claim complete notice compliance or legal clearance. Strict release mode
@@ -71,7 +72,7 @@ currently fails closed on:
 - GPL corresponding-source/combined-work obligations;
 - DinoMod redistribution permission;
 - rights for the compiled private game AOT;
-- reviewed extraction/assembly for inline or secondary notices across both
+- secondary-notice and second-person legal-completeness review across both
   indexed products.
 
 The repository currently has no root license file or complete assembled
