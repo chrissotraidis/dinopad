@@ -11,10 +11,12 @@ option(DINOPAD_ENABLE_TEST_HARNESS
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Minimum iOS version" FORCE)
     set(DINOPAD_IOS TRUE)
+elseif(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version" FORCE)
 endif()
 
 if (APPLE)
-    enable_language(OBJCXX)
+    enable_language(OBJC OBJCXX)
 endif()
 
 set(CMAKE_C_STANDARD 17)
@@ -31,7 +33,6 @@ get_filename_component(DINOPAD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 set(DINO_RECOMP "${DINOPAD_ROOT}/ref/dino-recomp")
 set(DINOPAD_AOT "${DINOPAD_ROOT}/generated/aot")
 set(DINOPAD_RESTORATION "${DINOPAD_ROOT}/generated/restoration")
-set(DINOPAD_SDL2_BUILD "${DINOPAD_ROOT}/build-macos-sdl2")
 
 # Reproducible builds: do not embed the builder's absolute checkout path.
 add_compile_options(
@@ -88,27 +89,25 @@ target_compile_options(dinopad_rsp PRIVATE
     -Wno-shorten-64-to-32)
 
 # ---- SDL2 -----------------------------------------------------------------
-if (DINOPAD_IOS)
+if (APPLE)
+    # Build the pinned source in this build tree for both Apple platforms.
+    # This keeps every SDL object on the same architecture and deployment
+    # target as DinoPad, and prevents a stale host-installed package from
+    # entering the macOS link through a dependency's find_package(SDL2).
     set(SDL_SHARED OFF CACHE BOOL "Build SDL shared library" FORCE)
     set(SDL_STATIC ON CACHE BOOL "Build SDL static library" FORCE)
     set(SDL_TEST OFF CACHE BOOL "Build SDL tests" FORCE)
+    set(SDL_TESTS OFF CACHE BOOL "Build SDL tests" FORCE)
+    unset(SDL2_DIR CACHE)
     add_subdirectory("${DINOPAD_ROOT}/ref/SDL2" "${CMAKE_BINARY_DIR}/sdl2")
     set(SDL2_INCLUDE_DIRS "${DINOPAD_ROOT}/ref/SDL2/include")
     set(SDL2_LIBRARIES SDL2::SDL2-static)
     add_library(dinopad_sdl2 INTERFACE)
     target_link_libraries(dinopad_sdl2 INTERFACE SDL2::SDL2-static)
 else()
-    if (NOT EXISTS "${DINOPAD_SDL2_BUILD}/libSDL2.a")
-        message(FATAL_ERROR
-            "SDL2 static library missing at ${DINOPAD_SDL2_BUILD}. "
-            "Run scripts/build-sdl2.sh first.")
-    endif()
-    add_library(dinopad_sdl2 STATIC IMPORTED)
-    set_target_properties(dinopad_sdl2 PROPERTIES
-        IMPORTED_LOCATION "${DINOPAD_SDL2_BUILD}/libSDL2.a"
-        INTERFACE_INCLUDE_DIRECTORIES "${DINOPAD_ROOT}/ref/SDL2/include")
-    # Force dependency subdirectories to use the audited static SDL2 build.
-    set(SDL2_DIR "${DINOPAD_SDL2_BUILD}" CACHE PATH "SDL2 CMake package config directory")
+    find_package(SDL2 REQUIRED)
+    add_library(dinopad_sdl2 INTERFACE)
+    target_link_libraries(dinopad_sdl2 INTERFACE SDL2::SDL2)
 endif()
 
 # ---- Renderer and UI dependency stack (pinned dino-recomp submodules) -----
@@ -132,6 +131,25 @@ if (DINOPAD_IOS)
     # need RmlUi's external FreeType or SVG font-rendering dependencies.
     set(RMLUI_FONT_ENGINE "none" CACHE STRING "RmlUi font engine" FORCE)
     set(RMLUI_SVG_PLUGIN OFF CACHE BOOL "" FORCE)
+elseif(APPLE)
+    # A host-installed FreeType dylib makes DinoPad.app depend on an absolute
+    # Homebrew path. Build the exact pinned source as a self-contained static
+    # library instead. Optional compression/image features are unnecessary for
+    # the bundled TrueType UI fonts and would add more host dependencies.
+    if (NOT EXISTS "${DINOPAD_ROOT}/ref/freetype/CMakeLists.txt")
+        message(FATAL_ERROR
+            "Pinned FreeType source missing. Run scripts/bootstrap.sh.")
+    endif()
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+    set(FT_DISABLE_ZLIB ON CACHE BOOL "Disable FreeType zlib" FORCE)
+    set(FT_DISABLE_BZIP2 ON CACHE BOOL "Disable FreeType bzip2" FORCE)
+    set(FT_DISABLE_PNG ON CACHE BOOL "Disable FreeType PNG" FORCE)
+    set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "Disable FreeType HarfBuzz" FORCE)
+    set(FT_DISABLE_BROTLI ON CACHE BOOL "Disable FreeType Brotli" FORCE)
+    set(SKIP_INSTALL_ALL ON CACHE BOOL "Do not install bundled FreeType" FORCE)
+    add_subdirectory("${DINOPAD_ROOT}/ref/freetype"
+        "${CMAKE_BINARY_DIR}/freetype" EXCLUDE_FROM_ALL)
+    add_library(Freetype::Freetype ALIAS freetype)
 endif()
 
 add_subdirectory("${DINO_RECOMP}/lib/rt64" "${CMAKE_BINARY_DIR}/rt64")
@@ -443,6 +461,9 @@ if (DINOPAD_IOS)
         "-framework UniformTypeIdentifiers"
         "-framework Foundation")
 elseif (APPLE)
+    # In particular, fail if ld detects an object built for a newer macOS
+    # deployment target than the executable.
+    target_link_options(DinoPad PRIVATE "LINKER:-fatal_warnings")
     target_link_libraries(DinoPad PRIVATE
         "-framework Cocoa"
         "-framework Metal"

@@ -48,6 +48,9 @@ release blockers alongside physical-device and progression work.
 
 - Pinned and push-disabled reference sources with replayable maintained patches.
 - ROM-free native Apple Silicon macOS runtime and app bundle.
+- Self-contained macOS packaging with pinned static FreeType, resolved assets,
+  system-only runtime dependencies, ad-hoc signature verification, and a
+  reusable package-safety gate.
 - Static arm64 DinoMod code plus no-write replacement/hook dispatch.
 - Restored-default and warned Prototype profiles with isolated config/save roots.
 - Native macOS ROM setup, exact fingerprint validation, byte-order normalization,

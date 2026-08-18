@@ -52,9 +52,9 @@ bypasses these stop conditions.
   clean.
 - [ ] Review the complete commit diff and run `git diff --check`.
 - [ ] Run `scripts/check-repo-safety.sh` and resolve every finding.
-- [ ] Reproduce source setup with `scripts/clone-sources.sh`,
-  `scripts/verify-sources.sh`, and `scripts/apply-patches.sh` from clean pinned
-  inputs.
+- [ ] Reproduce source setup with `scripts/bootstrap.sh` from clean pinned
+  inputs; it verifies exact commits, disables push URLs, applies patches, and
+  runs repository safety.
 - [ ] Verify every pin in [`dependencies.lock.json`](../dependencies.lock.json)
   and every patch/checksum in [`UPSTREAM.md`](UPSTREAM.md).
 - [ ] Confirm README, status, build, test, playtest, rights, and release claims
@@ -75,6 +75,7 @@ Run from the intended clean release commit and retain command output:
 
 ```sh
 scripts/build-macos-app.sh
+scripts/check-macos-package-safety.sh build-macos/DinoPad.app
 scripts/build-ios-simulator.sh
 scripts/build-ios-device.sh
 scripts/check-package-safety.sh build-ios-device/Release-iphoneos/DinoPad.app

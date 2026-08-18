@@ -39,6 +39,7 @@ Current top-level inventory:
 | DinoMod Enhanced Recompiled | v0.9.3 / `d79e86be2304cba75216b0b98e9fb53ee99b7500` | No conventional redistribution license is declared at the pin; public integration is blocked pending written permission or a compatible published license. |
 | PaperPad | `644945d4bc4facbbd8ecda8cdfd37ae64e7993fa` | Reference implementation with its own multi-project rights boundary; DinoPad does not copy Paper Mario game code, art, or branding. |
 | SDL2 | release-2.32.10 / `5d249570393f7a37e037abf22cd6012a4cc56a71` | zlib license in upstream `LICENSE.txt`. |
+| FreeType | VER-2-13-3 / `42608f77f20749dd6ddc9e0536788eaad70ea4b5` | FreeType License in upstream `LICENSE.TXT`; statically linked into macOS only with optional external dependencies disabled. |
 
 Exact recursive pins are recorded in
 [`dependencies.lock.json`](../dependencies.lock.json), and the maintained patch

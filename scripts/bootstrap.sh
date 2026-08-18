@@ -98,6 +98,7 @@ clone_or_verify "PaperPad" "ref/paperpad"
 clone_or_verify "dino-recomp" "ref/dino-recomp"
 clone_or_verify "dinomod-enhanced-recompiled" "ref/dinomod-enhanced-recompiled"
 clone_or_verify "SDL2" "ref/SDL2"
+clone_or_verify "FreeType" "ref/freetype"
 
 # Disable push URLs recursively for every nested reference repository.
 while IFS= read -r gitdir; do
@@ -106,7 +107,7 @@ while IFS= read -r gitdir; do
 done < <(find ref -name .git -type d 2>/dev/null)
 
 echo "== Reference push URLs =="
-for d in ref/paperpad ref/dino-recomp ref/dinomod-enhanced-recompiled ref/SDL2; do
+for d in ref/paperpad ref/dino-recomp ref/dinomod-enhanced-recompiled ref/SDL2 ref/freetype; do
   echo "$d: $(git -C "$d" remote get-url --push origin)"
 done
 

@@ -23,9 +23,26 @@ APP="$ROOT/build-macos/DinoPad.app"
 SUPPORT="$HOME/Library/Application Support/DinoPad"
 ROM_DEST="$SUPPORT/dino.z64"
 EXPECTED_ROM_MD5="49f7bb346ade39d1915c22e090ffd748"
-VERSION="0.3.0"
+VERSION="0.1.0"
+BUILD_NUMBER="1"
+ROM_SOURCE=""
 
 fail() { echo "ERROR: $*" >&2; exit 1; }
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --rom)
+      [ "$#" -ge 2 ] || fail "--rom requires a path"
+      ROM_SOURCE="$2"
+      shift 2
+      ;;
+    -h|--help)
+      echo "Usage: scripts/build-macos-app.sh [--rom /absolute/path/to/game.z64]"
+      exit 0
+      ;;
+    *) fail "unknown argument: $1" ;;
+  esac
+done
 
 echo "== DinoPad macOS app bundle build =="
 
@@ -41,7 +58,9 @@ cp "$BIN" "$APP/Contents/MacOS/DinoPad"
 
 # Asset layout matches get_asset_path() (program_path/assets/...):
 # program_path on Apple is the bundle Resources dir.
-cp -R build-macos/assets "$APP/Contents/Resources/assets"
+# CMake exposes this source tree through a build-directory symlink. Resolve it
+# while copying so the app never contains an absolute checkout-path symlink.
+cp -RL build-macos/assets "$APP/Contents/Resources/assets"
 # Controller mappings file is read from program_path directly.
 cp build-macos/recompcontrollerdb.txt "$APP/Contents/Resources/recompcontrollerdb.txt"
 
@@ -57,7 +76,7 @@ cat > "$APP/Contents/Info.plist" <<EOF
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
-    <key>CFBundleVersion</key><string>${VERSION}</string>
+    <key>CFBundleVersion</key><string>${BUILD_NUMBER}</string>
     <key>LSMinimumSystemVersion</key><string>11.0</string>
     <key>NSHighResolutionCapable</key><true/>
     <key>NSPrincipalClass</key><string>NSApplication</string>
@@ -68,6 +87,17 @@ EOF
 # ---- Stage the private ROM (never inside the bundle) ----
 echo "== staging private ROM =="
 mkdir -p "$SUPPORT"
+if [ -n "$ROM_SOURCE" ]; then
+  [ -f "$ROM_SOURCE" ] || fail "ROM input not found: $ROM_SOURCE"
+  ROM_TEMP="$(mktemp "$SUPPORT/.dino.z64.XXXXXX")" || fail "could not create ROM staging file"
+  if ! NORMALIZE_OUT="$(python3 "$ROOT/tools/normalize_rom.py" "$ROM_SOURCE" --out "$ROM_TEMP" 2>&1)"; then
+    rm -f "$ROM_TEMP"
+    fail "ROM input failed validation: $NORMALIZE_OUT"
+  fi
+  chmod 600 "$ROM_TEMP" || { rm -f "$ROM_TEMP"; fail "could not protect staged ROM"; }
+  mv -f "$ROM_TEMP" "$ROM_DEST" || { rm -f "$ROM_TEMP"; fail "could not install staged ROM"; }
+  echo "ROM imported, normalized, and verified from explicit --rom input"
+fi
 if [ -f "$ROM_DEST" ]; then
   # DinoPad-owned validator: detects byte order (.z64/.v64/.n64), normalizes
   # to big-endian, and verifies the supported fingerprint.
@@ -92,6 +122,9 @@ if find "$APP" -type f \( -name "*.z64" -o -name "*.n64" -o -name "*.v64" -o -na
   fail "game data found inside the bundle; refusing to produce a ROM-carrying app"
 fi
 echo "OK: no ROM/game data inside the bundle"
+
+echo "== macOS app safety audit =="
+"$ROOT/scripts/check-macos-package-safety.sh" "$APP" || fail "macOS app safety audit failed"
 
 echo
 echo "DinoPad.app built: $APP"

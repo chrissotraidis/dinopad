@@ -53,7 +53,15 @@
       "ref": "release-2.32.10",
       "commit": "5d249570393f7a37e037abf22cd6012a4cc56a71",
       "license_file": "LICENSE.txt",
-      "purpose": "Native SDL2 2.32.10 static build for macOS window/audio/input (avoids Homebrew sdl2-compat shim)"
+      "purpose": "Pinned in-tree static SDL2 2.32.10 build for Apple window/audio/input (avoids host packages and deployment-target drift)"
+    },
+    {
+      "name": "FreeType",
+      "url": "https://gitlab.freedesktop.org/freetype/freetype.git",
+      "ref": "VER-2-13-3",
+      "commit": "42608f77f20749dd6ddc9e0536788eaad70ea4b5",
+      "license_file": "LICENSE.TXT",
+      "purpose": "Pinned static macOS RmlUi font engine without host Homebrew dylib dependencies"
     }
   ],
   "notes": {

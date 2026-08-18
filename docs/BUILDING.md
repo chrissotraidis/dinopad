@@ -30,7 +30,7 @@ scripts/check-package-safety.sh             # audit unsigned device app
 
 The pipeline (mirroring `ref/dino-recomp/BUILDING.md` sections 3-5, plus PaperPad's Apple flow):
 
-1. `scripts/bootstrap.sh` clones exact pins from `dependencies.lock.json` into ignored `ref/` and disables checkout push URLs.
+1. `scripts/bootstrap.sh` clones exact pins from `dependencies.lock.json` into ignored `ref/` and disables checkout push URLs, including the static macOS FreeType source.
 2. `scripts/apply-patches.sh` applies the ordered maintained Apple patch series.
 3. Build the MIPS patch library: the `patches/` sources compile to an ELF with the MIPS Clang, then RecompPatcher (`patches.toml`) converts them to `RecompiledPatches` C.
 4. Build the N64Recomp/RSPRecomp host tools for Apple Silicon.
@@ -57,11 +57,21 @@ Scripts still verify/fetch pins and apply maintained patches; they refuse to con
 
 | Target | Output | Notes |
 |---|---|---|
-| macOS | `build-macos/DinoPad.app` | Apple Silicon; ad-hoc signed and verified by the script |
+| macOS | `build-macos/DinoPad.app` | Apple Silicon; ad-hoc signed, no bundle symlinks, and only Apple system runtime dependencies |
 | iOS Simulator | `build-ios-simulator/Release-iphonesimulator/DinoPad.app` | arm64 Simulator app; signing disabled; iPhone+iPad |
 | Physical iOS | `build-ios-device/Release-iphoneos/DinoPad.app` | arm64 device app; unsigned by default, or personal-team signed with `--team` |
 
-Both app artifacts must remain ROM-free (`scripts/check-package-safety.sh` in Phase 10).
+All app artifacts must remain ROM-free. Use
+`scripts/check-macos-package-safety.sh` for macOS and
+`scripts/check-package-safety.sh` for physical iOS.
+
+Both Apple targets compile pinned SDL2 2.32.10 in-tree so all SDL objects inherit
+the app architecture and deployment target; macOS linker warnings are fatal.
+The macOS build also compiles pinned FreeType 2.13.3 statically for RmlUi. PNG,
+HarfBuzz, Brotli, bzip2, and external zlib support are disabled because the
+bundled UI fonts do not require them. The app audit rejects non-system dylibs,
+absolute checkout paths, and bundle symlinks; these gates prevent regressions
+to host-only packages or newer-target static objects.
 
 The Simulator target explicitly compiles deterministic environment-driven test
 harnesses used by the guarded smoke scripts. The physical-device target forces

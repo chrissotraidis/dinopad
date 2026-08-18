@@ -17,13 +17,14 @@ Status: Active implementation contract (updated 2026-08-18).
 - macOS arm64 app; iOS Simulator arm64 app; iOS device arm64 app.
 - Package audit (Phase 10): ROM-free, save-free, signing-free, no personal paths.
 
-The current device-app gate is:
+The current app-package gates are:
 
 ```sh
 scripts/check-package-safety.sh
+scripts/check-macos-package-safety.sh
 ```
 
-It verifies an unsigned physical-iOS arm64 app, iOS 15 minimum, system-only
+The iOS gate verifies an unsigned physical-iOS arm64 app, iOS 15 minimum, system-only
 dynamic dependencies, no rpath/signing/ROM/save/log/private paths, exact
 sanitized restoration data, and absence of Simulator automation keys,
 selectors, and fixtures. A signed personal-development build uses
@@ -32,6 +33,11 @@ The same gate requires a valid root `PrivacyInfo.xcprivacy` and its exact
 no-tracking/no-collection plus FileTimestamp/UserDefaults/SystemBootTime reason
 set. The privacy-manifest negative control mutates tracking to true and must be
 rejected; final transitive privacy-report review remains a release task.
+
+The macOS gate verifies an arm64 Mach-O for platform macOS with minimum 11.0,
+system-only runtime dependencies, no bundle symlinks or private paths, matching
+0.1.0 build 1 metadata, no game/save/log/signing material, and a valid ad-hoc
+development signature.
 
 ### Unit tests
 

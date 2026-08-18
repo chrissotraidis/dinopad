@@ -1,6 +1,6 @@
 # DinoPad Upstream Sources and Patch Strategy
 
-Last updated: 2026-08-17
+Last updated: 2026-08-18
 Source of truth: docs/IMPLEMENTATION_PLAN.md section 6 (upstream and patch strategy).
 Exact pins also recorded in dependencies.lock.json (keep the two in sync).
 
@@ -11,7 +11,8 @@ Exact pins also recorded in dependencies.lock.json (keep the two in sync).
 | PaperPad | github.com/chrissotraidis/paperpad | commit | `644945d4bc4facbbd8ecda8cdfd37ae64e7993fa` | see repo | Apple shell reference (UI, touch, architecture) |
 | Dino Recompiled | github.com/DinosaurPlanetRecomp/dino-recomp | v0.3.0 | `725b2ede9cacc57968e0a028efed8df9235ba483` | GPLv3 (COPYING) | Base Dinosaur Planet static recompilation |
 | DinoMod Enhanced | github.com/EoinODoodles/dinomod-enhanced-recompiled | v0.9.3 | `d79e86be2304cba75216b0b98e9fb53ee99b7500` | none declared; no-AI policy | Progression restoration (read-only until clearance) |
-| SDL2 | github.com/libsdl-org/SDL | release-2.32.10 | `5d249570393f7a37e037abf22cd6012a4cc56a71` | zlib (LICENSE.txt) | Native static SDL2 for macOS (avoids Homebrew sdl2-compat shim) |
+| SDL2 | github.com/libsdl-org/SDL | release-2.32.10 | `5d249570393f7a37e037abf22cd6012a4cc56a71` | zlib (LICENSE.txt) | In-tree static SDL2 for Apple targets; inherits architecture and deployment target |
+| FreeType | gitlab.freedesktop.org/freetype/freetype | VER-2-13-3 | `42608f77f20749dd6ddc9e0536788eaad70ea4b5` | FreeType License (LICENSE.TXT) | Static macOS RmlUi font engine; optional external dependencies disabled |
 
 Dino Recompiled v0.3.0 recursive submodules (exact commits in
 `dependencies.lock.json`): N64ModernRuntime, N64Recomp, RmlUi,
