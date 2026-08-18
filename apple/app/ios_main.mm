@@ -11,8 +11,10 @@
 #include <TargetConditionals.h>
 #import "home.h"
 #import "rom_setup.h"
+#import "settings.h"
 #import <UIKit/UIKit.h>
 
+#include "config/config.hpp"
 #include "runtime/audio.hpp"
 #include "runtime/gfx.hpp"
 #include "ultramodern/ultramodern.hpp"
@@ -151,6 +153,7 @@ std::atomic_bool g_controllerConnected{false};
 std::atomic_bool g_quitToHome{false};
 std::atomic<int> g_currentProfile{0};
 std::atomic_bool g_quitSmokeTriggered{false};
+std::atomic_bool g_settingsSaveRequested{false};
 std::atomic<uint64_t> g_gameInputPolls{0};
 TouchTapLatch g_touchTaps;
 
@@ -171,6 +174,7 @@ void drainUIKitQueue() {
 - (void)resetLayout;
 - (void)resetLayoutForIdiom:(UIUserInterfaceIdiom)idiom;
 - (void)setControlsEnabled:(BOOL)enabled;
+- (void)setControlsEnabled:(BOOL)enabled opacity:(CGFloat)opacity;
 - (void)setModalControlsHidden:(BOOL)hidden;
 - (void)setPhysicalControllerConnected:(BOOL)connected;
 - (void)presentUtilityMenu;
@@ -246,9 +250,14 @@ void drainUIKitQueue() {
 
         NSDictionary* saved = [NSUserDefaults.standardUserDefaults
             dictionaryForKey:@"dinopad.touch.settings.v1"];
-        if (saved[@"enabled"] != nil) _controlsEnabled = [saved[@"enabled"] boolValue];
-        if (saved[@"opacity"] != nil) {
-            _globalOpacity = MAX(0.20, MIN(1.0, [saved[@"opacity"] doubleValue]));
+        if ([saved[@"enabled"] isKindOfClass:NSNumber.class]) {
+            _controlsEnabled = [saved[@"enabled"] boolValue];
+        }
+        if ([saved[@"opacity"] isKindOfClass:NSNumber.class]) {
+            const double opacity = [saved[@"opacity"] doubleValue];
+            if (std::isfinite(opacity)) {
+                _globalOpacity = MAX(0.20, MIN(1.0, opacity));
+            }
         }
 
         _utilityButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -800,10 +809,17 @@ void drainUIKitQueue() {
 }
 
 - (void)setControlsEnabled:(BOOL)enabled {
+    [self setControlsEnabled:enabled opacity:_globalOpacity];
+}
+
+- (void)setControlsEnabled:(BOOL)enabled opacity:(CGFloat)opacity {
     _controlsEnabled = enabled;
+    _globalOpacity = std::isfinite(opacity)
+        ? MAX(0.20, MIN(1.0, opacity)) : 0.70;
+    _utilityButton.alpha = MAX(0.55, _globalOpacity);
     if (!enabled) [self clearInput];
     [NSUserDefaults.standardUserDefaults setObject:@{
-        @"enabled": @(enabled), @"opacity": @(_globalOpacity)
+        @"enabled": @(_controlsEnabled), @"opacity": @(_globalOpacity)
     } forKey:@"dinopad.touch.settings.v1"];
     [self setNeedsDisplay];
 }
@@ -849,6 +865,13 @@ void drainUIKitQueue() {
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
             [self setControlsEnabled:!self->_controlsEnabled];
             [self setModalControlsHidden:NO];
+        }]];
+    [menu addAction:[UIAlertAction actionWithTitle:@"Settings & Status"
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                dinopad_present_settings((__bridge void*)presenter);
+            });
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Customize Touch Layout"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
@@ -1812,6 +1835,66 @@ void drainUIKitQueue() {
 
 static __weak DinoPadTouchOverlayView* g_touchOverlay = nil;
 
+extern "C" int dinopad_shell_touch_enabled(void) {
+    NSDictionary* settings = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:@"dinopad.touch.settings.v1"];
+    id enabled = settings[@"enabled"];
+    return ![enabled isKindOfClass:NSNumber.class] || [enabled boolValue];
+}
+
+extern "C" double dinopad_shell_touch_opacity(void) {
+    NSDictionary* settings = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:@"dinopad.touch.settings.v1"];
+    id stored = settings[@"opacity"];
+    const double opacity = [stored isKindOfClass:NSNumber.class]
+        ? [stored doubleValue] : 0.70;
+    if (!std::isfinite(opacity)) return 0.70;
+    return std::clamp(opacity, 0.20, 1.0);
+}
+
+extern "C" void dinopad_shell_set_touch(int enabled, double opacity) {
+    [g_touchOverlay setControlsEnabled:enabled != 0 opacity:opacity];
+}
+
+extern "C" void dinopad_shell_set_modal_hidden(int hidden) {
+    [g_touchOverlay setModalControlsHidden:hidden != 0];
+}
+
+extern "C" void dinopad_shell_begin_layout_editor(void) {
+    [g_touchOverlay beginEditingLayout];
+}
+
+extern "C" void dinopad_shell_reset_current_layout(void) {
+    [g_touchOverlay resetLayout];
+}
+
+extern "C" void dinopad_shell_quit_to_home(void) {
+    [g_touchOverlay quitToHome];
+}
+
+extern "C" int dinopad_shell_controller_connected(void) {
+    return g_controllerConnected.load(std::memory_order_relaxed) ? 1 : 0;
+}
+
+extern "C" void dinopad_shell_request_config_save(void) {
+    g_settingsSaveRequested.store(true, std::memory_order_release);
+}
+
+extern "C" int dinopad_shell_test_touch_after_settings(void) {
+    if (g_touchOverlay == nil) return 0;
+    [g_touchOverlay clearInput];
+    g_touchTaps.clearAll();
+    const NSInteger index = [g_touchOverlay controlIndexForKey:"b"];
+    [g_touchOverlay beginSimulatedTouchWithID:121
+                                      atPoint:[g_touchOverlay centerForControlIndex:index]];
+    uint16_t buttons = 0;
+    float x = 0.0F;
+    float y = 0.0F;
+    dinopad_touch_snapshot(&buttons, &x, &y);
+    [g_touchOverlay clearInput];
+    return (buttons & 0x4000) != 0;
+}
+
 static void scheduleQuitToHomeSmoke(DinoPadTouchOverlayView* overlay, int attemptsRemaining) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.10 * NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
@@ -1886,6 +1969,18 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
             });
         }
 
+        const char* settingsSmoke = getenv("DINOPAD_RUN_SETTINGS_SMOKE");
+        if (settingsSmoke != nullptr && settingsSmoke[0] != '\0' &&
+            settingsSmoke[0] != '0') {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.50 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                const NSInteger index = [overlay controlIndexForKey:"a"];
+                [overlay beginSimulatedTouchWithID:120
+                                           atPoint:[overlay centerForControlIndex:index]];
+                dinopad_present_settings((__bridge void*)[overlay topPresenter]);
+            });
+        }
+
         const char* romManagerSmoke = getenv("DINOPAD_SHOW_ROM_MANAGER_SMOKE");
         if (romManagerSmoke != nullptr && romManagerSmoke[0] != '\0' &&
             romManagerSmoke[0] != '0') {
@@ -1906,6 +2001,11 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
 
 extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y) {
     g_gameInputPolls.fetch_add(1, std::memory_order_relaxed);
+    if (g_settingsSaveRequested.exchange(false, std::memory_order_acq_rel)) {
+        dino::config::save_config();
+        std::fprintf(stderr, "[dinopad-settings] active profile configuration saved\n");
+        std::fflush(stderr);
+    }
     if (buttons != nullptr) {
         *buttons = g_touchButtons.load(std::memory_order_relaxed) | g_touchTaps.consume();
     }
@@ -1950,6 +2050,7 @@ extern "C" int SDL_main(int, char **) {
         const int selectedProfile = dinopad_present_home();
         g_currentProfile.store(selectedProfile, std::memory_order_relaxed);
         g_quitToHome.store(false, std::memory_order_relaxed);
+        g_settingsSaveRequested.store(false, std::memory_order_relaxed);
         g_gameInputPolls.store(0, std::memory_order_relaxed);
 
         char appName[] = "DinoPad";
@@ -1966,6 +2067,9 @@ extern "C" int SDL_main(int, char **) {
         };
 
         const int result = dinopad_recomp_main(4, arguments);
+        if (g_settingsSaveRequested.exchange(false, std::memory_order_acq_rel)) {
+            dino::config::save_config();
+        }
         dino::runtime::shutdown_audio();
         // RT64/Plume may have already queued UIKit window-attribute work from
         // its renderer thread. The renderer is joined now, so drain those

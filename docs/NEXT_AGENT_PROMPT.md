@@ -60,8 +60,13 @@ in the plan.
   D-pad/C linking, safe-area clamping, reset, one-step undo, full-session Cancel,
   and independent persisted phone/tablet dictionaries. A guarded two-process
   harness proved relaunch persistence, idiom isolation, and input restoration.
-- The menu exposes real layout, ROM-manager, and quit-to-home actions but still
-  lacks the complete settings/status hierarchy and diagnostics/share flow.
+- Goal 28b added a safe-area native settings/status sheet with typed live touch,
+  audio, resolution, aspect, frame-rate, and HUD bridges plus truthful mode,
+  restoration, save/recovery, controller, and effective-render status. Its
+  guarded two-launch harness proves clamping, persistence, relaunch, profile
+  isolation, modal input clearing, and post-dismissal touch input.
+- The menu exposes real settings, layout, ROM-manager, resume, and quit-to-home
+  actions. Bounded redacted diagnostics/share is the remaining menu gap.
 - Goal 27a added and evidenced the real UIKit Files importer and ROM manager:
   exact size/MD5, z64/v64/n64 normalization, useful rejection, atomic protected
   private storage, replacement/removal, and ROM-free bundle proof.
@@ -79,33 +84,31 @@ in the plan.
 - DinoMod redistribution permission is an external release blocker, not a reason
   to stop technical development.
 
-## Immediate next goal: Goal 28b
+## Immediate next goal: Goal 28c
 
-Complete the native settings sheet and remaining section 3.4 menu/status
-structure as the next independently verifiable slice. Follow pinned PaperPad's
-native form behavior while retaining DinoPad branding and Restored/Prototype
-policy. Keep diagnostics capture/share as Goal 28c unless it is naturally small.
+Add bounded private diagnostics capture, deterministic redaction, and a native
+share flow as the next independently verifiable slice. Follow pinned PaperPad's
+behavior while retaining DinoPad branding, paths, and Restored/Prototype policy.
 
 Acceptance:
 
 1. Clean patch replay and repository-safety audit pass.
 2. macOS incremental build remains green.
 3. iPhone Simulator build remains ROM-free and arm64.
-4. The `•••` menu has coherent Game, Controls, Display, Audio, Game Data, and
-   Support/status coverage; existing layout, ROM-manager, resume, and
-   quit-to-home actions remain reachable.
-5. A native settings surface exposes touch enable/opacity, master volume,
-   aspect ratio, and internal resolution with typed persisted values and live
-   application through narrow C/Objective-C++ bridges.
-6. Mode, restoration, save/recovery, controller, and effective-render status are
-   truthful and read-only where runtime switching is unsafe; no placeholder or
-   knowingly false status ships.
-7. Settings load defensively, modal transitions clear held input, dismissal
-   restores the correct touch/controller state, and phone/tablet presentations
-   remain safe-area readable.
-8. A deterministic two-launch harness proves serialization, relaunch loading,
-   invalid-value fallback/clamping, live bridge calls, input clearing, and
-   dismissal restoration without changing release behavior.
+4. Diagnostics capture is explicitly bounded by size/time, includes useful app,
+   runtime, profile, renderer, controller, save/recovery, and ROM-validation
+   state, and never includes ROM/save contents.
+5. Redaction deterministically removes app-container, home-directory, temporary,
+   imported-provider, and other private absolute paths before persistence or
+   sharing; tests include adversarial fixtures and prove no private path leaks.
+6. The Support section exposes a real diagnostics action and native share sheet,
+   keeps gameplay input cleared/hidden while either is visible, and restores the
+   correct touch/controller state after cancellation or dismissal.
+7. Diagnostics file creation is private, failure-safe, replaceable/cleanable,
+   and does not permit arbitrary executable/mod installation or unbounded logs.
+8. A deterministic harness proves bounded capture, redaction, useful report
+   fields, share presentation/cancellation, modal input policy, and cleanup
+   without changing release behavior.
 9. Existing restoration, ROM-import, home/restart, input/lifecycle, and macOS
    smokes remain green with no new crash report or leaked runtime/Simulator.
 10. Curate evidence, update `STATUS`, `TECHNICAL_DEBT`, `UI_PARITY`, patch lock,
@@ -113,13 +116,11 @@ Acceptance:
 
 ## Then continue in this order
 
-1. Add bounded redacted diagnostics capture/share and finish any remaining menu
-   contract gap (Goal 28c).
-2. Finish iPhone save/relaunch and 10-minute smoke.
-3. Shut down iPhone Simulator, then complete iPad Simulator Phase 6.
-4. Complete physical iPhone and iPad phases.
-5. Run progression/stability matrix and start-to-credits Restored playthrough.
-6. Finish legal/release/docs/package gates and ROM-free unsigned IPA.
+1. Finish iPhone save/relaunch and 10-minute smoke.
+2. Shut down iPhone Simulator, then complete iPad Simulator Phase 6.
+3. Complete physical iPhone and iPad phases.
+4. Run progression/stability matrix and start-to-credits Restored playthrough.
+5. Finish legal/release/docs/package gates and ROM-free unsigned IPA.
 
 ## Hard constraints
 
@@ -142,7 +143,7 @@ Acceptance:
   criteria and evidence are actually satisfied.
 
 Start by inspecting `git status`, `git log -5`, the current patch lock, the
-current touch/menu implementation, and pinned PaperPad layout-editor sources.
+current settings/menu implementation, and pinned PaperPad diagnostics sources.
 Then execute the smallest verified goal without asking for
 clarification unless a genuinely consequential unknown cannot be discovered.
 

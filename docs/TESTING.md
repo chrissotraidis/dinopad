@@ -55,13 +55,18 @@ cover move/size/opacity/visibility, D-pad and C-button linking, undo/cancel,
 safe-area clamping, input clearing/restoration, independent phone/tablet keys,
 and independent resets while the script audits arm64, ROM-free, crashes, and
 guard cleanup.
+`scripts/smoke-ios-settings.sh` uses two cleanly separated process launches to
+exercise the production UIKit target/action paths. It verifies modal input
+clearing, invalid-value clamping, live touch/audio/display application,
+profile-local JSON serialization, relaunch loading, default restoration,
+Prototype-profile isolation, post-dismissal touch input, safe-area screenshots,
+ROM-free arm64 packaging, CrashReporter, and guard cleanup.
 The remaining Phase 5 automation will extend these until it also verifies:
 
-1. complete menu tree;
-2. settings persistence;
-3. save/relaunch;
-4. 10-minute stability;
-5. clean shutdown.
+1. bounded redacted diagnostics/share;
+2. save/relaunch;
+3. 10-minute stability;
+4. clean shutdown.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
 
@@ -72,6 +77,7 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-layout.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-settings.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

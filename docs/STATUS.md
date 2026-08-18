@@ -1,7 +1,7 @@
 # DinoPad Status
 
-Last updated: 2026-08-17T00:00:00Z
-Current commit: Goal 28a milestone pending on main (predecessor 60b7ffa)
+Last updated: 2026-08-18T00:47:00Z
+Current commit: Goal 28b milestone pending on main (predecessor b97b611)
 Current phase: Phase 5 - iPhone Simulator
 Active goal: Goal 28 (native menu/settings/layout editor/diagnostics parity)
 
@@ -48,6 +48,7 @@ Active goal: Goal 28 (native menu/settings/layout editor/diagnostics parity)
 - Goal 27b native UIKit home/profile boundary green (2026-08-17): after ROM setup and before SDL startup, DinoPad now presents a landscape-safe Restored-primary home with accessible native actions and an explicit archival/incompleteness warning before Prototype Mode. The in-game menu exposes Quit to DinoPad Home. Runtime teardown is restartable in-process: renderer/window/audio teardown is ordered, queued UIKit/Plume work cannot outlive its window, timers/events/mod overlays reset, and every guest N64 host thread is signaled and joined before RDRAM is released. A guarded three-phase smoke proved no SDL startup while home/warning UI was waiting, real gameplay input polling before quit, return to the native home in the same process, warned Prototype selection, a second live RT64/game runtime, isolated Restored/Prototype sentinels, no crash, and zero leaked runtime/Simulator. Full iPhone input/lifecycle and ROM-import regressions and macOS smoke 22/22 remained green. Evidence: docs/evidence/2026-08-17/iphone-home/.
 - Goal 27c embedded restoration data green on iPhone Simulator (2026-08-17): a deterministic builder maps the pinned MIPS ELF through `mod_syms.bin`, verifies every declared function, and zeroes the complete 316,592-byte executable segment before producing an ignored/private package containing exactly `mod.json`, `mod_syms.bin`, and `mod_binary.bin` (SHA-256 `2ee8befb...17be5e1`). iOS disables writable mod discovery and registers only this app-bundled data for Restored; all 460 functions remain ordinary linked arm64 code, with 294 replacements and 42 hooks dispatching without runtime writes. A final guarded run visibly proved the restored `PRESS START` title and controllable ship-deck cannon tutorial with analog/A input at frame 26,656. Same-process Restored -> home -> Prototype omitted the package/static markers after the profile switch. Bundle, crash, cleanup, fresh patch replay, macOS profile isolation, and repository audits passed. The package remains private pending redistribution permission. Evidence: docs/evidence/2026-08-17/iphone-restoration-data/.
 - Goal 28a persisted touch-layout editor green on iPhone Simulator (2026-08-17): the real `•••` menu now exposes Customize, Reset Phone, and Reset Tablet actions with no layout placeholder. The PaperPad-derived editor supports safe-area-clamped move, independent D-pad/C-button linking, resize, per-control opacity, visibility, reset, one-step undo, Done, and full-session Cancel. Complete phone/tablet dictionaries use independent versioned defaults keys with defensive loading. A guarded three-launch smoke proved input clearing/restoration, cancel, both linked groups, unreachable-coordinate clamping, persistence across process relaunch, independent phone/tablet resets, the visible editor/menu, arm64 ROM-free packaging, no crash, and zero leaked process/Simulator. Input/lifecycle, home/restart, ROM-import, restored title/gameplay, macOS profile, unit, repository, and 25-patch replay regressions passed. Evidence: docs/evidence/2026-08-17/iphone-touch-layout/.
+- Goal 28b native settings/status green on iPhone Simulator (2026-08-17): the real `•••` menu now opens a safe-area-readable UIKit form with truthful mode, restoration, save/recovery, controller, and effective Metal status plus live persisted touch enable/opacity, profile-local master volume, internal resolution, aspect, refresh-rate, and HUD placement. Narrow Objective-C++ bridges queue config saves onto the game-input thread and preserve Restored/Prototype isolation. A guarded two-launch smoke proved modal input clearing, defensive clamping, live application, JSON serialization, process-relaunch loading, default restoration, post-dismissal touch input, readable normalized screenshots, arm64 ROM-free packaging, and no crash. Input/lifecycle, home/restart, ROM import, layout editor, restored title/gameplay, macOS profile, unit, repository, and clean 25-patch replay regressions passed. Evidence: docs/evidence/2026-08-17/iphone-native-settings/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
 - docs/UPSTREAM.md written and current (2026-08-17): pinned sources table, 25-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
@@ -69,7 +70,7 @@ Active goal: Goal 28 (native menu/settings/layout editor/diagnostics parity)
 - RmlUi launcher not exercised on Metal (--skip-launcher used).
 - Physical controller play on macOS: BLOCKED (external) - both paired pads (8BitDo Lite 2, Xbox Wireless) are Not Connected; SDL sees 0 joysticks. Code path verified via virtual controller; see docs/KNOWN_ISSUES.md.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
-- iPhone Simulator is not Phase 5 green yet: the complete menu/settings/diagnostics contract, save/relaunch, and the 10-minute smoke remain open. Editable touch layout with independent phone/tablet persistence, native Files import/replacement, the Restored/Prototype home boundary with quit-to-home restart, embedded-only Restored title/gameplay, and the full input/lifecycle matrix are green.
+- iPhone Simulator is not Phase 5 green yet: bounded redacted diagnostics/share, save/relaunch, and the 10-minute smoke remain open. Native settings/status, editable touch layout with independent phone/tablet persistence, Files import/replacement, the Restored/Prototype home boundary with quit-to-home restart, embedded-only Restored title/gameplay, and the full input/lifecycle matrix are green.
 - iPad Simulator, physical iPhone/iPad, progression certification, and release packaging remain open; see docs/HANDOFF.md and docs/TECHNICAL_DEBT.md.
 
 ## Last successful commands
@@ -92,6 +93,7 @@ scripts/runtime-guard.sh macos bash <session>        # PASS: full restored and p
 # full flow: A x3 (boot) -> A x5 (name AAAAA) -> S x3, D x1 (END) -> A (PLAY THIS GAME?) -> A (YES) -> opening cinematic -> playable tutorial scene
 md5 ref/DINO/rom                                    # 49f7bb346ade39d1915c22e090ffd748 (private, untracked)
 scripts/build-ios-simulator.sh                      # PASS: ROM-free arm64 Simulator app
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-settings.sh  # PASS: live typed settings + two-launch persistence/modal/profile isolation
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-layout.sh  # PASS: editor + two-launch idiom persistence/reset + menu
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh  # PASS: picker/rejection/all byte orders/replacement
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh  # PASS: native home/warning, gameplay -> home -> second profile/runtime, no crash
@@ -102,6 +104,7 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: f
 ## Current evidence
 
 - iPhone persisted touch-layout editor and independent phone/tablet reset (2026-08-17): docs/evidence/2026-08-17/iphone-touch-layout/.
+- iPhone native settings/status, live bridges, and two-launch persistence (2026-08-17): docs/evidence/2026-08-17/iphone-native-settings/.
 - iPhone embedded-only restoration data, restored title, and controllable gameplay (2026-08-17): docs/evidence/2026-08-17/iphone-restoration-data/.
 - iPhone native home/profile boundary and live restart (2026-08-17): docs/evidence/2026-08-17/iphone-home/.
 - iPhone Files ROM import/replacement (2026-08-17): docs/evidence/2026-08-17/iphone-rom-import/ (real picker, invalid rejection, z64/v64/n64 normalization, exact MD5, private atomic storage, manager, clean runtime).
@@ -148,15 +151,20 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: f
 
 ## Next three candidate goals
 
-1. Complete the remaining native menu/settings/diagnostics contract.
+1. Add bounded redacted diagnostics capture/share and finish the Support menu contract.
 2. Prove mobile save/relaunch and finish the 10-minute iPhone smoke.
 3. Repeat the package policy and product flow on iPad Simulator.
 
 ## Selected next goal
 
-Goal 28b: complete the native settings sheet and remaining section 3.4 menu
-structure with typed live bridges for touch, display, audio, mode/status, and
-game data. Follow with bounded redacted diagnostics/share as Goal 28c.
+Goal 28c: add bounded private diagnostics capture, deterministic redaction, and
+the native share flow, then finish any remaining Support/menu contract gap.
+
+Goal 28b outcome: the native settings sheet and non-diagnostics section 3.4
+menu/status contract are green. Typed live bridges cover touch, display, audio,
+mode/status, and game data; a guarded two-launch harness proves defensive load,
+serialization, relaunch, modal input policy, and profile isolation. Evidence:
+docs/evidence/2026-08-17/iphone-native-settings/.
 
 Goal 28a outcome: independent phone/tablet layout persistence and reset are
 green. The visible editor supports move/resize/fade/hide, D-pad/C linking,

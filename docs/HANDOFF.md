@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-17T00:00:00Z
+Last updated: 2026-08-18T00:47:00Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -23,6 +23,10 @@ controllable tutorial through statically linked no-write arm64 dispatch.
 The touch layout is now a real persisted product surface: phone/tablet keys are
 independent, and the editor supports safe-area move, resize, fade, hide/show,
 directional linking, reset, undo, Done, and Cancel.
+The native settings/status sheet is also green on iPhone Simulator: typed live
+controls persist touch, audio, and display options per policy, while mode,
+restoration, save/recovery, controller, and effective-render status remain
+truthful. Diagnostics/share is the remaining native menu gap.
 
 It is not a release-ready iPhone/iPad product. Phase 4 (Apple shell) and Phase 5
 (iPhone Simulator) are partial. Phases 6-10 (iPad, physical devices,
@@ -57,6 +61,9 @@ progression/stability, and release) remain open.
 - Native touch-layout customization/reset actions plus a guarded two-process
   proof of phone persistence, tablet isolation, safe-area clamping, input
   clearing/restoration, reset, undo, and full-session cancel.
+- Safe-area native settings/status with live typed touch/audio/display bridges
+  and a guarded two-launch proof of clamping, serialization, relaunch loading,
+  profile isolation, modal clearing, and post-dismissal input.
 
 ## Current iPhone touch slice
 
@@ -65,6 +72,8 @@ The pause-point changes are centered in:
 - `apple/app/ios_main.mm`
 - `apple/app/home.h`
 - `apple/app/home.mm`
+- `apple/app/settings.h`
+- `apple/app/settings.mm`
 - `patches/dino-recomp/0001-macos-sdl-metal-window.patch`
 - `patches/dino-recomp/0004-input-debug-log.patch`
 - `patches/dino-recomp/0008-ios-touch-input-bridge.patch`
@@ -79,21 +88,16 @@ Touch state is merged into the existing keyboard/controller result in
 Controller add/remove events drive touch visibility. CoreSimulator's synthetic
 controller is deliberately ignored so Simulator testing can show touch controls.
 
-The current menu is a functional scaffold, not the Definition-of-Done menu.
-ROM management and touch-layout customization/reset are live; the complete
-settings/status hierarchy and diagnostics remain incomplete.
+The current menu reaches real ROM management, touch-layout customization/reset,
+quit-to-home, and the complete non-diagnostics settings/status hierarchy.
+Bounded redacted diagnostics/share remains incomplete.
 
 ## What is actually left
 
 ### Phase 4/5: finish iPhone
 
-1. Replace the remaining flat scaffold with the complete plan-listed menu: game/mode,
-   restoration/save status, controls, display, audio, game data, support,
-   diagnostics, and quit-to-home.
-2. Add settings bridges for volume, aspect, internal resolution, frame rate,
-   HUD placement, and touch opacity/enablement.
-3. Add bounded diagnostics log/redaction/share flows.
-4. Prove save/relaunch and the full 10-minute iPhone Simulator smoke.
+1. Add bounded diagnostics log/redaction/share flows and finish Support.
+2. Prove save/relaunch and the full 10-minute iPhone Simulator smoke.
 
 ### Phase 6: iPad Simulator
 
@@ -145,5 +149,5 @@ settings/status hierarchy and diagnostics remain incomplete.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Continue Goal 28b with the remaining section 3.4 menu/settings/status
-   contract, then implement bounded redacted diagnostics/share in Goal 28c.
+4. Continue Goal 28c with bounded redacted diagnostics capture/share, then
+   finish iPhone save/relaunch and the 10-minute smoke.

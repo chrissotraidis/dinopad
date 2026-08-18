@@ -103,6 +103,14 @@ a frame, checks CrashReporter, and shuts down the Simulator:
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 
+The native-settings smoke uses two process launches to prove defensive typed
+load, live touch/audio/display application, profile-local serialization,
+relaunch persistence, modal input clearing/restoration, and safe-area layout:
+
+```sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-settings.sh
+```
+
 The native-home smoke verifies that UIKit waits before SDL, warns before
 Prototype, starts Restored through the real gameplay input poll, returns from a
 live runtime to home, then starts Prototype in the same process with isolated
@@ -112,10 +120,11 @@ profile state:
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 ```
 
-The iOS shell now has native Files import/replacement and complete default touch
-input/lifecycle verification plus the Restored/Prototype home boundary. Editable
-layouts, complete menu/settings/diagnostics, save/relaunch, Restored data, and
-the 10-minute Phase 5 run remain required before iPhone Simulator is green.
+The iOS shell now has native Files import/replacement, complete default touch
+input/lifecycle verification, the Restored/Prototype home boundary, editable
+phone/tablet layouts, embedded Restored data, and native settings/status.
+Diagnostics/share, save/relaunch, and the 10-minute Phase 5 run remain required
+before iPhone Simulator is green.
 
 Choose the ROM from the first-run screen. The app validates, normalizes, and stores it privately. Use the `•••` menu > Manage Game ROM to replace or remove it.
 

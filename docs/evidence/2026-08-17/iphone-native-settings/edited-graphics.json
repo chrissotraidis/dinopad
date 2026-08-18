@@ -1,0 +1,14 @@
+{
+    "_config_version": 2,
+    "api_option": "Auto",
+    "ar_option": "Expand",
+    "developer_mode": false,
+    "ds_option": 1,
+    "hpfb_option": "On",
+    "hr_option": "Full",
+    "msaa_option": "MSAA2X",
+    "res_option": "Original2x",
+    "rr_manual_value": 60,
+    "rr_option": "Display",
+    "wm_option": "Windowed"
+}
