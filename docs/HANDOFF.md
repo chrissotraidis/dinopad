@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T03:35:00Z
+Last updated: 2026-08-18T05:04:10Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -43,6 +43,10 @@ The repository now has an evidence-backed root README and an explicit
 `docs/RIGHTS_AND_LICENSES.md` boundary. They advertise no download: the missing
 root license/complete third-party notice set and DinoMod permission are recorded
 release blockers alongside physical-device and progression work.
+The first package-specific rights inventory now validates exact pins,
+license-text hashes, direct macOS link inputs, and selected resource hashes. It
+also records that raw-ROM absence does not settle redistribution rights for the
+compiled private AOT, and identifies unresolved launcher font/art provenance.
 
 ## Completed foundation
 
@@ -51,6 +55,9 @@ release blockers alongside physical-device and progression work.
 - Self-contained macOS packaging with pinned static FreeType, resolved assets,
   system-only runtime dependencies, ad-hoc signature verification, and a
   reusable package-safety gate.
+- Fail-closed macOS package-rights inventory covering 17 direct linked
+  components and 10 selected resources, with every unresolved rights/notice item
+  left explicitly red.
 - Static arm64 DinoMod code plus no-write replacement/hook dispatch.
 - Restored-default and warned Prototype profiles with isolated config/save roots.
 - Native macOS ROM setup, exact fingerprint validation, byte-order normalization,

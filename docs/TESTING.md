@@ -39,6 +39,19 @@ system-only runtime dependencies, no bundle symlinks or private paths, matching
 0.1.0 build 1 metadata, no game/save/log/signing material, and a valid ad-hoc
 development signature.
 
+Package-content hygiene is distinct from rights readiness. Validate the current
+macOS direct-link/resource inventory with:
+
+```sh
+python3 tools/validate_package_rights_inventory.py
+python3 tools/validate_package_rights_inventory.py --require-release-ready
+```
+
+The first command verifies exact pins, license hashes, link tokens, and selected
+source/package resource hashes. The second is expected to return 2 while any
+rights/notice blocker remains; it has no force-pass option. Neither command is
+legal advice or a substitute for second-person rights review.
+
 ### Unit tests
 
 Target areas: ROM byte-order normalization; fingerprint validation; path sanitization; settings serialization; mode/save namespace selection; touch coordinate mapping; controller mapping; DinoMod manifest parsing; diagnostics redaction; runtime-guard behavior.

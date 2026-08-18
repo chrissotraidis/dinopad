@@ -20,6 +20,13 @@ Do not commit, bundle, upload, attach to CI, link to, or request those files.
 Private generation and runtime output belongs only in ignored locations such as
 `generated/`, app containers, and local evidence scratch directories.
 
+The current development executables are technically ROM-free but statically
+link private AOT generated from the user-supplied game program. Absence of the
+original ROM bytes does not itself establish permission to redistribute that
+derived executable. Binary release therefore requires an explicit rights/legal
+determination, or a source-only workflow in which each user performs private
+generation locally.
+
 Documentation screenshots show compatibility behavior captured from a locally
 supplied game copy. They are evidence, not playable game data. Game names,
 characters, copyrights, and trademarks remain the property of their respective
@@ -45,6 +52,21 @@ Exact recursive pins are recorded in
 [`dependencies.lock.json`](../dependencies.lock.json), and the maintained patch
 inventory is in [`UPSTREAM.md`](UPSTREAM.md). Those files are engineering
 inventories, not substitutes for the original license and notice files.
+
+The package-specific engineering inventory is
+[`PACKAGE_RIGHTS_INVENTORY.json`](PACKAGE_RIGHTS_INVENTORY.json), validated by
+`tools/validate_package_rights_inventory.py`. Its first macOS pass proves exact
+pins/license-text hashes for 17 directly linked components and exact hashes for
+10 selected packaged resources. It does not claim transitive completeness or
+legal clearance. The strict release mode currently fails closed on:
+
+- the root DinoPad-owned license decision;
+- GPL corresponding-source/combined-work obligations;
+- DinoMod redistribution permission;
+- rights for the compiled private game AOT;
+- missing or unresolved provenance/notices for DinoFont, Noto Emoji, the Lato
+  faces, the game logo, and Krazoa artwork;
+- the remaining full compiler/header dependency and iOS-product notice audit.
 
 The repository currently has no root license file or complete assembled
 third-party notice set. That absence is a release blocker. It must not be read
@@ -74,12 +96,13 @@ the project must at minimum:
 1. determine and state the license for DinoPad-owned work;
 2. satisfy Dino Recompiled's GPL source and notice obligations;
 3. collect the exact required license/notice files for every shipped dependency;
-4. obtain and record DinoMod redistribution permission or remove all material
+4. resolve compiled game-AOT and packaged font/art redistribution rights;
+5. obtain and record DinoMod redistribution permission or remove all material
    requiring it;
-5. complete physical-device and progression gates;
-6. prove the package contains no ROM, save, generated prohibited asset, private
+6. complete physical-device and progression gates;
+7. prove the package contains no ROM, save, generated prohibited asset, private
    log, path, signing identity, or provisioning profile;
-7. tie the artifact and SHA-256 checksum to a matching source tag.
+8. tie the artifact and SHA-256 checksum to a matching source tag.
 
 The operational release gate is [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md);
 the product requirements remain in

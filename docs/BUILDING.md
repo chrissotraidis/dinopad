@@ -65,6 +65,11 @@ All app artifacts must remain ROM-free. Use
 `scripts/check-macos-package-safety.sh` for macOS and
 `scripts/check-package-safety.sh` for physical iOS.
 
+For package-rights engineering integrity, run
+`python3 tools/validate_package_rights_inventory.py`. The stricter
+`--require-release-ready` mode is intentionally red while any recorded rights
+or notice blocker remains and has no force-pass option.
+
 Both Apple targets compile pinned SDL2 2.32.10 in-tree so all SDL objects inherit
 the app architecture and deployment target; macOS linker warnings are fatal.
 The macOS build also compiles pinned FreeType 2.13.3 statically for RmlUi. PNG,

@@ -17,8 +17,9 @@ package or publish while any P0 gate below is red.
 | Physical iPad product matrix | P0 | **Red** | Signed install, 60 cumulative minutes, tablet/controller/audio/lifecycle/thermal/memory, save, and update-in-place evidence required. |
 | Restored start-to-credits and chapter fixture matrix | P0 | **Red** | One complete physical-device playthrough and chapter-boundary evidence required. |
 | DinoPad-owned root license decision | P0 | **Red** | Root license file and scope decision required. |
-| Complete shipped third-party licenses/notices | P0 | **Red** | GPL source/notice obligations and package-specific notice inventory required. |
+| Complete shipped third-party licenses/notices | P0 | **Red** | First direct-link/resource inventory is validated; full transitive notices remain required. [`PACKAGE_RIGHTS_INVENTORY.json`](PACKAGE_RIGHTS_INVENTORY.json) |
 | Written DinoMod redistribution permission or removal | P0 | **Red** | Written permission/compatible published license, or a release configuration with all restricted integration removed, required. |
+| Compiled game-AOT and packaged-asset rights | P0 | **Red** | ROM-free binaries still contain private generated AOT; launcher font/art provenance is incomplete. Rights determination or removal/replacement required. |
 | App privacy manifest | P1 | Green | Exact packaged manifest and negative-control audit in [`privacy-manifest`](evidence/2026-08-17/privacy-manifest/). |
 | Final transitive privacy report | P0 | **Red** | Final Xcode privacy report and exact linked-SDK/API review required. |
 | ROM-free unsigned IPA and clean self-sign install | P0 | **Red** | No public IPA exists; exact artifact build, audit, install, relaunch, and update evidence required. |
@@ -40,6 +41,8 @@ candidate if any of these is true:
 - the source tag, packaged commit, and recorded checksum do not match;
 - rights or privacy conclusions are inferred from a technical audit instead of
   being explicitly established;
+- compiled ROM-derived AOT or a packaged font/art resource lacks an affirmative
+  redistribution basis;
 - the exact final artifact has not been installed and exercised through the
   documented self-signing workflow.
 
@@ -153,6 +156,12 @@ scripts/check-package-safety.sh build-ios-device/Release-iphoneos/DinoPad.app
   combined release.
 - [ ] Inventory every shipped direct and transitive dependency at its exact pin;
   include its required license, attribution, and notice text.
+- [ ] Run
+  `python3 tools/validate_package_rights_inventory.py --require-release-ready`
+  against the exact macOS product; any nonzero result is a release stop.
+- [ ] Obtain an explicit rights determination for compiled ROM-derived AOT and
+  each retained launcher font/art asset, or remove/replace the unresolved
+  material and rerun the package inventory.
 - [ ] Obtain and archive written DinoMod integration/redistribution permission,
   or remove all material and claims requiring it.
 - [ ] Preserve the ROM/game-data prohibition, non-affiliation language, and
