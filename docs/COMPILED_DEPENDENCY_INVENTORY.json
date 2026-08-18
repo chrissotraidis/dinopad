@@ -1,8 +1,14 @@
 {
   "schema_version": 1,
-  "target": "macos",
-  "build_dir": "build-macos",
-  "basis": "Every ref/ source or header path in the Ninja dependency database for the current macOS DinoPad target and its prerequisites. Deepest-prefix ownership prevents a parent project license from hiding a vendored dependency. Notice sources are hash-bound but not yet a complete assembled app notice set.",
+  "targets": {
+    "macos": {"build_dir":"build-macos","dependency_format":"ninja"},
+    "ios-device": {"build_dir":"build-ios-device/build","dependency_format":"xcode-depfiles"}
+  },
+  "target_exclusions": {
+    "macos": [],
+    "ios-device": ["freetype", "plainargs", "rmlui-containers", "sljit", "spirv-cross"]
+  },
+  "basis": "Every ref/ source or header path in the current macOS Ninja database and physical-iOS Xcode dependency files. Deepest-prefix ownership prevents a parent project license from hiding a vendored dependency. Target exclusions are checked against actual absence. Notice sources are hash-bound but not yet a complete assembled app notice set.",
   "components": [
     {"id":"sdl2","coverage_prefix":"ref/SDL2","notice_source":"ref/SDL2/LICENSE.txt","notice_kind":"file","sha256":"97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127"},
     {"id":"sdl2-hidapi","coverage_prefix":"ref/SDL2/src/hidapi","notice_source":"ref/SDL2/src/hidapi/LICENSE.txt","notice_kind":"file","sha256":"7d3b087c34f35d4d538e3bcddd1ff8f66e92f9ef336881999482800ddf840913"},

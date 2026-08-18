@@ -50,6 +50,11 @@ PRIVACY_MANIFEST="$APP/PrivacyInfo.xcprivacy"
 [[ -f "$PRIVACY_MANIFEST" ]] || fail "PrivacyInfo.xcprivacy is missing"
 cmp -s "$ROOT/apple/app/PrivacyInfo.xcprivacy" "$PRIVACY_MANIFEST" ||
     fail "bundled privacy manifest differs from the tracked declaration"
+python3 "$ROOT/tools/validate_compiled_dependency_inventory.py" \
+    --target ios-device || fail "iOS compiled dependency inventory is invalid"
+python3 "$ROOT/tools/package_compiled_dependency_notices.py" \
+    --target ios-device --app "$APP" --verify || \
+    fail "iOS compiled dependency notice set is invalid"
 
 plist_value() {
     /usr/libexec/PlistBuddy -c "Print :$1" "$INFO"
@@ -177,6 +182,7 @@ echo "  executable: arm64, iOS 15.0+, static system dependencies only"
 echo "  test harness: absent"
 echo "  ROM/save/log/private paths: absent"
 echo "  privacy manifest: no tracking/collection; exact required-reason set"
+echo "  compiled dependency notices: exact standalone set assembled; inline sources pending"
 echo "  restoration data: sanitized audit input $ACTUAL_RESTORATION_SHA"
 echo "  signing state: $([[ "$ALLOW_SIGNING" -eq 1 ]] && echo development-signed || echo unsigned)"
 echo "NOTE: DinoMod permission and complete license/notices remain separate release blockers."

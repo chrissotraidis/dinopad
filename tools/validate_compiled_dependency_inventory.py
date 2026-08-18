@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate compiler-derived third-party coverage for the macOS target.
+"""Validate compiler-derived third-party coverage for Apple targets.
 
 The Ninja dependency database identifies every pinned source/header file used
 to build the DinoPad target and its prerequisites. This validator requires each
@@ -43,17 +43,31 @@ def digest(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def compiler_dependencies(build_dir: pathlib.Path) -> set[str]:
-    result = subprocess.run(
-        ["ninja", "-C", str(build_dir), "-t", "deps"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+def compiler_dependencies(build_dir: pathlib.Path, dependency_format: str) -> set[str]:
     ref_root = str((ROOT / "ref").resolve()) + "/"
     dependencies: set[str] = set()
-    for line in result.stdout.splitlines():
-        candidate = line.strip()
+    if dependency_format == "ninja":
+        result = subprocess.run(
+            ["ninja", "-C", str(build_dir), "-t", "deps"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        candidates = (line.strip() for line in result.stdout.splitlines())
+    elif dependency_format == "xcode-depfiles":
+        depfiles = sorted(build_dir.rglob("*.d"))
+        if not depfiles:
+            fail(f"no Xcode dependency files under {build_dir.relative_to(ROOT)}")
+        candidates = (
+            token
+            for depfile in depfiles
+            for token in depfile.read_text(encoding="utf-8", errors="replace")
+                .replace("\\\n", " ")
+                .split()
+        )
+    else:
+        fail(f"unsupported dependency format: {dependency_format}")
+    for candidate in candidates:
         if candidate.startswith(ref_root):
             dependencies.add(pathlib.Path(candidate).relative_to(ROOT).as_posix())
     if not dependencies:
@@ -61,18 +75,25 @@ def compiler_dependencies(build_dir: pathlib.Path) -> set[str]:
     return dependencies
 
 
-def validate(manifest_path: pathlib.Path) -> None:
+def validate(manifest_path: pathlib.Path, selected_target: str | None) -> None:
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if set(data) != {"schema_version", "target", "build_dir", "basis", "components"}:
+    expected_top = {
+        "schema_version", "targets", "target_exclusions", "basis", "components"
+    }
+    if set(data) != expected_top:
         fail("top-level schema mismatch")
-    if data["schema_version"] != 1 or data["target"] != "macos":
-        fail("unsupported schema version or target")
+    if data["schema_version"] != 1:
+        fail("unsupported schema version")
     if not isinstance(data["basis"], str) or not data["basis"].strip():
         fail("basis must be a non-empty string")
-    build_value = data["build_dir"]
-    if not isinstance(build_value, str):
-        fail("build_dir must be a string")
-    build_dir = repo_path(build_value, "build_dir")
+    targets = data["targets"]
+    exclusions = data["target_exclusions"]
+    if not isinstance(targets, dict) or set(targets) != {"macos", "ios-device"}:
+        fail("targets must define macos and ios-device")
+    if not isinstance(exclusions, dict) or set(exclusions) != set(targets):
+        fail("target_exclusions must match targets")
+    if selected_target is not None and selected_target not in targets:
+        fail(f"unknown target: {selected_target}")
 
     components = data["components"]
     if not isinstance(components, list) or not components:
@@ -121,39 +142,63 @@ def validate(manifest_path: pathlib.Path) -> None:
         if digest(source_path) != expected:
             fail(f"{component_id}: notice source hash mismatch")
 
-    dependencies = compiler_dependencies(build_dir)
-    counts = {component_id: 0 for component_id, _ in normalized}
-    for dependency in dependencies:
-        matches = [
-            (component_id, prefix)
-            for component_id, prefix in normalized
-            if dependency == prefix or dependency.startswith(prefix + "/")
-        ]
-        if not matches:
-            fail(f"uncovered compiler dependency: {dependency}")
-        deepest = max(len(prefix) for _, prefix in matches)
-        winners = [(component_id, prefix) for component_id, prefix in matches if len(prefix) == deepest]
-        if len(winners) != 1:
-            fail(f"ambiguous compiler dependency coverage: {dependency}")
-        counts[winners[0][0]] += 1
+    target_names = [selected_target] if selected_target else list(targets)
+    for target_name in target_names:
+        target = targets[target_name]
+        if not isinstance(target, dict) or set(target) != {"build_dir", "dependency_format"}:
+            fail(f"{target_name}: target schema mismatch")
+        build_value = target["build_dir"]
+        dependency_format = target["dependency_format"]
+        if not isinstance(build_value, str) or not isinstance(dependency_format, str):
+            fail(f"{target_name}: build_dir and dependency_format must be strings")
+        build_dir = repo_path(build_value, f"{target_name}.build_dir")
+        dependencies = compiler_dependencies(build_dir, dependency_format)
+        counts = {component_id: 0 for component_id, _ in normalized}
+        for dependency in dependencies:
+            matches = [
+                (component_id, prefix)
+                for component_id, prefix in normalized
+                if dependency == prefix or dependency.startswith(prefix + "/")
+            ]
+            if not matches:
+                fail(f"{target_name}: uncovered compiler dependency: {dependency}")
+            deepest = max(len(prefix) for _, prefix in matches)
+            winners = [
+                (component_id, prefix)
+                for component_id, prefix in matches
+                if len(prefix) == deepest
+            ]
+            if len(winners) != 1:
+                fail(f"{target_name}: ambiguous compiler dependency: {dependency}")
+            counts[winners[0][0]] += 1
 
-    empty = sorted(component_id for component_id, count in counts.items() if count == 0)
-    if empty:
-        fail(f"stale component prefixes with zero compiler dependencies: {', '.join(empty)}")
-
-    print(
-        "COMPILED DEPENDENCY INVENTORY: VALID "
-        f"({len(dependencies)} source/header files, {len(components)} components, "
-        f"{inline_count} inline notice sources, 0 uncovered)"
-    )
+        excluded = exclusions[target_name]
+        if not isinstance(excluded, list) or any(item not in seen_ids for item in excluded):
+            fail(f"{target_name}: invalid target exclusions")
+        actual = {component_id for component_id, count in counts.items() if count}
+        expected = seen_ids - set(excluded)
+        if actual != expected:
+            missing = sorted(expected - actual)
+            unexpected = sorted(actual - expected)
+            fail(f"{target_name}: component-set mismatch; missing={missing}, unexpected={unexpected}")
+        active_inline = sum(
+            entry["notice_kind"] == "inline" and entry["id"] in actual
+            for entry in components
+        )
+        print(
+            f"COMPILED DEPENDENCY INVENTORY ({target_name}): VALID "
+            f"({len(dependencies)} source/header files, {len(actual)} components, "
+            f"{active_inline} inline notice sources, 0 uncovered)"
+        )
     print("NOTE: compiler coverage is not license interpretation or shipped-notice completeness.")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=pathlib.Path, default=DEFAULT_MANIFEST)
+    parser.add_argument("--target", choices=("macos", "ios-device"))
     args = parser.parse_args()
-    validate(args.manifest.resolve())
+    validate(args.manifest.resolve(), args.target)
     return 0
 
 

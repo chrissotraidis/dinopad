@@ -14,6 +14,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs" / "COMPILED_DEPENDENCY_INVENTORY.json"
 DEFAULT_APP = ROOT / "build-macos" / "DinoPad.app"
+TARGETS = {"macos", "ios-device"}
 
 
 def fail(message: str) -> None:
@@ -24,11 +25,14 @@ def sha256(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def expected_index() -> tuple[dict[str, object], dict[pathlib.PurePosixPath, pathlib.Path]]:
+def expected_index(target: str) -> tuple[dict[str, object], dict[pathlib.PurePosixPath, pathlib.Path]]:
     data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    excluded = set(data["target_exclusions"][target])
     copies: dict[pathlib.PurePosixPath, pathlib.Path] = {}
     records: list[dict[str, object]] = []
     for component in data["components"]:
+        if component["id"] in excluded:
+            continue
         source_rel = pathlib.PurePosixPath(component["notice_source"])
         source = ROOT / source_rel
         if sha256(source) != component["sha256"]:
@@ -52,7 +56,7 @@ def expected_index() -> tuple[dict[str, object], dict[pathlib.PurePosixPath, pat
         )
     index = {
         "schema_version": 1,
-        "target": "macos",
+        "target": target,
         "basis": "Generated from docs/COMPILED_DEPENDENCY_INVENTORY.json; null package paths identify inline notice sources that still require assembly review.",
         "components": records,
     }
@@ -63,8 +67,8 @@ def encoded_index(index: dict[str, object]) -> bytes:
     return (json.dumps(index, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
 
-def assemble(destination: pathlib.Path) -> None:
-    index, copies = expected_index()
+def assemble(target: str, destination: pathlib.Path) -> None:
+    index, copies = expected_index(target)
     if destination.exists():
         shutil.rmtree(destination)
     destination.mkdir(parents=True)
@@ -79,8 +83,8 @@ def assemble(destination: pathlib.Path) -> None:
     )
 
 
-def verify(destination: pathlib.Path) -> None:
-    index, copies = expected_index()
+def verify(target: str, destination: pathlib.Path) -> None:
+    index, copies = expected_index(target)
     expected_files = {pathlib.PurePosixPath("INDEX.json"), *copies.keys()}
     actual_files = {
         path.relative_to(destination)
@@ -105,14 +109,25 @@ def verify(destination: pathlib.Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--app", type=pathlib.Path, default=DEFAULT_APP)
+    parser.add_argument("--target", choices=sorted(TARGETS), default="macos")
+    parser.add_argument("--app", type=pathlib.Path)
+    parser.add_argument("--destination", type=pathlib.Path)
     parser.add_argument("--verify", action="store_true")
     args = parser.parse_args()
-    destination = args.app.resolve() / "Contents" / "Resources" / "Notices" / "Compiled"
-    if args.verify:
-        verify(destination)
+    if args.app is not None and args.destination is not None:
+        fail("--app and --destination are mutually exclusive")
+    if args.destination is not None:
+        destination = args.destination.resolve()
     else:
-        assemble(destination)
+        app = (args.app or DEFAULT_APP).resolve()
+        if args.target == "macos":
+            destination = app / "Contents" / "Resources" / "Notices" / "Compiled"
+        else:
+            destination = app / "Notices" / "Compiled"
+    if args.verify:
+        verify(args.target, destination)
+    else:
+        assemble(args.target, destination)
     return 0
 
 

@@ -17,7 +17,7 @@ package or publish while any P0 gate below is red.
 | Physical iPad product matrix | P0 | **Red** | Signed install, 60 cumulative minutes, tablet/controller/audio/lifecycle/thermal/memory, save, and update-in-place evidence required. |
 | Restored start-to-credits and chapter fixture matrix | P0 | **Red** | One complete physical-device playthrough and chapter-boundary evidence required. |
 | DinoPad-owned root license decision | P0 | **Red** | Root license file and scope decision required. |
-| Complete shipped third-party licenses/notices | P0 | **Red** | macOS compiler coverage is complete and 39 standalone licenses are indexed; 7 inline-primary sources, secondary-notice review, and iOS reconciliation remain. [`COMPILED_DEPENDENCY_INVENTORY.json`](COMPILED_DEPENDENCY_INVENTORY.json) |
+| Complete shipped third-party licenses/notices | P0 | **Red** | macOS and physical-iOS compiler coverage are complete with 39/35 standalone licenses indexed; 7 union inline-primary roots and secondary-notice review remain. [`COMPILED_DEPENDENCY_INVENTORY.json`](COMPILED_DEPENDENCY_INVENTORY.json) |
 | Written DinoMod redistribution permission or removal | P0 | **Red** | Written permission/compatible published license, or a release configuration with all restricted integration removed, required. |
 | Compiled game-AOT rights | P0 | **Red** | ROM-free binaries still contain private generated AOT. Rights determination or source-only local generation required. |
 | App privacy manifest | P1 | Green | Exact packaged manifest and negative-control audit in [`privacy-manifest`](evidence/2026-08-17/privacy-manifest/). |
@@ -158,8 +158,8 @@ scripts/check-package-safety.sh build-ios-device/Release-iphoneos/DinoPad.app
   include its required license, attribution, and notice text.
 - [ ] Run `python3 tools/validate_compiled_dependency_inventory.py`; investigate
   every newly uncovered or stale macOS compiler dependency before packaging.
-- [ ] Review and assemble the 7 inline-primary notice sources, check for
-  secondary notices, and derive/reconcile equivalent iOS compiler coverage.
+- [ ] Review and assemble the 7 union inline-primary notice sources and check
+  both target inventories for secondary notices.
 - [ ] Run
   `python3 tools/validate_package_rights_inventory.py --require-release-ready`
   against the exact macOS product; any nonzero result is a release stop.

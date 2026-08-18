@@ -50,6 +50,9 @@ command -v vtool >/dev/null || { echo "ERROR: vtool is required" >&2; exit 1; }
 
 "$ROOT/scripts/apply-patches.sh"
 
+python3 "$ROOT/tools/package_compiled_dependency_notices.py" \
+    --target ios-device --destination "$ROOT/generated/notices-ios-device"
+
 for required in \
     "$ROOT/generated/aot/RecompiledFuncs/funcs.h" \
     "$ROOT/generated/restoration/dinomod_static_dispatch.c" \

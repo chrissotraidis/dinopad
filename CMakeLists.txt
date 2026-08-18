@@ -408,6 +408,24 @@ if (DINOPAD_ENABLE_STATIC_RESTORATION)
 endif()
 
 if (DINOPAD_IOS)
+    set(DINOPAD_NOTICE_ROOT "${DINOPAD_ROOT}/generated/notices-ios-device")
+    file(GLOB_RECURSE DINOPAD_NOTICE_FILES CONFIGURE_DEPENDS
+        "${DINOPAD_NOTICE_ROOT}/*")
+    if (NOT DINOPAD_NOTICE_FILES)
+        message(FATAL_ERROR
+            "Generated iOS notices missing. Run scripts/build-ios-device.sh.")
+    endif()
+    foreach(DINOPAD_NOTICE_FILE IN LISTS DINOPAD_NOTICE_FILES)
+        file(RELATIVE_PATH DINOPAD_NOTICE_RELATIVE
+            "${DINOPAD_NOTICE_ROOT}" "${DINOPAD_NOTICE_FILE}")
+        get_filename_component(DINOPAD_NOTICE_DIRECTORY
+            "${DINOPAD_NOTICE_RELATIVE}" DIRECTORY)
+        set_source_files_properties("${DINOPAD_NOTICE_FILE}" PROPERTIES
+            MACOSX_PACKAGE_LOCATION
+            "Resources/Notices/Compiled/${DINOPAD_NOTICE_DIRECTORY}")
+        target_sources(DinoPad PRIVATE "${DINOPAD_NOTICE_FILE}")
+    endforeach()
+
     set(DINOPAD_PRIVACY_MANIFEST "${DINOPAD_ROOT}/apple/app/PrivacyInfo.xcprivacy")
     set_source_files_properties("${DINOPAD_PRIVACY_MANIFEST}"
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
