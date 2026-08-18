@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T05:42:23Z
+Last updated: 2026-08-18T05:44:49Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -155,11 +155,14 @@ contracts are green.
   saves, thermal behavior, memory pressure, and clean relaunch.
 - Physical hardware is the authority for orientation; iOS 26.5 headless Simulator
   raw screenshots preserve a portrait framebuffer for landscape-only SDL apps.
-- Phase 7 preflight currently finds zero CoreDevice devices and zero valid
-  code-signing identities. `scripts/build-ios-device.sh` is green in unsigned
-  mode: arm64-only, physical `IOS` platform, ROM-free, and free of signature or
-  provisioning state. Resume signing/install when hardware and an identity exist;
-  see `docs/evidence/2026-08-17/physical-device-preflight/`.
+- Phase 7 preflight still finds zero CoreDevice devices and zero valid
+  code-signing identities on 2026-08-18. `scripts/build-ios-device.sh` is green
+  in unsigned mode: arm64-only, physical `IOS` platform, ROM-free, and free of
+  signature or provisioning state. Resume signing/install when hardware and an
+  identity exist; see `docs/evidence/2026-08-18/external-blocker-recheck/`.
+- Available disk is 14 GiB, below the 20 GiB build gate. All recoverable
+  generated/scratch data in the workspace is only about 3.7 GiB, so owner-led
+  capacity recovery outside the repository is needed before a full cycle.
 - Simulator automation is now compile-time test-only. Simulator builds opt in;
   physical builds force it off. The reusable device-app safety gate proves the
   physical Mach-O contains no automation keys/selectors/fixtures or private
