@@ -160,9 +160,10 @@ contracts are green.
   in unsigned mode: arm64-only, physical `IOS` platform, ROM-free, and free of
   signature or provisioning state. Resume signing/install when hardware and an
   identity exist; see `docs/evidence/2026-08-18/external-blocker-recheck/`.
-- Available disk is 14 GiB, below the 20 GiB build gate. All recoverable
-  generated/scratch data in the workspace is only about 3.7 GiB, so owner-led
-  capacity recovery outside the repository is needed before a full cycle.
+- A 2026-08-18 recheck found 25 GiB free, clearing the 20 GiB build gate. The
+  fresh unsigned physical-iOS build/package audit passed with the current
+  notice inputs; retain the standard disk preflight before future full cycles.
+  See `docs/evidence/2026-08-18/unsigned-ios-rebuild-package-audit/`.
 - Simulator automation is now compile-time test-only. Simulator builds opt in;
   physical builds force it off. The reusable device-app safety gate proves the
   physical Mach-O contains no automation keys/selectors/fixtures or private
