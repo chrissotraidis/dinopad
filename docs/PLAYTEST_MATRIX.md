@@ -11,6 +11,8 @@ claims a full playthrough it did not perform.
 
 | Date | Target | Mode | Start | End state | Duration | Result | Input | Evidence |
 |---|---|---|---|---|---|---|---|---|
+| 2026-08-17 | iPad Pro 11-inch (M5) Simulator, iPadOS 26.5 arm64 | Restored | Native home with private game-created `AAAAA` save | Controllable ship-deck tutorial, live through ten-minute boundary | 600 s | PASS | UIKit tablet touch analog + A; actual N64 poll | docs/evidence/2026-08-17/ipad-simulator-phase6/ |
+| 2026-08-17 | iPad Pro 11-inch (M5) Simulator, iPadOS 26.5 arm64 | Restored relaunch, same install | Persisted profile-local `AAAAA` save | Controllable ship-deck tutorial at late input frame 26,669 | ~4.5 min | PASS | Full 7-suite tablet touch/lifecycle matrix plus gameplay analog + A | docs/evidence/2026-08-17/ipad-simulator-phase6/ |
 | 2026-08-17 | iPhone 17 Pro Simulator, iOS 26.5 arm64 | Restored | Native home with private game-created `AAAAA` save | Controllable ship-deck tutorial, live through ten-minute boundary | 600 s | PASS | UIKit touch analog + A; actual N64 poll | docs/evidence/2026-08-17/iphone-phase5/ |
 | 2026-08-17 | iPhone 17 Pro Simulator, iOS 26.5 arm64 | Restored relaunch, same install | Persisted profile-local `AAAAA` save | Controllable ship-deck tutorial at late input frame 26,685 | ~4.5 min | PASS | Full 7-suite touch/lifecycle matrix plus gameplay analog + A | docs/evidence/2026-08-17/iphone-phase5/ |
 | 2026-08-16 | macOS arm64 (M2) | Restored (native home primary action) | Native DinoPad home | Restored PRESS START; static no-write dispatch active | ~20 s | PASS | Native button + keyboard A | docs/evidence/2026-08-16/macos-native-home/ |
@@ -29,7 +31,7 @@ claims a full playthrough it did not perform.
 ## Not yet covered
 
 - Controller play.
-- iPad Simulator and physical devices (Phases 6-8).
+- Physical iPhone/iPad devices (Phases 7-8).
 - Chapter-boundary fixtures and progression (Phase 9).
 
 ## Known behavior quirks observed

@@ -29,8 +29,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-[[ "$TARGET" == "iphone-simulator" ]] || {
-  echo "ERROR: smoke-ios-diagnostics.sh requires the iPhone Simulator guard" >&2
+[[ "$TARGET" == "iphone-simulator" || "$TARGET" == "ipad-simulator" ]] || {
+  echo "ERROR: smoke-ios-diagnostics.sh requires an iOS Simulator guard" >&2
   exit 2
 }
 [[ -n "$UDID" ]] || { echo "ERROR: runtime guard did not provide a UDID" >&2; exit 2; }
@@ -95,6 +95,17 @@ LATEST="$LOG_ROOT/dinopad-latest.log"
 }
 cp "$REPORT" "$EVIDENCE_DIR/sanitized-report.txt"
 cp "$LATEST" "$EVIDENCE_DIR/sanitized-private-log.txt"
+if [[ "$TARGET" == "ipad-simulator" ]]; then
+  grep -q '^Device: iPad (tablet)$' "$REPORT" || {
+    echo "ERROR: diagnostics report did not identify the iPad tablet path" >&2
+    exit 1
+  }
+else
+  grep -q '^Device: iPhone (phone)$' "$REPORT" || {
+    echo "ERROR: diagnostics report did not identify the iPhone phone path" >&2
+    exit 1
+  }
+fi
 python3 - "$REPORT" "$LATEST" <<'PY'
 import pathlib
 import stat

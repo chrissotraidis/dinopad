@@ -1,0 +1,1 @@
+IOS ROM IMPORT RESULT: PASS (real Files picker + replacement manager; size/fingerprint rejection without staging; z64/v64/n64 normalization; exact MD5; private atomic storage; ROM-free bundle; no crash)

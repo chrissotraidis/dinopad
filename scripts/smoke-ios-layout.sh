@@ -33,8 +33,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-if [[ "$TARGET" != "iphone-simulator" ]]; then
-  echo "ERROR: smoke-ios-layout.sh requires the iPhone Simulator guard" >&2
+if [[ "$TARGET" != "iphone-simulator" && "$TARGET" != "ipad-simulator" ]]; then
+  echo "ERROR: smoke-ios-layout.sh requires an iOS Simulator guard" >&2
   exit 2
 fi
 [[ -n "$UDID" ]] || { echo "ERROR: runtime guard did not provide a Simulator UDID" >&2; exit 2; }
@@ -146,8 +146,8 @@ done
 for marker in \
   'persisted across relaunch' \
   'persistence keys are isolated' \
-  'Reset Phone Layout restores only phone defaults' \
-  'Reset Tablet Layout restores only tablet defaults'; do
+  'active layout reset restores only current idiom defaults' \
+  'inactive layout reset preserves current idiom defaults'; do
   grep -q "PASS: .*$marker" "$EVIDENCE_DIR/verify.log" || {
     echo "ERROR: missing verify marker: $marker" >&2
     exit 1

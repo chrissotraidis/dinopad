@@ -201,7 +201,7 @@ private-fixtures/ ignored private saves (manifest only committed)
 
 ## 12. Platform bring-up order
 
-macOS arm64 (base frame -> title -> gameplay -> audio/input/save) -> static DinoMod proof on macOS -> PaperPad shell port -> iPhone Simulator -> iPad Simulator -> physical iPhone -> physical iPad -> progression/stability -> packaging/release. Exactly one runtime active at a time (`scripts/runtime-guard.sh`). The iPhone Simulator now compiles and renders the base Rareware opening frame; native import, correct landscape presentation, touch/menu, lifecycle, save, and restored-package data are still in progress.
+macOS arm64 (base frame -> title -> gameplay -> audio/input/save) -> static DinoMod proof on macOS -> PaperPad shell port -> iPhone Simulator -> iPad Simulator -> physical iPhone -> physical iPad -> progression/stability -> packaging/release. Exactly one runtime is active at a time (`scripts/runtime-guard.sh`). iPhone Simulator Phase 5 and iPad Simulator Phase 6 are green with native import/home/menu/layout/settings/diagnostics, complete touch/lifecycle input, static restored gameplay, and same-install save relaunch. Physical-device validation is next.
 
 ## 13. Risks
 

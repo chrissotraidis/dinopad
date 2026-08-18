@@ -33,8 +33,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-if [[ "$TARGET" != "iphone-simulator" ]]; then
-  echo "ERROR: smoke-ios-settings.sh requires the iPhone Simulator guard" >&2
+if [[ "$TARGET" != "iphone-simulator" && "$TARGET" != "ipad-simulator" ]]; then
+  echo "ERROR: smoke-ios-settings.sh requires an iOS Simulator guard" >&2
   exit 2
 fi
 [[ -n "$UDID" ]] || { echo "ERROR: runtime guard did not provide a Simulator UDID" >&2; exit 2; }

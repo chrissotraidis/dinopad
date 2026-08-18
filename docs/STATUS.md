@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-18T02:34:32Z
-Current commit: Goal 29a milestone pending on main (predecessor 2ba2bb2)
-Current phase: Phase 6 - iPad Simulator
-Active goal: Goal 30a (iPad Simulator Apple-shell/runtime parity)
+Last updated: 2026-08-18T03:35:00Z
+Current commit: Goal 30a milestone pending on main (predecessor caefe1a)
+Current phase: Phase 7 - Physical iPhone
+Active goal: Goal 31a (physical iPhone build/install and product validation)
 
 ## Green
 
@@ -51,6 +51,7 @@ Active goal: Goal 30a (iPad Simulator Apple-shell/runtime parity)
 - Goal 28b native settings/status green on iPhone Simulator (2026-08-17): the real `•••` menu now opens a safe-area-readable UIKit form with truthful mode, restoration, save/recovery, controller, and effective Metal status plus live persisted touch enable/opacity, profile-local master volume, internal resolution, aspect, refresh-rate, and HUD placement. Narrow Objective-C++ bridges queue config saves onto the game-input thread and preserve Restored/Prototype isolation. A guarded two-launch smoke proved modal input clearing, defensive clamping, live application, JSON serialization, process-relaunch loading, default restoration, post-dismissal touch input, readable normalized screenshots, arm64 ROM-free packaging, and no crash. Input/lifecycle, home/restart, ROM import, layout editor, restored title/gameplay, macOS profile, unit, repository, and clean 25-patch replay regressions passed. Evidence: docs/evidence/2026-08-17/iphone-native-settings/.
 - Goal 28c native diagnostics/share green on iPhone Simulator (2026-08-17): DinoPad now captures stderr into a protected 4 MiB private current log with one rotated predecessor, sanitizes every complete line before persistence, and builds a 512 KiB maximum share report from 192 KiB log tails without ROM/save contents. The report includes useful app/device, profile/restoration, exact ROM-validation, save/recovery, controller/touch, audio/display, and effective Metal status. Support and the persistent menu expose the real UIKit share sheet. A guarded adversarial smoke proved app-container/home/temp/provider/volume/UUID redaction in stored and shared text, mode `0600`, held-input clearing, native presentation/cancellation, post-dismissal touch restoration, temporary/test cleanup, arm64 ROM-free packaging, and no crash. All iPhone regressions, restored gameplay at frame 26,681, macOS build/unit/smoke, repository safety, and clean 25-patch replay remained green. Evidence: docs/evidence/2026-08-17/iphone-diagnostics/.
 - Goal 29a completes iPhone Simulator Phase 5 (2026-08-17): a clean arm64 ROM-free install staged the private game-created 128 KiB `AAAAA` FlashRAM only in Restored and an independent Prototype sentinel. Launch one loaded the slot into controllable restored ship-deck gameplay and stayed live for exactly 600 seconds. Launch two retained the same installed data container, passed all seven input/lifecycle suites, and loaded the persisted slot back into controllable gameplay at late input frame 26,685. The Restored hash remained `6f4ccb8a...c9f28` across seed/ten-minute/relaunch checkpoints, the Prototype hash was unchanged, bounded diagnostics stayed within caps, no new crash appeared, screenshots were visually accepted, and guard cleanup left zero process/Simulator residue. This closes every Phase 5 acceptance criterion. Evidence: docs/evidence/2026-08-17/iphone-phase5/.
+- Goal 30a completes iPad Simulator Phase 6 (2026-08-17): one guarded iPad Pro 11-inch (M5) ran the complete native setup/home/ROM manager/layout/settings/diagnostics/input/restoration/save matrix. Tablet layout edits persisted across process relaunch while phone keys remained isolated; all seven input/lifecycle suites passed; the audited static restoration reached title and controllable gameplay at frame 26,670; and a game-created Restored save stayed byte-identical through 600 live seconds and same-install relaunch to gameplay at frame 26,669 while Prototype remained unchanged. Diagnostics explicitly reported `iPad (tablet)`, stayed bounded/redacted, the arm64 app remained ROM-free, all captures were visually accepted, and every guard cleanup left zero process/Simulator residue. The PaperPad tablet menu rect matches exactly and the maximum conservative control-center delta is 0.64 point. Evidence: docs/evidence/2026-08-17/ipad-simulator-phase6/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
 - docs/UPSTREAM.md written and current (2026-08-17): pinned sources table, 25-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
@@ -72,7 +73,7 @@ Active goal: Goal 30a (iPad Simulator Apple-shell/runtime parity)
 - RmlUi launcher not exercised on Metal (--skip-launcher used).
 - Physical controller play on macOS: BLOCKED (external) - both paired pads (8BitDo Lite 2, Xbox Wireless) are Not Connected; SDL sees 0 joysticks. Code path verified via virtual controller; see docs/KNOWN_ISSUES.md.
 - DinoMod redistribution permission: BLOCKED (release gate only; technical work may continue).
-- iPad Simulator, physical iPhone/iPad, progression certification, and release packaging remain open; see docs/HANDOFF.md and docs/TECHNICAL_DEBT.md.
+- Physical iPhone/iPad, progression certification, and release packaging remain open; see docs/HANDOFF.md and docs/TECHNICAL_DEBT.md.
 
 ## Last successful commands
 
@@ -152,20 +153,27 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: f
   hardware, longer stability, and device behavior need dedicated verification.
 - Name-entry navigation quirks (analog-only, +3 jump) must be handled by the touch/controller shell and automated smoke input.
 - Automated macOS input requires the DinoPad window to be frontmost; sendkey.sh handles it, but native input injection (or SDL-internal injection) is the durable fix for smoke automation.
-- iPad/physical-device runs must repeat the embedded-only restoration policy and gameplay proof.
+- Physical-device runs must repeat the embedded-only restoration policy and gameplay proof.
 
 ## Next three candidate goals
 
-1. Complete the full product/runtime/parity matrix on iPad Simulator.
-2. Begin physical iPhone validation after both Simulator idioms are green.
-3. Complete physical iPad validation and progression/stability work.
+1. Build, sign, install, and validate the complete product/runtime matrix on a physical iPhone.
+2. Repeat the physical-device matrix on iPad.
+3. Complete progression/stability certification and release packaging.
 
 ## Selected next goal
 
-Goal 30a: complete iPad Simulator Phase 6 with exactly one guarded tablet,
-including native setup/home/menu/settings/diagnostics presentation, independent
-tablet layout persistence and safe areas, controller/lifecycle input policy,
-Restored gameplay, save/relaunch, and ROM-free arm64/crash/cleanup audits.
+Goal 31a: inventory connected Apple devices and signing availability, then build,
+sign, install, and validate DinoPad on one supported physical iPhone. Cover native
+setup/home/import/menu/layout/settings/diagnostics, orientation and safe areas,
+touch/controller/lifecycle/audio behavior, Restored gameplay, save/relaunch,
+thermal/memory observations, ROM-free device-arm64 packaging, and crash cleanup.
+
+Goal 30a outcome: iPad Simulator Phase 6 is green. The complete tablet shell and
+runtime matrix passed under one-runtime guards, including measured PaperPad
+parity, independent tablet persistence, restoration gameplay, 600-second live
+save verification, and same-install relaunch. Evidence:
+docs/evidence/2026-08-17/ipad-simulator-phase6/.
 
 Goal 29a outcome: iPhone Simulator Phase 5 is green. A game-created Restored
 save survived a 600-second controllable gameplay process and same-install

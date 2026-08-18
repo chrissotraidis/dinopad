@@ -1,0 +1,50 @@
+iPad Simulator / PaperPad parity measurement
+=============================================
+Date: 2026-08-17 America/Chicago
+Device: iPad Pro 11-inch (M5), iPadOS 26.5 Simulator
+Logical screen reported by DinoPad diagnostics: 1210x834 points @ 2.00x
+PaperPad pin: 644945d4bc4facbbd8ecda8cdfd37ae64e7993fa
+
+Method
+------
+Compared defaultControlsForIdiom(UIUserInterfaceIdiomPad) in DinoPad with
+defaultControls()'s UIUserInterfaceIdiomPad branch in the pinned PaperPad
+apple/app/ios_main.mm. Both implementations derive centers from the same
+safe-area-inset usable bounds and clamp with identical radius/shoulder rules.
+Point deltas below conservatively multiply normalized differences by the full
+1210x834 logical surface; actual usable-bounds deltas are no larger.
+
+Control       PaperPad (x,y)       DinoPad (x,y)        conservative center delta
+stick         0.1640,0.7450        0.1640,0.7450        0.00 pt
+d_up          0.0800,0.5500        0.0800,0.5500        0.00 pt
+d_down        0.0800,0.6650        0.0800,0.6650        0.00 pt
+d_left        0.0400,0.6080        0.0400,0.6080        0.00 pt
+d_right       0.1200,0.6080        0.1200,0.6080        0.00 pt
+c_up          0.9036,0.8048        0.9040,0.8050        0.52 pt
+c_down        0.9036,0.9098        0.9040,0.9100        0.52 pt
+c_left        0.8610,0.8573        0.8610,0.8580        0.59 pt
+c_right       0.9462,0.8573        0.9460,0.8580        0.64 pt
+a             0.8930,0.6930        0.8930,0.6930        0.00 pt
+b             0.8260,0.6350        0.8260,0.6350        0.00 pt
+z             0.8970,0.5810        0.8970,0.5810        0.00 pt
+l             0.9420,0.4740        0.9420,0.4740        0.00 pt
+r             0.9420,0.3670        0.9420,0.3670        0.00 pt
+start         0.9420,0.2910        0.9420,0.2910        0.00 pt
+
+All 15 normalized radii and per-control opacities are exact matches.
+Maximum conservative control-center delta: 0.64 pt (limit: 12 pt) -- PASS.
+
+Menu geometry
+-------------
+For iPad, both implementations return:
+  CGRectMake(CGRectGetMaxX(usable) - 48.0,
+             CGRectGetMinY(usable) + 4.0, 44.0, 44.0)
+Menu rect delta: 0.00 pt (limit: 8 pt) -- PASS.
+
+Visual acceptance
+-----------------
+layout-editor.png, menu.png, settings.png, diagnostics-share.png, home.png,
+restored-title.png, restored-gameplay.png, ten-minute-gameplay.png, and
+relaunch-gameplay.png show the landscape app viewport. Controls remain inside
+safe areas and reachable; forms are readable; popovers are anchored; no native
+sheet or utility menu is clipped.

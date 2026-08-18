@@ -54,8 +54,8 @@ wait_for_marker() {
   fail "$description"
 }
 
-[[ "$TARGET" == "iphone-simulator" ]] ||
-  fail "smoke-ios-phase5.sh requires the iPhone Simulator guard"
+[[ "$TARGET" == "iphone-simulator" || "$TARGET" == "ipad-simulator" ]] ||
+  fail "smoke-ios-phase5.sh requires an iOS Simulator guard"
 [[ -n "$UDID" ]] || fail "runtime guard did not provide a UDID"
 [[ -x "$APP/DinoPad" ]] || fail "missing Simulator app"
 [[ -f "$ROM" ]] || fail "private supported ROM missing"

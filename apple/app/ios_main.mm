@@ -1187,15 +1187,20 @@ void drainUIKitQueue() {
     std::fprintf(stderr, "[dinopad-layout-test] starting edit/persist phase\n");
     std::fflush(stderr);
 
-    // Seed a recognizable tablet-only value without changing the active phone layout.
-    [overlay resetLayoutForIdiom:UIUserInterfaceIdiomPad];
-    NSMutableDictionary* tablet = [[NSUserDefaults.standardUserDefaults
-        dictionaryForKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)] mutableCopy];
-    NSMutableDictionary* tabletA = [tablet[@"a"] mutableCopy];
-    tabletA[@"x"] = @0.314159;
-    tablet[@"a"] = tabletA;
-    [NSUserDefaults.standardUserDefaults setObject:tablet
-                                           forKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)];
+    const UIUserInterfaceIdiom activeIdiom = UIDevice.currentDevice.userInterfaceIdiom;
+    const UIUserInterfaceIdiom inactiveIdiom = activeIdiom == UIUserInterfaceIdiomPad
+        ? UIUserInterfaceIdiomPhone : UIUserInterfaceIdiomPad;
+
+    // Seed a recognizable inactive-idiom value without changing the layout
+    // currently rendered by this phone or tablet.
+    [overlay resetLayoutForIdiom:inactiveIdiom];
+    NSMutableDictionary* inactive = [[NSUserDefaults.standardUserDefaults
+        dictionaryForKey:layoutDefaultsKeyForIdiom(inactiveIdiom)] mutableCopy];
+    NSMutableDictionary* inactiveA = [inactive[@"a"] mutableCopy];
+    inactiveA[@"x"] = @0.314159;
+    inactive[@"a"] = inactiveA;
+    [NSUserDefaults.standardUserDefaults setObject:inactive
+                                           forKey:layoutDefaultsKeyForIdiom(inactiveIdiom)];
 
     // Entering editing must clear a held gameplay button.
     const NSInteger aIndex = [overlay controlIndexForKey:"a"];
@@ -1301,29 +1306,35 @@ void drainUIKitQueue() {
     [overlay clearInput];
     [self pass:@"gameplay touch resumes after editor dismissal"];
     [overlay beginEditingLayout];
-    std::fprintf(stderr, "[dinopad-layout-test] EDIT PHASE PASSED; persisted phone layout and tablet sentinel\n");
+    std::fprintf(stderr,
+        "[dinopad-layout-test] EDIT PHASE PASSED; persisted %s layout and %s sentinel\n",
+        activeIdiom == UIUserInterfaceIdiomPad ? "tablet" : "phone",
+        inactiveIdiom == UIUserInterfaceIdiomPad ? "tablet" : "phone");
     std::fflush(stderr);
 }
 
 + (void)runVerifyPhase:(DinoPadTouchOverlayView*)overlay {
     std::fprintf(stderr, "[dinopad-layout-test] starting relaunch/reset phase\n");
     std::fflush(stderr);
-    NSDictionary* phone = [overlay layoutSnapshotForTesting];
-    NSDictionary* tablet = [NSUserDefaults.standardUserDefaults
-        dictionaryForKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)];
-    const auto phoneDefaults = defaultControlsForIdiom(UIUserInterfaceIdiomPhone);
-    if ([phone[@"a"][@"visible"] boolValue] ||
-        ![phone[@"_groups"][@"dPadLinked"] boolValue] ||
-        ![phone[@"_groups"][@"cButtonsLinked"] boolValue] ||
-        !([phone[@"a"][@"size"] doubleValue] > phoneDefaults[9].size) ||
-        [self nearlyEqual:[phone[@"a"][@"opacity"] doubleValue]
-                    other:phoneDefaults[9].opacity] ||
-        [self nearlyEqual:[phone[@"a"][@"y"] doubleValue] other:phoneDefaults[9].y]) {
-        [self fail:@"phone edit did not persist across process relaunch"];
+    const UIUserInterfaceIdiom activeIdiom = UIDevice.currentDevice.userInterfaceIdiom;
+    const UIUserInterfaceIdiom inactiveIdiom = activeIdiom == UIUserInterfaceIdiomPad
+        ? UIUserInterfaceIdiomPhone : UIUserInterfaceIdiomPad;
+    NSDictionary* active = [overlay layoutSnapshotForTesting];
+    NSDictionary* inactive = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:layoutDefaultsKeyForIdiom(inactiveIdiom)];
+    const auto activeDefaults = defaultControlsForIdiom(activeIdiom);
+    if ([active[@"a"][@"visible"] boolValue] ||
+        ![active[@"_groups"][@"dPadLinked"] boolValue] ||
+        ![active[@"_groups"][@"cButtonsLinked"] boolValue] ||
+        !([active[@"a"][@"size"] doubleValue] > activeDefaults[9].size) ||
+        [self nearlyEqual:[active[@"a"][@"opacity"] doubleValue]
+                    other:activeDefaults[9].opacity] ||
+        [self nearlyEqual:[active[@"a"][@"y"] doubleValue] other:activeDefaults[9].y]) {
+        [self fail:@"active-idiom edit did not persist across process relaunch"];
         return;
     }
-    [self pass:@"phone move/size/opacity/visibility/link persisted across relaunch"];
-    if (![self nearlyEqual:[tablet[@"a"][@"x"] doubleValue] other:0.314159] ||
+    [self pass:@"active-idiom move/size/opacity/visibility/link persisted across relaunch"];
+    if (![self nearlyEqual:[inactive[@"a"][@"x"] doubleValue] other:0.314159] ||
         [layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPhone)
             isEqualToString:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)]) {
         [self fail:@"phone and tablet persistence are not isolated"];
@@ -1331,29 +1342,31 @@ void drainUIKitQueue() {
     }
     [self pass:@"phone and tablet persistence keys are isolated"];
 
-    [overlay resetLayoutForIdiom:UIUserInterfaceIdiomPhone];
-    NSDictionary* resetPhone = [overlay layoutSnapshotForTesting];
-    tablet = [NSUserDefaults.standardUserDefaults
-        dictionaryForKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)];
-    if (![self nearlyEqual:[resetPhone[@"a"][@"x"] doubleValue] other:phoneDefaults[9].x] ||
-        ![resetPhone[@"a"][@"visible"] boolValue] ||
-        ![self nearlyEqual:[tablet[@"a"][@"x"] doubleValue] other:0.314159]) {
-        [self fail:@"phone reset changed tablet data or missed phone defaults"];
+    [overlay resetLayoutForIdiom:activeIdiom];
+    NSDictionary* resetActive = [overlay layoutSnapshotForTesting];
+    inactive = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:layoutDefaultsKeyForIdiom(inactiveIdiom)];
+    if (![self nearlyEqual:[resetActive[@"a"][@"x"] doubleValue]
+                       other:activeDefaults[9].x] ||
+        ![resetActive[@"a"][@"visible"] boolValue] ||
+        ![self nearlyEqual:[inactive[@"a"][@"x"] doubleValue] other:0.314159]) {
+        [self fail:@"active reset changed inactive data or missed active defaults"];
         return;
     }
-    [self pass:@"Reset Phone Layout restores only phone defaults"];
+    [self pass:@"active layout reset restores only current idiom defaults"];
 
-    [overlay resetLayoutForIdiom:UIUserInterfaceIdiomPad];
-    tablet = [NSUserDefaults.standardUserDefaults
-        dictionaryForKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)];
-    const auto tabletDefaults = defaultControlsForIdiom(UIUserInterfaceIdiomPad);
-    if (![self nearlyEqual:[tablet[@"a"][@"x"] doubleValue] other:tabletDefaults[9].x] ||
+    [overlay resetLayoutForIdiom:inactiveIdiom];
+    inactive = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:layoutDefaultsKeyForIdiom(inactiveIdiom)];
+    const auto inactiveDefaults = defaultControlsForIdiom(inactiveIdiom);
+    if (![self nearlyEqual:[inactive[@"a"][@"x"] doubleValue]
+                       other:inactiveDefaults[9].x] ||
         ![self nearlyEqual:[[overlay layoutSnapshotForTesting][@"a"][@"x"] doubleValue]
-                       other:phoneDefaults[9].x]) {
-        [self fail:@"tablet reset changed phone data or missed tablet defaults"];
+                       other:activeDefaults[9].x]) {
+        [self fail:@"inactive reset changed active data or missed inactive defaults"];
         return;
     }
-    [self pass:@"Reset Tablet Layout restores only tablet defaults"];
+    [self pass:@"inactive layout reset preserves current idiom defaults"];
     [overlay beginEditingLayout];
     std::fprintf(stderr, "[dinopad-layout-test] ALL LAYOUT TESTS PASSED\n");
     std::fflush(stderr);

@@ -1,0 +1,1 @@
+IOS RESTORATION REPLAY: PASS (audited non-code package; static no-write dispatch; restored-title candidate; late input candidate frame 26670; writable mods ignored; ROM-free; no crash; screenshots require visual acceptance)

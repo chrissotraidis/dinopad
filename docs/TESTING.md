@@ -39,7 +39,7 @@ tools/check_patchable_aot.py build-macos/DinoPad \
 
 ### Automated smoke
 
-The completed macOS smoke verifies the full list below. On iPhone Simulator,
+The completed macOS smoke verifies the full list below. On iPhone/iPad Simulator,
 `scripts/smoke-ios-rom-import.sh` verifies the real Files picker, exact rejection
 without staging, z64/v64/n64 normalization, private atomic storage, the ROM
 manager, live runtime, ROM-free bundle, and cleanup. `scripts/smoke-ios.sh`
@@ -68,13 +68,13 @@ useful runtime/profile/ROM/save/controller/render fields; adversarial redaction
 before storage and sharing; modal input clearing/restoration; share cancellation;
 temporary report cleanup; ROM-free arm64 packaging; CrashReporter; and guard
 cleanup.
-`scripts/smoke-ios-phase5.sh` is the final iPhone Simulator gate. It keeps one
+`scripts/smoke-ios-phase5.sh` is the final endurance/save gate for each Simulator idiom. It keeps one
 Restored gameplay process live for at least 600 seconds, validates a private
 game-created 128 KiB save by size/hash/slot metadata only, terminates and
 relaunches the same installed app back into controllable gameplay, reruns the
 seven-suite input/lifecycle matrix, proves a Prototype sentinel is unchanged,
 audits bounded diagnostics/arm64/ROM-free/CrashReporter state, and relies on the
-guard for complete cleanup. Phase 5 is green.
+guard for complete cleanup. iPhone Phase 5 and iPad Phase 6 are green.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
 
@@ -90,6 +90,13 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.s
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-phase5.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
+
+The same eight shared harnesses run through
+`scripts/runtime-guard.sh ipad-simulator <IPAD_UDID> ...`. Goal 30a ran the
+complete matrix on iPad Pro 11-inch (M5), including explicit tablet diagnostics,
+visual acceptance, independent idiom persistence, measured PaperPad geometry,
+600 live seconds, and same-install save relaunch. Evidence is in
+`docs/evidence/2026-08-17/ipad-simulator-phase6/`.
 
 `smoke-ios-home.sh` starts from a private data-container ROM, proves the native
 home and Prototype warning do not initialize SDL, then runs Restored until the

@@ -140,9 +140,9 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 The iOS shell now has native Files import/replacement, complete default touch
 input/lifecycle verification, the Restored/Prototype home boundary, editable
 phone/tablet layouts, embedded Restored data, native settings/status, and
-bounded redacted diagnostics/share. Save/relaunch and the 10-minute Phase 5 run
-are now evidenced; iPhone Simulator Phase 5 is green. Shut it down before
-starting the iPad Simulator Phase 6 matrix.
+bounded redacted diagnostics/share. Save/relaunch and 10-minute runs are
+evidenced on both Simulator idioms; iPhone Phase 5 and iPad Phase 6 are green.
+Shut the Simulator down before starting a physical-device runtime.
 
 Choose the ROM from the first-run screen. The app validates, normalizes, and stores it privately. Use the `•••` menu > Manage Game ROM to replace or remove it.
 

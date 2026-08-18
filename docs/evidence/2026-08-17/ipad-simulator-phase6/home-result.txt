@@ -1,0 +1,1 @@
+IOS HOME RESULT: PASS (UIKit home before SDL; Restored primary; Prototype archival warning; isolated profiles; live Quit-to-Home restart; second runtime; no crash)

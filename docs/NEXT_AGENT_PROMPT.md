@@ -7,7 +7,7 @@ project or overstating completion.
 ---
 
 You are resuming the DinoPad autonomous implementation goal from the GitHub
-`main` branch after the 2026-08-16 pause-point merge.
+`main` branch after the 2026-08-17 iPad Simulator Phase 6 milestone.
 
 ## Goal
 
@@ -47,9 +47,10 @@ in the plan.
 - Phases 0-3 are substantially green: repository/pins, macOS native arm64,
   static DinoMod integration, no-write dispatch, profiles, macOS native setup,
   ROM import, gameplay/audio/input/saves, clean shutdown, and smoke tests.
-- Phase 4 is partial pending tablet/device parity; iPhone Simulator Phase 5 is
-  green.
-- The ROM-free iPhone Simulator arm64 app builds and renders RT64 Metal/audio.
+- Phase 4 remains partial pending physical-device parity; iPhone Simulator
+  Phase 5 and iPad Simulator Phase 6 are green.
+- The shared ROM-free iPhone/iPad Simulator arm64 app builds and renders RT64
+  Metal/audio on both idioms.
 - The UIKit touch overlay draws all 15 N64 controls plus an accessible
   persistent `•••` button using PaperPad-derived phone/tablet defaults.
 - The overlay is attached to SDL's UIKit window and merged into the actual
@@ -71,12 +72,19 @@ in the plan.
   useful content-free report through the native share sheet. Its adversarial
   harness proves path redaction, permissions, share/cancel, cleanup, modal input
   clearing, and post-dismissal touch restoration.
-- The iPhone menu exposes real settings, layout, ROM-manager, diagnostics share,
-  resume, and quit-to-home actions. Its native menu contract is green.
+- The iPhone/iPad Simulator menu exposes real settings, layout, ROM-manager,
+  diagnostics share, resume, and quit-to-home actions. Its native menu contract
+  is green on both idioms.
 - Goal 29a completed Phase 5: a private game-created Restored save survived a
   600-second controllable gameplay launch and same-install process relaunch back
   into controllable gameplay, all seven input/lifecycle suites passed, and the
   Prototype sentinel stayed unchanged.
+- Goal 30a completed Phase 6 on iPad Pro 11-inch (M5): every setup/home/ROM/
+  layout/settings/diagnostics/input/restoration/endurance gate passed under a
+  single-runtime guard. Tablet persistence remained isolated from phone keys,
+  Restored stayed live for 600 seconds and survived same-install relaunch into
+  gameplay, Prototype remained unchanged, and PaperPad parity measured 0-point
+  menu delta plus at most 0.64-point control-center delta.
 - Goal 27a added and evidenced the real UIKit Files importer and ROM manager:
   exact size/MD5, z64/v64/n64 normalization, useful rejection, atomic protected
   private storage, replacement/removal, and ROM-free bundle proof.
@@ -89,35 +97,38 @@ in the plan.
   title plus controllable ship-deck cannon gameplay on iPhone. Same-process
   Prototype restart omits package/static dispatch. Redistribution permission is
   still a separate release blocker.
-- iPad Simulator, device builds, physical-device evidence, progression, and
-  release packaging remain open.
+- Device builds, physical-device evidence, progression, and release packaging
+  remain open.
 - DinoMod redistribution permission is an external release blocker, not a reason
   to stop technical development.
 
-## Immediate next goal: Goal 30a
+## Immediate next goal: Goal 31a
 
-Complete iPad Simulator Phase 6 as the next independently verifiable target.
-Run only after confirming the iPhone Simulator and DinoPad process are shut down.
+Complete physical iPhone Phase 7 as the next independently verifiable target.
+Start with read-only connected-device and signing inventory. Run only after
+confirming every Simulator and DinoPad process is shut down.
 
 Acceptance:
 
-1. Clean patch replay and repository-safety audit pass.
-2. macOS incremental build remains green.
-3. The shared iOS Simulator build remains ROM-free and arm64.
-4. Exactly one guarded iPad Simulator installs the arm64 ROM-free app and shows
-   native setup/error/import/home flows without booting an iPhone Simulator.
-5. Tablet defaults render within safe areas; menu, settings, diagnostics/share,
-   ROM manager, and layout editor use readable larger-device presentation.
-6. Tablet layout edits persist independently across process relaunch, phone keys
-   remain unchanged, and tablet reset/cancel/undo/input restoration are proven.
-7. Restored reaches title and controllable gameplay; full N64 touch, menu,
-   lifecycle clearing, and Simulator controller-handoff behavior remain green.
-8. A game-created Restored save survives same-install iPad relaunch back into
-   controllable gameplay while Prototype remains isolated.
-9. No new crash appears, diagnostics stay bounded/redacted, and runtime-guard
-   finishes with no DinoPad process and zero booted Simulators.
-10. Curate measured screenshots/evidence, update parity/status/handoff docs, and
-    commit the smallest coherent Phase 6 milestone.
+1. Clean patch replay, repository-safety audit, macOS incremental build, and
+   Simulator regression remain green.
+2. Inventory a connected supported iPhone, available Apple Development team,
+   signing identity, and provisioning state without exposing signing material.
+3. Build a ROM-free device-arm64 app, sign it with the user's available personal
+   development identity, and install it on exactly one guarded physical iPhone.
+4. Prove first-run ROM import, Restored-primary home, warned Prototype, menu,
+   layout, settings, bounded diagnostics/share, and private storage on device.
+5. Validate physical orientation/safe areas, complete touch, suspend/resume,
+   audio routes available to the device, controller connect/disconnect if
+   hardware is available, and responsive gameplay.
+6. Record at least 30 minutes of gameplay with no severe thermal throttling,
+   memory termination, crash, or input/audio failure.
+7. Perform an in-place update without uninstalling and prove the private ROM and
+   game-created save remain valid and profile-isolated after relaunch.
+8. Curate privacy-safe device evidence, update parity/status/handoff docs, and
+   commit the smallest coherent Phase 7 milestone. If hardware/signing is a
+   genuine external blocker, document exact read-only evidence and continue all
+   safe build/package preparation that does not require the missing authority.
 
 ## Then continue in this order
 
@@ -142,7 +153,7 @@ Acceptance:
   SDL orientation contracts and validate physical devices as final authority.
 - Run patch replay, safety checks, relevant builds, bounded smoke, and evidence
   curation before each milestone commit.
-- Keep reporting honestly: phases 6-10 are not green until their acceptance
+- Keep reporting honestly: phases 7-10 are not green until their acceptance
   criteria and evidence are actually satisfied.
 
 Start by inspecting `git status`, `git log -5`, the current patch lock, the

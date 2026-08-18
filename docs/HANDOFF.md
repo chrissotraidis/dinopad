@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T02:34:32Z
+Last updated: 2026-08-18T03:35:00Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -30,12 +30,14 @@ truthful. Bounded protected diagnostics now redact every complete line before
 persistence, expose useful non-content status, and share through native UIKit
 while preserving modal input policy.
 
-The iPhone Simulator Phase 5 gate is green: a game-created Restored save
-survived a 600-second controllable session and same-install process relaunch
-back into controllable gameplay while Prototype remained unchanged. It is not a
-release-ready iPhone/iPad product. Phase 4 remains partial until tablet/device
-parity is evidenced, and Phases 6-10 (iPad, physical devices,
-progression/stability, and release) remain open.
+The iPhone Simulator Phase 5 and iPad Simulator Phase 6 gates are green. On each
+idiom, a game-created Restored save survived a 600-second controllable session
+and same-install process relaunch back into controllable gameplay while
+Prototype remained unchanged. The iPad run also proves native tablet
+presentation, independent layout persistence, complete input/lifecycle behavior,
+bounded diagnostics, and measured PaperPad parity. It is not a release-ready
+iPhone/iPad product: Phases 7-10 (physical devices, progression/stability, and
+release) remain open.
 
 ## Completed foundation
 
@@ -75,6 +77,10 @@ progression/stability, and release) remain open.
 - Completed iPhone Simulator Phase 5 with a 600-second live Restored gameplay
   run, game-created FlashRAM persistence across same-install relaunch, complete
   input/lifecycle rerun, profile isolation, and clean runtime-guard teardown.
+- Completed iPad Simulator Phase 6 on an iPad Pro 11-inch (M5): all shell,
+  layout, settings, diagnostics, ROM, restoration, input/lifecycle, endurance,
+  and same-install save/relaunch gates passed; menu geometry matched PaperPad
+  exactly and the largest conservative control-center delta was 0.64 point.
 
 ## Current iPhone touch slice
 
@@ -103,17 +109,10 @@ controller is deliberately ignored so Simulator testing can show touch controls.
 
 The current menu reaches real ROM management, touch-layout customization/reset,
 quit-to-home, the complete settings/status hierarchy, and bounded redacted
-diagnostics through a native share sheet. The iPhone menu contract is green.
+diagnostics through a native share sheet. The iPhone and iPad Simulator menu
+contracts are green.
 
 ## What is actually left
-
-### Phase 6: iPad Simulator
-
-- Boot only after iPhone Simulator is shut down.
-- Validate independent tablet layout, layout persistence, safe areas, orientation,
-  larger menu/settings presentation, controller handoff, Restored gameplay, and
-  save/relaunch.
-- Produce a measured parity report against the PaperPad tablet shell.
 
 ### Phases 7-8: physical devices
 
@@ -157,4 +156,5 @@ diagnostics through a native share sheet. The iPhone menu contract is green.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Continue Goal 30a with the complete iPad Simulator Phase 6 matrix.
+4. Continue Goal 31a with connected-device/signing inventory and the complete
+   physical iPhone Phase 7 matrix.
