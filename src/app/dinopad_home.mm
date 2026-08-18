@@ -147,6 +147,206 @@ BOOL ensureROM(NSURL* root) {
 
 }  // namespace
 
+NSColor* macColor(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha = 1.0) {
+    return [NSColor colorWithSRGBRed:red green:green blue:blue alpha:alpha];
+}
+
+NSFont* macThemedFont(NSString* name, CGFloat size, NSFontWeight fallbackWeight) {
+    return [NSFont fontWithName:name size:size] ?: [NSFont systemFontOfSize:size weight:fallbackWeight];
+}
+
+NSTextField* macLabel(NSString* text, NSFont* font, NSColor* textColor) {
+    NSTextField* label = [NSTextField labelWithString:text];
+    label.font = font;
+    label.textColor = textColor;
+    label.lineBreakMode = NSLineBreakByWordWrapping;
+    label.maximumNumberOfLines = 0;
+    return label;
+}
+
+@interface DinoPadMacBackgroundView : NSView
+@end
+
+@implementation DinoPadMacBackgroundView
+
+- (void)drawRect:(NSRect)dirtyRect {
+    NSGradient* gradient = [[NSGradient alloc]
+        initWithStartingColor:macColor(0.010, 0.055, 0.075)
+                     endingColor:macColor(0.022, 0.185, 0.170)];
+    [gradient drawInRect:self.bounds angle:-35.0];
+}
+
+@end
+
+@interface DinoPadMacHomeController : NSWindowController <NSWindowDelegate>
+@property(nonatomic, assign) NSInteger selection;
+@end
+
+@implementation DinoPadMacHomeController
+
+- (instancetype)init {
+    NSWindow* window = [[NSWindow alloc]
+        initWithContentRect:NSMakeRect(0, 0, 1000, 620)
+                  styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+                             NSWindowStyleMaskFullSizeContentView)
+                    backing:NSBackingStoreBuffered
+                      defer:NO];
+    self = [super initWithWindow:window];
+    if (self == nil) return nil;
+
+    self.selection = -1;
+    window.delegate = self;
+    window.title = @"DinoPad";
+    window.titleVisibility = NSWindowTitleHidden;
+    window.titlebarAppearsTransparent = YES;
+    window.movableByWindowBackground = YES;
+    window.backgroundColor = macColor(0.010, 0.055, 0.075);
+    window.minSize = NSMakeSize(760, 520);
+
+    DinoPadMacBackgroundView* background = [[DinoPadMacBackgroundView alloc]
+        initWithFrame:window.contentView.bounds];
+    background.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    window.contentView = background;
+
+    NSURL* artURL = [NSBundle.mainBundle URLForResource:@"dinosaur-jungle-v1"
+                                           withExtension:@"png"];
+    if (artURL != nil) {
+        NSImageView* art = [[NSImageView alloc] initWithFrame:NSZeroRect];
+        art.image = [[NSImage alloc] initWithContentsOfURL:artURL];
+        art.imageScaling = NSImageScaleProportionallyUpOrDown;
+        art.alphaValue = 0.62;
+        art.translatesAutoresizingMaskIntoConstraints = NO;
+        [background addSubview:art];
+        [NSLayoutConstraint activateConstraints:@[
+            [art.trailingAnchor constraintEqualToAnchor:background.trailingAnchor constant:-10.0],
+            [art.bottomAnchor constraintEqualToAnchor:background.bottomAnchor],
+            [art.widthAnchor constraintEqualToConstant:760.0],
+        ]];
+    }
+
+    NSTextField* eyebrow = macLabel(@"DINOPAD PRESENTS",
+        macThemedFont(@"AvenirNextCondensed-DemiBold", 16.0, NSFontWeightBold),
+        macColor(0.72, 0.88, 0.52));
+    NSTextField* title = macLabel(@"DinoPad",
+        macThemedFont(@"Baskerville-Bold", 70.0, NSFontWeightHeavy), NSColor.whiteColor);
+    NSTextField* subtitle = macLabel(@"Two ways to explore a lost dinosaur world.",
+        macThemedFont(@"Avenir Next", 21.0, NSFontWeightMedium),
+        [NSColor colorWithWhite:1.0 alpha:0.86]);
+    NSTextField* select = macLabel(@"SELECT A PATH",
+        macThemedFont(@"AvenirNextCondensed-DemiBold", 16.0, NSFontWeightBold),
+        macColor(0.72, 0.88, 0.52));
+
+    NSButton* restored = [self modeButton:@"Restored Adventure"
+                                  subtitle:@"Recommended"
+                                   symbol:@"leaf.fill"
+                                  primary:YES
+                                   action:@selector(selectRestored:)];
+    NSButton* prototype = [self modeButton:@"Prototype Mode"
+                                   subtitle:@"Original build"
+                                    symbol:@"archivebox.fill"
+                                   primary:NO
+                                    action:@selector(selectPrototype:)];
+    NSButton* replace = [NSButton buttonWithTitle:@"Replace ROM…"
+                                            target:self
+                                            action:@selector(replaceROM:)];
+    replace.bezelStyle = NSBezelStyleTexturedRounded;
+    replace.contentTintColor = [NSColor colorWithWhite:1.0 alpha:0.84];
+    replace.font = macThemedFont(@"AvenirNext-Medium", 15.0, NSFontWeightMedium);
+
+    NSStackView* stack = [NSStackView stackViewWithViews:@[
+        eyebrow, title, subtitle, select, restored, prototype, replace,
+    ]];
+    stack.orientation = NSUserInterfaceLayoutOrientationVertical;
+    stack.alignment = NSLayoutAttributeLeading;
+    stack.spacing = 14.0;
+    [stack setCustomSpacing:8.0 afterView:eyebrow];
+    [stack setCustomSpacing:14.0 afterView:title];
+    [stack setCustomSpacing:34.0 afterView:subtitle];
+    [stack setCustomSpacing:14.0 afterView:select];
+    [stack setCustomSpacing:16.0 afterView:prototype];
+    stack.translatesAutoresizingMaskIntoConstraints = NO;
+    [background addSubview:stack];
+
+    for (NSView* card in @[restored, prototype]) {
+        [card.widthAnchor constraintEqualToConstant:510.0].active = YES;
+        [card.heightAnchor constraintEqualToConstant:94.0].active = YES;
+    }
+    [NSLayoutConstraint activateConstraints:@[
+        [stack.leadingAnchor constraintEqualToAnchor:background.leadingAnchor constant:58.0],
+        [stack.centerYAnchor constraintEqualToAnchor:background.centerYAnchor],
+        [stack.trailingAnchor constraintLessThanOrEqualToAnchor:background.trailingAnchor constant:-36.0],
+    ]];
+    return self;
+}
+
+- (NSButton*)modeButton:(NSString*)title subtitle:(NSString*)subtitle
+                  symbol:(NSString*)symbol primary:(BOOL)primary action:(SEL)action {
+    NSButton* button = [NSButton buttonWithTitle:[title stringByAppendingFormat:@"  •  %@", subtitle]
+                                           target:self
+                                           action:action];
+    button.bordered = NO;
+    button.wantsLayer = YES;
+    button.layer.backgroundColor = (primary ? macColor(0.12, 0.62, 0.34)
+                                             : macColor(0.035, 0.135, 0.150)).CGColor;
+    button.layer.cornerRadius = 16.0;
+    button.layer.borderWidth = primary ? 0.0 : 1.0;
+    button.layer.borderColor = [NSColor colorWithWhite:1.0 alpha:0.20].CGColor;
+    button.contentTintColor = NSColor.whiteColor;
+    button.image = [NSImage imageWithSystemSymbolName:symbol accessibilityDescription:nil];
+    button.imagePosition = NSImageLeft;
+    button.imageScaling = NSImageScaleProportionallyDown;
+    button.focusRingType = NSFocusRingTypeNone;
+    button.alignment = NSTextAlignmentLeft;
+    button.font = macThemedFont(@"AvenirNextCondensed-DemiBold", 22.0, NSFontWeightBold);
+    return button;
+}
+
+- (void)finishWithSelection:(NSInteger)selection {
+    self.selection = selection;
+    [NSApp stopModal];
+    [self.window orderOut:nil];
+}
+
+- (void)selectRestored:(__unused id)sender {
+    [self finishWithSelection:0];
+}
+
+- (void)selectPrototype:(__unused id)sender {
+    NSAlert* warning = [[NSAlert alloc] init];
+    warning.alertStyle = NSAlertStyleWarning;
+    warning.messageText = @"Prototype Mode is archival";
+    warning.informativeText = @"This original build is unfinished and may become progression-blocked. Its saves and settings remain separate.";
+    [warning addButtonWithTitle:@"Start Prototype Mode"];
+    [warning addButtonWithTitle:@"Cancel"];
+    [warning beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse response) {
+        if (response == NSAlertFirstButtonReturn) [self finishWithSelection:1];
+    }];
+}
+
+- (void)replaceROM:(__unused id)sender {
+    [self finishWithSelection:-2];
+}
+
+- (BOOL)windowShouldClose:(__unused id)sender {
+    [self finishWithSelection:-1];
+    return NO;
+}
+
+- (NSInteger)run {
+    [self showWindow:nil];
+    [self.window center];
+    [self.window makeKeyAndOrderFront:nil];
+    [NSApp runModalForWindow:self.window];
+    return self.selection;
+}
+
+@end
+
+NSInteger presentMacHome(void) {
+    DinoPadMacHomeController* controller = [[DinoPadMacHomeController alloc] init];
+    return [controller run];
+}
+
 extern "C" int dinopad_macos_prepare_home(void) {
     @autoreleasepool {
         [NSApplication sharedApplication];
@@ -163,25 +363,9 @@ extern "C" int dinopad_macos_prepare_home(void) {
         if (!ensureROM(root)) return -1;
 
         for (;;) {
-            NSAlert* home = [[NSAlert alloc] init];
-            home.messageText = @"DinoPad";
-            home.informativeText = @"Rare’s unreleased N64 adventure, restored and running natively on Apple Silicon.\n\nRestored Adventure is recommended. Prototype Mode preserves the incomplete base prototype without restoration fixes.";
-            [home addButtonWithTitle:@"Restored Adventure"];
-            [home addButtonWithTitle:@"Prototype Mode"];
-            [home addButtonWithTitle:@"Replace ROM…"];
-            NSModalResponse response = [home runModal];
-            if (response == NSAlertFirstButtonReturn) return 0;
-            if (response == NSAlertSecondButtonReturn) {
-                NSAlert* warning = [[NSAlert alloc] init];
-                warning.alertStyle = NSAlertStyleWarning;
-                warning.messageText = @"Start Prototype Mode?";
-                warning.informativeText = @"This archival mode disables DinoMod restoration. The surviving prototype is incomplete and may be progression-blocked. Its saves and settings are kept separate.";
-                [warning addButtonWithTitle:@"Start Prototype Mode"];
-                [warning addButtonWithTitle:@"Cancel"];
-                if ([warning runModal] == NSAlertFirstButtonReturn) return 1;
-                continue;
-            }
-            chooseAndInstallROM(root);
+            const NSInteger selection = presentMacHome();
+            if (selection == 0 || selection == 1) return (int)selection;
+            if (selection != -2 || !chooseAndInstallROM(root)) return -1;
         }
     }
 }

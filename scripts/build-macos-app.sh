@@ -88,6 +88,9 @@ cp "$ROOT/ref/dino-recomp/assets/promptfont/LICENSE.txt" \
 python3 "$ROOT/tools/package_compiled_dependency_notices.py" --app "$APP"
 # Controller mappings file is read from program_path directly.
 cp build-macos/recompcontrollerdb.txt "$APP/Contents/Resources/recompcontrollerdb.txt"
+# DinoPad-owned launcher art is shared with the native iOS/iPadOS home screen.
+cp "$ROOT/apple/app/dinosaur-jungle-v1.png" \
+  "$APP/Contents/Resources/dinosaur-jungle-v1.png"
 
 cat > "$APP/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>

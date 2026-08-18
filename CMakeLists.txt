@@ -431,6 +431,11 @@ if (DINOPAD_IOS)
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(DinoPad PRIVATE "${DINOPAD_PRIVACY_MANIFEST}")
 
+    set(DINOPAD_HOME_ART "${DINOPAD_ROOT}/apple/app/dinosaur-jungle-v1.png")
+    set_source_files_properties("${DINOPAD_HOME_ART}"
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(DinoPad PRIVATE "${DINOPAD_HOME_ART}")
+
     if (DINOPAD_ENABLE_STATIC_RESTORATION)
         set(DINOPAD_RESTORATION_DATA
             "${DINOPAD_RESTORATION}/dinomod_restoration_data.nrm")
