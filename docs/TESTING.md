@@ -49,14 +49,19 @@ menu/lifecycle/controller handoff, a live render, no crash, and clean shutdown.
 its exact three-member shape, writable-mod omission, static/no-write dispatch,
 an event-driven restored title boundary, and late controllable gameplay input;
 its screenshots require visual acceptance rather than a frame-count-only claim.
+`scripts/smoke-ios-layout.sh` starts from a clean install and uses three launches:
+edit/commit, relaunch/verify/reset, and real-menu capture. Its in-app assertions
+cover move/size/opacity/visibility, D-pad and C-button linking, undo/cancel,
+safe-area clamping, input clearing/restoration, independent phone/tablet keys,
+and independent resets while the script audits arm64, ROM-free, crashes, and
+guard cleanup.
 The remaining Phase 5 automation will extend these until it also verifies:
 
 1. complete menu tree;
 2. settings persistence;
-3. phone layout persistence;
-4. save/relaunch;
-5. 10-minute stability;
-6. clean shutdown.
+3. save/relaunch;
+4. 10-minute stability;
+5. clean shutdown.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
 
@@ -66,6 +71,7 @@ Run the importer and input regressions through the guard:
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-layout.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

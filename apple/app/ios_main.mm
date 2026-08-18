@@ -85,45 +85,60 @@ struct TouchControl {
     CGFloat y;
     CGFloat size;
     CGFloat opacity;
+    bool visible;
 };
 
-std::array<TouchControl, kControlCount> defaultControls() {
-    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+std::array<TouchControl, kControlCount> defaultControlsForIdiom(UIUserInterfaceIdiom idiom) {
+    if (idiom == UIUserInterfaceIdiomPad) {
         return {{
-            {"stick", "", ControlKind::Stick, 0x0000, 0.164, 0.745, 0.090, 0.42},
-            {"d_up", "\u2191", ControlKind::Button, 0x0800, 0.080, 0.550, 0.032, 0.42},
-            {"d_down", "\u2193", ControlKind::Button, 0x0400, 0.080, 0.665, 0.032, 0.42},
-            {"d_left", "\u2190", ControlKind::Button, 0x0200, 0.040, 0.608, 0.032, 0.42},
-            {"d_right", "\u2192", ControlKind::Button, 0x0100, 0.120, 0.608, 0.032, 0.42},
-            {"c_up", "\u2191", ControlKind::Button, 0x0008, 0.904, 0.805, 0.033, 0.42},
-            {"c_down", "\u2193", ControlKind::Button, 0x0004, 0.904, 0.910, 0.033, 0.42},
-            {"c_left", "\u2190", ControlKind::Button, 0x0002, 0.861, 0.858, 0.033, 0.42},
-            {"c_right", "\u2192", ControlKind::Button, 0x0001, 0.946, 0.858, 0.033, 0.42},
-            {"a", "A", ControlKind::Button, 0x8000, 0.893, 0.693, 0.048, 0.48},
-            {"b", "B", ControlKind::Button, 0x4000, 0.826, 0.635, 0.048, 0.48},
-            {"z", "Z", ControlKind::Button, 0x2000, 0.897, 0.581, 0.048, 0.44},
-            {"l", "L", ControlKind::Button, 0x0020, 0.941, 0.460, 0.041, 0.38},
-            {"r", "R", ControlKind::Button, 0x0010, 0.941, 0.374, 0.041, 0.38},
-            {"start", "START", ControlKind::Button, 0x1000, 0.942, 0.291, 0.033, 0.40},
+            {"stick", "", ControlKind::Stick, 0x0000, 0.164, 0.745, 0.090, 0.42, true},
+            {"d_up", "\u2191", ControlKind::Button, 0x0800, 0.080, 0.550, 0.032, 0.42, true},
+            {"d_down", "\u2193", ControlKind::Button, 0x0400, 0.080, 0.665, 0.032, 0.42, true},
+            {"d_left", "\u2190", ControlKind::Button, 0x0200, 0.040, 0.608, 0.032, 0.42, true},
+            {"d_right", "\u2192", ControlKind::Button, 0x0100, 0.120, 0.608, 0.032, 0.42, true},
+            {"c_up", "\u2191", ControlKind::Button, 0x0008, 0.904, 0.805, 0.033, 0.42, true},
+            {"c_down", "\u2193", ControlKind::Button, 0x0004, 0.904, 0.910, 0.033, 0.42, true},
+            {"c_left", "\u2190", ControlKind::Button, 0x0002, 0.861, 0.858, 0.033, 0.42, true},
+            {"c_right", "\u2192", ControlKind::Button, 0x0001, 0.946, 0.858, 0.033, 0.42, true},
+            {"a", "A", ControlKind::Button, 0x8000, 0.893, 0.693, 0.048, 0.48, true},
+            {"b", "B", ControlKind::Button, 0x4000, 0.826, 0.635, 0.048, 0.48, true},
+            {"z", "Z", ControlKind::Button, 0x2000, 0.897, 0.581, 0.048, 0.44, true},
+            {"l", "L", ControlKind::Button, 0x0020, 0.941, 0.460, 0.041, 0.38, true},
+            {"r", "R", ControlKind::Button, 0x0010, 0.941, 0.374, 0.041, 0.38, true},
+            {"start", "START", ControlKind::Button, 0x1000, 0.942, 0.291, 0.033, 0.40, true},
         }};
     }
     return {{
-        {"stick", "", ControlKind::Stick, 0x0000, 0.141, 0.783, 0.1480, 0.38},
-        {"d_up", "\u2191", ControlKind::Button, 0x0800, 0.087, 0.359, 0.0560, 0.38},
-        {"d_down", "\u2193", ControlKind::Button, 0x0400, 0.084, 0.541, 0.0560, 0.38},
-        {"d_left", "\u2190", ControlKind::Button, 0x0200, 0.038, 0.444, 0.0560, 0.38},
-        {"d_right", "\u2192", ControlKind::Button, 0x0100, 0.133, 0.449, 0.0560, 0.38},
-        {"c_up", "\u2191", ControlKind::Button, 0x0008, 0.925, 0.337, 0.0510, 0.52},
-        {"c_down", "\u2193", ControlKind::Button, 0x0004, 0.926, 0.522, 0.0510, 0.52},
-        {"c_left", "\u2190", ControlKind::Button, 0x0002, 0.883, 0.425, 0.0510, 0.52},
-        {"c_right", "\u2192", ControlKind::Button, 0x0001, 0.967, 0.428, 0.0510, 0.52},
-        {"a", "A", ControlKind::Button, 0x8000, 0.930, 0.844, 0.0858, 0.58},
-        {"b", "B", ControlKind::Button, 0x4000, 0.851, 0.736, 0.0792, 0.58},
-        {"z", "Z", ControlKind::Button, 0x2000, 0.924, 0.672, 0.0660, 0.40},
-        {"l", "L", ControlKind::Button, 0x0020, 0.946, 0.188, 0.0500, 0.36},
-        {"r", "R", ControlKind::Button, 0x0010, 0.946, 0.079, 0.0500, 0.36},
-        {"start", "START", ControlKind::Button, 0x1000, 0.874, 0.069, 0.0500, 0.54},
+        {"stick", "", ControlKind::Stick, 0x0000, 0.141, 0.783, 0.1480, 0.38, true},
+        {"d_up", "\u2191", ControlKind::Button, 0x0800, 0.087, 0.359, 0.0560, 0.38, true},
+        {"d_down", "\u2193", ControlKind::Button, 0x0400, 0.084, 0.541, 0.0560, 0.38, true},
+        {"d_left", "\u2190", ControlKind::Button, 0x0200, 0.038, 0.444, 0.0560, 0.38, true},
+        {"d_right", "\u2192", ControlKind::Button, 0x0100, 0.133, 0.449, 0.0560, 0.38, true},
+        {"c_up", "\u2191", ControlKind::Button, 0x0008, 0.925, 0.337, 0.0510, 0.52, true},
+        {"c_down", "\u2193", ControlKind::Button, 0x0004, 0.926, 0.522, 0.0510, 0.52, true},
+        {"c_left", "\u2190", ControlKind::Button, 0x0002, 0.883, 0.425, 0.0510, 0.52, true},
+        {"c_right", "\u2192", ControlKind::Button, 0x0001, 0.967, 0.428, 0.0510, 0.52, true},
+        {"a", "A", ControlKind::Button, 0x8000, 0.930, 0.844, 0.0858, 0.58, true},
+        {"b", "B", ControlKind::Button, 0x4000, 0.851, 0.736, 0.0792, 0.58, true},
+        {"z", "Z", ControlKind::Button, 0x2000, 0.924, 0.672, 0.0660, 0.40, true},
+        {"l", "L", ControlKind::Button, 0x0020, 0.946, 0.188, 0.0500, 0.36, true},
+        {"r", "R", ControlKind::Button, 0x0010, 0.946, 0.079, 0.0500, 0.36, true},
+        {"start", "START", ControlKind::Button, 0x1000, 0.874, 0.069, 0.0500, 0.54, true},
     }};
+}
+
+std::array<TouchControl, kControlCount> defaultControls() {
+    return defaultControlsForIdiom(UIDevice.currentDevice.userInterfaceIdiom);
+}
+
+NSString* layoutDefaultsKeyForIdiom(UIUserInterfaceIdiom idiom) {
+    return idiom == UIUserInterfaceIdiomPad
+        ? @"dinopad.touch.layout.ipad.v1"
+        : @"dinopad.touch.layout.iphone.v1";
+}
+
+NSString* layoutDefaultsKey() {
+    return layoutDefaultsKeyForIdiom(UIDevice.currentDevice.userInterfaceIdiom);
 }
 
 std::atomic<uint16_t> g_touchButtons{0};
@@ -151,6 +166,10 @@ void drainUIKitQueue() {
 @interface DinoPadTouchOverlayView : UIView
 - (void)publishInput;
 - (void)clearInput;
+- (void)beginEditingLayout;
+- (void)finishEditingLayoutSaving:(BOOL)save;
+- (void)resetLayout;
+- (void)resetLayoutForIdiom:(UIUserInterfaceIdiom)idiom;
 - (void)setControlsEnabled:(BOOL)enabled;
 - (void)setModalControlsHidden:(BOOL)hidden;
 - (void)setPhysicalControllerConnected:(BOOL)connected;
@@ -165,6 +184,10 @@ void drainUIKitQueue() {
 - (void)beginSimulatedTouchWithID:(NSInteger)touchID atPoint:(CGPoint)point;
 - (void)moveSimulatedTouchWithID:(NSInteger)touchID toPoint:(CGPoint)point;
 - (void)endSimulatedTouchWithID:(NSInteger)touchID;
+- (BOOL)performEditorActionForTesting:(NSInteger)action;
+- (void)selectControlForTesting:(const char*)key;
+- (void)moveSelectedForTestingToNormalizedPoint:(CGPoint)point;
+- (NSDictionary*)layoutSnapshotForTesting;
 @end
 
 @interface DinoPadInputSmokeRunner : NSObject
@@ -175,13 +198,29 @@ void drainUIKitQueue() {
 + (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay;
 @end
 
+@interface DinoPadLayoutSmokeRunner : NSObject
++ (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay phase:(NSString*)phase;
+@end
+
 @implementation DinoPadTouchOverlayView {
     std::array<TouchControl, kControlCount> _controls;
+    std::array<TouchControl, kControlCount> _undoControls;
+    std::array<TouchControl, kControlCount> _editingStartControls;
     NSMapTable<UITouch*, NSNumber*>* _touchRoles;
+    NSMapTable<UITouch*, NSValue*>* _touchOffsets;
     NSMutableDictionary<NSNumber*, NSNumber*>* _simulatedTouchRoles;
     NSMutableDictionary<NSNumber*, NSValue*>* _simulatedTouchPoints;
     CGPoint _stickOrigin;
     CGPoint _stickKnob;
+    BOOL _editing;
+    BOOL _hasUndo;
+    BOOL _dPadLinked;
+    BOOL _cButtonsLinked;
+    BOOL _undoDPadLinked;
+    BOOL _undoCButtonsLinked;
+    BOOL _editingStartDPadLinked;
+    BOOL _editingStartCButtonsLinked;
+    NSInteger _selected;
     BOOL _controlsEnabled;
     BOOL _controllerConnected;
     BOOL _modalControlsHidden;
@@ -198,8 +237,10 @@ void drainUIKitQueue() {
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _controls = defaultControls();
         _touchRoles = [NSMapTable weakToStrongObjectsMapTable];
+        _touchOffsets = [NSMapTable weakToStrongObjectsMapTable];
         _simulatedTouchRoles = [NSMutableDictionary dictionary];
         _simulatedTouchPoints = [NSMutableDictionary dictionary];
+        _selected = 9;
         _controlsEnabled = YES;
         _globalOpacity = 0.70;
 
@@ -222,6 +263,7 @@ void drainUIKitQueue() {
         [_utilityButton addTarget:self action:@selector(presentUtilityMenu)
                  forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:_utilityButton];
+        [self loadLayout];
 
         NSNotificationCenter* notifications = NSNotificationCenter.defaultCenter;
         [notifications addObserver:self selector:@selector(clearInput)
@@ -297,6 +339,99 @@ void drainUIKitQueue() {
     return NSNotFound;
 }
 
+- (CGFloat)defaultSizeForControl:(const TouchControl&)control {
+    for (const TouchControl& candidate : defaultControls()) {
+        if (std::strcmp(candidate.key, control.key) == 0) return candidate.size;
+    }
+    return control.size;
+}
+
+- (BOOL)isControlInSelectedMoveGroup:(NSInteger)index {
+    if (_selected < 0 || _selected >= static_cast<NSInteger>(kControlCount) ||
+        index < 0 || index >= static_cast<NSInteger>(kControlCount)) return NO;
+    const TouchControl& selected = _controls[_selected];
+    const TouchControl& candidate = _controls[index];
+    if (_dPadLinked && std::strncmp(selected.key, "d_", 2) == 0) {
+        return std::strncmp(candidate.key, "d_", 2) == 0;
+    }
+    if (_cButtonsLinked && std::strncmp(selected.key, "c_", 2) == 0) {
+        return std::strncmp(candidate.key, "c_", 2) == 0;
+    }
+    return index == _selected;
+}
+
+- (BOOL)isSelectedDirectionalGroupLinked {
+    if (_selected < 0 || _selected >= static_cast<NSInteger>(kControlCount)) return NO;
+    const TouchControl& selected = _controls[_selected];
+    if (std::strncmp(selected.key, "d_", 2) == 0) return _dPadLinked;
+    if (std::strncmp(selected.key, "c_", 2) == 0) return _cButtonsLinked;
+    return NO;
+}
+
+- (NSDictionary*)serializedLayout {
+    NSMutableDictionary* saved = [NSMutableDictionary dictionaryWithCapacity:kControlCount + 1];
+    for (const TouchControl& control : _controls) {
+        NSString* key = [NSString stringWithUTF8String:control.key];
+        saved[key] = @{
+            @"x": @(control.x), @"y": @(control.y),
+            @"size": @(control.size), @"opacity": @(control.opacity),
+            @"visible": @(control.visible),
+        };
+    }
+    saved[@"_groups"] = @{
+        @"dPadLinked": @(_dPadLinked),
+        @"cButtonsLinked": @(_cButtonsLinked),
+    };
+    return saved;
+}
+
+- (void)loadLayout {
+    NSDictionary* saved = [NSUserDefaults.standardUserDefaults dictionaryForKey:layoutDefaultsKey()];
+    if (![saved isKindOfClass:NSDictionary.class]) return;
+    NSDictionary* groups = saved[@"_groups"];
+    if ([groups isKindOfClass:NSDictionary.class]) {
+        _dPadLinked = [groups[@"dPadLinked"] boolValue];
+        _cButtonsLinked = [groups[@"cButtonsLinked"] boolValue];
+    }
+    for (TouchControl& control : _controls) {
+        NSString* key = [NSString stringWithUTF8String:control.key];
+        NSDictionary* value = saved[key];
+        if (![value isKindOfClass:NSDictionary.class]) continue;
+        const CGFloat defaultSize = [self defaultSizeForControl:control];
+        NSNumber* xValue = value[@"x"];
+        NSNumber* yValue = value[@"y"];
+        NSNumber* sizeValue = value[@"size"];
+        NSNumber* opacityValue = value[@"opacity"];
+        const double x = xValue.doubleValue;
+        const double y = yValue.doubleValue;
+        const double size = sizeValue.doubleValue;
+        const double opacity = opacityValue.doubleValue;
+        if ([xValue isKindOfClass:NSNumber.class] && std::isfinite(x)) {
+            control.x = MAX(0.0, MIN(1.0, x));
+        }
+        if ([yValue isKindOfClass:NSNumber.class] && std::isfinite(y)) {
+            control.y = MAX(0.0, MIN(1.0, y));
+        }
+        if ([sizeValue isKindOfClass:NSNumber.class] && std::isfinite(size) && size > 0.0) {
+            control.size = MAX(defaultSize * 0.70, MIN(defaultSize * 1.50, size));
+        }
+        if ([opacityValue isKindOfClass:NSNumber.class] &&
+            std::isfinite(opacity) && opacity > 0.0) {
+            control.opacity = MAX(0.24, MIN(0.78, opacity));
+        }
+        control.visible = value[@"visible"] == nil || [value[@"visible"] boolValue];
+    }
+}
+
+- (void)saveLayout {
+    [NSUserDefaults.standardUserDefaults setObject:[self serializedLayout]
+                                           forKey:layoutDefaultsKey()];
+}
+
+- (NSDictionary*)layoutSnapshotForTesting {
+    return [self serializedLayout];
+}
+
 - (CGRect)frameForControl:(const TouchControl&)control {
     CGPoint center = [self centerForControl:control];
     CGFloat radius = [self radiusForControl:control];
@@ -313,6 +448,25 @@ void drainUIKitQueue() {
     }
     return CGRectMake(CGRectGetMidX(usable) - 22.0,
                       CGRectGetMinY(usable) + 4.0, 44.0, 44.0);
+}
+
+- (CGRect)toolbarRectAtIndex:(NSInteger)index {
+    CGRect usable = [self usableBounds];
+    CGFloat width = MIN(62.0, usable.size.width / 9.0);
+    CGFloat total = width * 8.0;
+    return CGRectMake(CGRectGetMidX(usable) - total / 2.0 + width * index,
+                      CGRectGetMinY(usable) + 4.0, width, 44.0);
+}
+
+- (NSArray<NSString*>*)toolbarLabels {
+    const BOOL hasSelection = _selected >= 0 && _selected < static_cast<NSInteger>(kControlCount);
+    const BOOL selectedVisible = hasSelection ? _controls[_selected].visible : YES;
+    const BOOL selectedHideable = hasSelection && _controls[_selected].kind != ControlKind::Stick;
+    NSString* linkLabel = !hasSelection || ![self isDirectional:_controls[_selected]]
+        ? @"SINGLE" : ([self isSelectedDirectionalGroupLinked] ? @"UNLINK" : @"LINK");
+    return @[@"DONE", @"CANCEL", _hasUndo ? @"UNDO" : @"RESET", linkLabel,
+             @"\u2212", @"+", @"FADE",
+             !selectedHideable ? @"FIXED" : (selectedVisible ? @"HIDE" : @"SHOW")];
 }
 
 - (void)layoutSubviews {
@@ -351,12 +505,13 @@ void drainUIKitQueue() {
 }
 
 - (void)drawRect:(CGRect)rect {
-    if (!_controlsEnabled || _controllerConnected || _modalControlsHidden) return;
     CGContextRef context = UIGraphicsGetCurrentContext();
     if (context == nullptr) return;
 
     for (NSInteger index = 0; index < static_cast<NSInteger>(kControlCount); ++index) {
         const TouchControl& control = _controls[index];
+        if (!_editing && (!_controlsEnabled || _controllerConnected || _modalControlsHidden)) continue;
+        if (!control.visible && !_editing) continue;
         CGFloat radius = [self radiusForControl:control];
         CGRect frame = [self frameForControl:control];
         UIBezierPath* path = [self isShoulder:control]
@@ -371,7 +526,9 @@ void drainUIKitQueue() {
                 if (role.integerValue == index) { pressed = YES; break; }
             }
         }
-        CGFloat alpha = MIN(1.0, control.opacity * (_globalOpacity / 0.70));
+        CGFloat alpha = _editing
+            ? (control.visible ? 0.82 : 0.26)
+            : MIN(1.0, control.opacity * (_globalOpacity / 0.70));
         UIColor* accent = [self accentForControl:control];
         UIColor* fill = accent != nil
             ? [accent colorWithAlphaComponent:pressed ? MIN(0.95, alpha + 0.25) : alpha]
@@ -379,9 +536,15 @@ void drainUIKitQueue() {
                                  alpha:pressed ? MIN(0.90, alpha + 0.30) : alpha];
         [fill setFill];
         [path fill];
-        [[UIColor colorWithWhite:1.0 alpha:MIN(0.88, alpha + 0.28)] setStroke];
-        path.lineWidth = 2.0;
+        const BOOL selectedForEditing = _editing && [self isControlInSelectedMoveGroup:index];
+        UIColor* stroke = selectedForEditing
+            ? [UIColor colorWithRed:1.0 green:0.82 blue:0.18 alpha:0.95]
+            : [UIColor colorWithWhite:1.0 alpha:MIN(0.88, alpha + 0.28)];
+        [stroke setStroke];
+        path.lineWidth = selectedForEditing ? 3.0 : 2.0;
+        if (!control.visible) CGContextSetLineDash(context, 0, (CGFloat[]){4.0, 3.0}, 2);
         [path stroke];
+        CGContextSetLineDash(context, 0, nullptr, 0);
 
         if (control.kind == ControlKind::Stick) {
             CGPoint center = [self centerForControl:control];
@@ -402,14 +565,39 @@ void drainUIKitQueue() {
                      inRect:frame size:MAX(11.0, radius * labelScale)];
         }
     }
+
+    if (_editing) {
+        NSArray<NSString*>* labels = [self toolbarLabels];
+        CGRect toolbar = CGRectUnion([self toolbarRectAtIndex:0], [self toolbarRectAtIndex:7]);
+        UIBezierPath* toolbarPath = [UIBezierPath bezierPathWithRoundedRect:toolbar
+                                                              cornerRadius:10.0];
+        [[UIColor colorWithWhite:0.02 alpha:0.88] setFill];
+        [toolbarPath fill];
+        [[UIColor colorWithWhite:1.0 alpha:0.30] setStroke];
+        toolbarPath.lineWidth = 1.0;
+        [toolbarPath stroke];
+        for (NSInteger index = 0; index < 8; ++index) {
+            CGRect item = [self toolbarRectAtIndex:index];
+            if (index > 0) {
+                UIBezierPath* divider = [UIBezierPath bezierPath];
+                [divider moveToPoint:CGPointMake(CGRectGetMinX(item), CGRectGetMinY(item) + 7.0)];
+                [divider addLineToPoint:CGPointMake(CGRectGetMinX(item), CGRectGetMaxY(item) - 7.0)];
+                [[UIColor colorWithWhite:1.0 alpha:0.18] setStroke];
+                divider.lineWidth = 1.0;
+                [divider stroke];
+            }
+            [self drawLabel:labels[index] inRect:item size:10.0];
+        }
+    }
 }
 
-- (NSInteger)controlAtPoint:(CGPoint)point {
-    if (!_controlsEnabled || _controllerConnected || _modalControlsHidden) return NSNotFound;
+- (NSInteger)controlAtPoint:(CGPoint)point includeHidden:(BOOL)includeHidden {
+    if (!_editing && (!_controlsEnabled || _controllerConnected || _modalControlsHidden)) return NSNotFound;
     NSInteger nearest = NSNotFound;
     CGFloat nearestDistance = CGFLOAT_MAX;
     for (NSInteger index = 0; index < static_cast<NSInteger>(kControlCount); ++index) {
         const TouchControl& control = _controls[index];
+        if (!control.visible && !includeHidden) continue;
         CGPoint center = [self centerForControl:control];
         CGFloat distance = hypot(point.x - center.x, point.y - center.y);
         CGFloat radius = [self radiusForControl:control];
@@ -425,6 +613,192 @@ void drainUIKitQueue() {
     return nearest;
 }
 
+- (NSInteger)controlAtPoint:(CGPoint)point {
+    return [self controlAtPoint:point includeHidden:NO];
+}
+
+- (void)recordUndoState {
+    _undoControls = _controls;
+    _undoDPadLinked = _dPadLinked;
+    _undoCButtonsLinked = _cButtonsLinked;
+    _hasUndo = YES;
+}
+
+- (void)beginEditingLayout {
+    _editingStartControls = _controls;
+    _editingStartDPadLinked = _dPadLinked;
+    _editingStartCButtonsLinked = _cButtonsLinked;
+    _hasUndo = NO;
+    _editing = YES;
+    _modalControlsHidden = NO;
+    _utilityButton.hidden = YES;
+    [self clearInput];
+    [self setNeedsDisplay];
+}
+
+- (void)finishEditingLayoutSaving:(BOOL)save {
+    [self clearInput];
+    if (!save) {
+        _controls = _editingStartControls;
+        _dPadLinked = _editingStartDPadLinked;
+        _cButtonsLinked = _editingStartCButtonsLinked;
+    }
+    _editing = NO;
+    _hasUndo = NO;
+    _modalControlsHidden = NO;
+    _utilityButton.hidden = NO;
+    [self saveLayout];
+    [self setNeedsDisplay];
+}
+
+- (void)resetLayoutForIdiom:(UIUserInterfaceIdiom)idiom {
+    const auto controls = defaultControlsForIdiom(idiom);
+    NSMutableDictionary* saved = [NSMutableDictionary dictionaryWithCapacity:kControlCount + 1];
+    for (const TouchControl& control : controls) {
+        saved[[NSString stringWithUTF8String:control.key]] = @{
+            @"x": @(control.x), @"y": @(control.y),
+            @"size": @(control.size), @"opacity": @(control.opacity),
+            @"visible": @(control.visible),
+        };
+    }
+    saved[@"_groups"] = @{@"dPadLinked": @NO, @"cButtonsLinked": @NO};
+    [NSUserDefaults.standardUserDefaults setObject:saved
+                                           forKey:layoutDefaultsKeyForIdiom(idiom)];
+    if (UIDevice.currentDevice.userInterfaceIdiom == idiom) {
+        _controls = controls;
+        _dPadLinked = NO;
+        _cButtonsLinked = NO;
+        [self clearInput];
+        [self setNeedsDisplay];
+    }
+}
+
+- (void)resetLayout {
+    if (_editing) [self recordUndoState];
+    [self resetLayoutForIdiom:UIDevice.currentDevice.userInterfaceIdiom];
+}
+
+- (BOOL)performEditorAction:(NSInteger)action {
+    if (!_editing || action < 0 || action >= 8) return NO;
+    if (action == 0) {
+        [self finishEditingLayoutSaving:YES];
+        return YES;
+    }
+    if (action == 1) {
+        [self finishEditingLayoutSaving:NO];
+        return YES;
+    }
+    if (action == 2) {
+        if (_hasUndo) {
+            std::swap(_controls, _undoControls);
+            std::swap(_dPadLinked, _undoDPadLinked);
+            std::swap(_cButtonsLinked, _undoCButtonsLinked);
+            _hasUndo = NO;
+        } else {
+            [self recordUndoState];
+            _controls = defaultControls();
+            _dPadLinked = NO;
+            _cButtonsLinked = NO;
+        }
+        [self saveLayout];
+        [self setNeedsDisplay];
+        return YES;
+    }
+    if (_selected < 0 || _selected >= static_cast<NSInteger>(kControlCount)) return YES;
+    TouchControl& selected = _controls[_selected];
+    if (action == 3) {
+        if (![self isDirectional:selected]) return YES;
+        [self recordUndoState];
+        if (std::strncmp(selected.key, "d_", 2) == 0) _dPadLinked = !_dPadLinked;
+        else _cButtonsLinked = !_cButtonsLinked;
+    } else if (action == 4 || action == 5) {
+        [self recordUndoState];
+        const CGFloat baseSize = [self defaultSizeForControl:selected];
+        const CGFloat delta = baseSize * 0.10 * (action == 4 ? -1.0 : 1.0);
+        selected.size = MAX(baseSize * 0.70, MIN(baseSize * 1.50, selected.size + delta));
+    } else if (action == 6) {
+        [self recordUndoState];
+        selected.opacity += 0.14;
+        if (selected.opacity > 0.78) selected.opacity = 0.24;
+    } else if (action == 7 && selected.kind != ControlKind::Stick) {
+        [self recordUndoState];
+        selected.visible = !selected.visible;
+    }
+    [self saveLayout];
+    [self setNeedsDisplay];
+    return YES;
+}
+
+- (BOOL)performEditorActionForTesting:(NSInteger)action {
+    return [self performEditorAction:action];
+}
+
+- (BOOL)handleToolbarPoint:(CGPoint)point {
+    if (!_editing) return NO;
+    for (NSInteger index = 0; index < 8; ++index) {
+        if (CGRectContainsPoint([self toolbarRectAtIndex:index], point)) {
+            return [self performEditorAction:index];
+        }
+    }
+    return NO;
+}
+
+- (void)selectControlForTesting:(const char*)key {
+    const NSInteger index = [self controlIndexForKey:key];
+    if (index != NSNotFound) _selected = index;
+}
+
+- (void)moveSelectedToPoint:(CGPoint)point recordUndo:(BOOL)recordUndo {
+    if (_selected < 0 || _selected >= static_cast<NSInteger>(kControlCount)) return;
+    CGRect usable = [self usableBounds];
+    if (usable.size.width <= 0.0 || usable.size.height <= 0.0) return;
+    if (recordUndo) [self recordUndoState];
+    TouchControl& control = _controls[_selected];
+    const CGFloat desiredX = (point.x - CGRectGetMinX(usable)) / usable.size.width;
+    const CGFloat desiredY = (point.y - CGRectGetMinY(usable)) / usable.size.height;
+    if ([self isDirectional:control] && [self isSelectedDirectionalGroupLinked]) {
+        const char* group = std::strncmp(control.key, "d_", 2) == 0 ? "d_" : "c_";
+        CGFloat minimumDeltaX = -CGFLOAT_MAX;
+        CGFloat maximumDeltaX = CGFLOAT_MAX;
+        CGFloat minimumDeltaY = -CGFLOAT_MAX;
+        CGFloat maximumDeltaY = CGFLOAT_MAX;
+        for (const TouchControl& candidate : _controls) {
+            if (std::strncmp(candidate.key, group, 2) != 0) continue;
+            const CGFloat radius = [self radiusForControl:candidate];
+            const CGFloat horizontalMargin = radius / usable.size.width;
+            const CGFloat verticalMargin = radius / usable.size.height;
+            minimumDeltaX = MAX(minimumDeltaX, horizontalMargin - candidate.x);
+            maximumDeltaX = MIN(maximumDeltaX, 1.0 - horizontalMargin - candidate.x);
+            minimumDeltaY = MAX(minimumDeltaY, verticalMargin - candidate.y);
+            maximumDeltaY = MIN(maximumDeltaY, 1.0 - verticalMargin - candidate.y);
+        }
+        const CGFloat deltaX = MAX(minimumDeltaX, MIN(maximumDeltaX, desiredX - control.x));
+        const CGFloat deltaY = MAX(minimumDeltaY, MIN(maximumDeltaY, desiredY - control.y));
+        for (TouchControl& candidate : _controls) {
+            if (std::strncmp(candidate.key, group, 2) == 0) {
+                candidate.x += deltaX;
+                candidate.y += deltaY;
+            }
+        }
+    } else {
+        const CGFloat radius = [self radiusForControl:control];
+        const CGFloat halfWidth = [self isShoulder:control] ? radius * 1.65 : radius;
+        const CGFloat horizontalMargin = MIN(0.5, halfWidth / usable.size.width);
+        const CGFloat verticalMargin = MIN(0.5, radius / usable.size.height);
+        control.x = MAX(horizontalMargin, MIN(1.0 - horizontalMargin, desiredX));
+        control.y = MAX(verticalMargin, MIN(1.0 - verticalMargin, desiredY));
+    }
+    [self setNeedsDisplay];
+}
+
+- (void)moveSelectedForTestingToNormalizedPoint:(CGPoint)point {
+    CGRect usable = [self usableBounds];
+    [self moveSelectedToPoint:CGPointMake(
+        CGRectGetMinX(usable) + point.x * usable.size.width,
+        CGRectGetMinY(usable) + point.y * usable.size.height) recordUndo:YES];
+    [self saveLayout];
+}
+
 - (void)setControlsEnabled:(BOOL)enabled {
     _controlsEnabled = enabled;
     if (!enabled) [self clearInput];
@@ -436,7 +810,7 @@ void drainUIKitQueue() {
 
 - (void)setModalControlsHidden:(BOOL)hidden {
     _modalControlsHidden = hidden;
-    _utilityButton.hidden = hidden;
+    _utilityButton.hidden = hidden || _editing;
     if (hidden) [self clearInput];
     [self setNeedsDisplay];
 }
@@ -476,8 +850,18 @@ void drainUIKitQueue() {
             [self setControlsEnabled:!self->_controlsEnabled];
             [self setModalControlsHidden:NO];
         }]];
-    [menu addAction:[UIAlertAction actionWithTitle:@"Touch Layout & Settings (Coming Next)"
+    [menu addAction:[UIAlertAction actionWithTitle:@"Customize Touch Layout"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            [self beginEditingLayout];
+        }]];
+    [menu addAction:[UIAlertAction actionWithTitle:@"Reset Phone Layout"
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            [self resetLayoutForIdiom:UIUserInterfaceIdiomPhone];
+            [self setModalControlsHidden:NO];
+        }]];
+    [menu addAction:[UIAlertAction actionWithTitle:@"Reset Tablet Layout"
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            [self resetLayoutForIdiom:UIUserInterfaceIdiomPad];
             [self setModalControlsHidden:NO];
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Manage Game ROM"
@@ -598,6 +982,7 @@ void drainUIKitQueue() {
 
 - (void)clearInput {
     [_touchRoles removeAllObjects];
+    [_touchOffsets removeAllObjects];
     [_simulatedTouchRoles removeAllObjects];
     [_simulatedTouchPoints removeAllObjects];
     _stickOrigin = CGPointZero;
@@ -621,25 +1006,50 @@ void drainUIKitQueue() {
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     for (UITouch* touch in touches) {
         CGPoint point = [touch locationInView:self];
-        NSInteger control = [self controlAtPoint:point];
+        if ([self handleToolbarPoint:point]) continue;
+        NSInteger control = [self controlAtPoint:point includeHidden:_editing];
         CGRect usable = [self usableBounds];
-        if (control == NSNotFound && point.x <= CGRectGetMinX(usable) + usable.size.width * 0.47) {
+        if (!_editing && control == NSNotFound &&
+            point.x <= CGRectGetMinX(usable) + usable.size.width * 0.47) {
             control = 0;
         }
         if (control == NSNotFound) continue;
         [_touchRoles setObject:@(control) forKey:touch];
+        _selected = control;
         const TouchControl& item = _controls[control];
-        if (item.kind == ControlKind::Stick) {
+        if (_editing) {
+            [self recordUndoState];
+            CGPoint center = [self centerForControl:item];
+            [_touchOffsets setObject:[NSValue valueWithCGPoint:
+                CGPointMake(center.x - point.x, center.y - point.y)] forKey:touch];
+        } else if (item.kind == ControlKind::Stick) {
             _stickOrigin = [self centerForControl:item];
             _stickKnob = _stickOrigin;
         } else {
             g_touchTaps.extend(item.mask, kTapHoldPolls);
         }
     }
-    [self publishInput];
+    if (!_editing) [self publishInput];
+    else [self setNeedsDisplay];
 }
 
 - (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    if (_editing) {
+        for (UITouch* touch in touches) {
+            NSNumber* found = [_touchRoles objectForKey:touch];
+            if (found == nil) continue;
+            _selected = found.integerValue;
+            CGPoint point = [touch locationInView:self];
+            NSValue* offsetValue = [_touchOffsets objectForKey:touch];
+            if (offsetValue != nil) {
+                CGPoint offset = offsetValue.CGPointValue;
+                point.x += offset.x;
+                point.y += offset.y;
+            }
+            [self moveSelectedToPoint:point recordUndo:NO];
+        }
+        return;
+    }
     for (UITouch* touch in touches) {
         NSNumber* found = [_touchRoles objectForKey:touch];
         if (found == nil) continue;
@@ -654,8 +1064,12 @@ void drainUIKitQueue() {
 }
 
 - (void)finishTouches:(NSSet<UITouch*>*)touches {
-    for (UITouch* touch in touches) [_touchRoles removeObjectForKey:touch];
-    [self publishInput];
+    for (UITouch* touch in touches) {
+        [_touchRoles removeObjectForKey:touch];
+        [_touchOffsets removeObjectForKey:touch];
+    }
+    if (_editing) [self saveLayout];
+    else [self publishInput];
 }
 
 - (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
@@ -705,6 +1119,211 @@ void drainUIKitQueue() {
     [_simulatedTouchRoles removeObjectForKey:@(touchID)];
     [_simulatedTouchPoints removeObjectForKey:@(touchID)];
     [self publishInput];
+}
+
+@end
+
+#pragma mark - Automated Touch Layout Smoke Test Runner
+
+@implementation DinoPadLayoutSmokeRunner
+
++ (void)pass:(NSString*)message {
+    std::fprintf(stderr, "[dinopad-layout-test] PASS: %s\n", message.UTF8String);
+    std::fflush(stderr);
+}
+
++ (void)fail:(NSString*)message {
+    std::fprintf(stderr, "[dinopad-layout-test] FAIL: %s\n", message.UTF8String);
+    std::fflush(stderr);
+}
+
++ (BOOL)nearlyEqual:(double)a other:(double)b {
+    return std::abs(a - b) < 0.0005;
+}
+
++ (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay phase:(NSString*)phase {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.60 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        if ([phase isEqualToString:@"edit"]) [self runEditPhase:overlay];
+        else if ([phase isEqualToString:@"verify"]) [self runVerifyPhase:overlay];
+        else [self fail:[NSString stringWithFormat:@"unknown phase %@", phase]];
+    });
+}
+
++ (void)runEditPhase:(DinoPadTouchOverlayView*)overlay {
+    std::fprintf(stderr, "[dinopad-layout-test] starting edit/persist phase\n");
+    std::fflush(stderr);
+
+    // Seed a recognizable tablet-only value without changing the active phone layout.
+    [overlay resetLayoutForIdiom:UIUserInterfaceIdiomPad];
+    NSMutableDictionary* tablet = [[NSUserDefaults.standardUserDefaults
+        dictionaryForKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)] mutableCopy];
+    NSMutableDictionary* tabletA = [tablet[@"a"] mutableCopy];
+    tabletA[@"x"] = @0.314159;
+    tablet[@"a"] = tabletA;
+    [NSUserDefaults.standardUserDefaults setObject:tablet
+                                           forKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)];
+
+    // Entering editing must clear a held gameplay button.
+    const NSInteger aIndex = [overlay controlIndexForKey:"a"];
+    [overlay beginSimulatedTouchWithID:91 atPoint:[overlay centerForControlIndex:aIndex]];
+    uint16_t buttons = 0;
+    float x = 0.0F;
+    float y = 0.0F;
+    dinopad_touch_snapshot(&buttons, &x, &y);
+    if ((buttons & 0x8000) == 0) {
+        [self fail:@"precondition could not hold A before editing"];
+        return;
+    }
+    [overlay beginEditingLayout];
+    g_touchTaps.clearAll();
+    dinopad_touch_snapshot(&buttons, &x, &y);
+    if (buttons != 0 || x != 0.0F || y != 0.0F) {
+        [self fail:@"editing did not clear held gameplay input"];
+        return;
+    }
+    [self pass:@"editing clears held gameplay input"];
+
+    // A cancelled movement must restore the complete session snapshot.
+    NSDictionary* beforeCancel = [overlay layoutSnapshotForTesting];
+    [overlay selectControlForTesting:"b"];
+    [overlay moveSelectedForTestingToNormalizedPoint:CGPointMake(0.60, 0.60)];
+    [overlay finishEditingLayoutSaving:NO];
+    if (![[overlay layoutSnapshotForTesting] isEqualToDictionary:beforeCancel]) {
+        [self fail:@"Cancel did not restore the pre-edit layout"];
+        return;
+    }
+    [self pass:@"Cancel restores the pre-edit layout"];
+
+    [overlay beginEditingLayout];
+    [overlay selectControlForTesting:"d_up"];
+    NSDictionary* dBefore = [overlay layoutSnapshotForTesting];
+    [overlay performEditorActionForTesting:3];
+    [overlay moveSelectedForTestingToNormalizedPoint:CGPointMake(0.20, 0.50)];
+    NSDictionary* dAfter = [overlay layoutSnapshotForTesting];
+    const double upDelta = [dAfter[@"d_up"][@"x"] doubleValue] -
+                           [dBefore[@"d_up"][@"x"] doubleValue];
+    const double leftDelta = [dAfter[@"d_left"][@"x"] doubleValue] -
+                             [dBefore[@"d_left"][@"x"] doubleValue];
+    if (![dAfter[@"_groups"][@"dPadLinked"] boolValue] ||
+        ![self nearlyEqual:upDelta other:leftDelta]) {
+        [self fail:@"linked D-pad controls did not move as a group"];
+        return;
+    }
+    [self pass:@"D-pad link moves all four controls as a group"];
+
+    [overlay selectControlForTesting:"c_up"];
+    NSDictionary* cBefore = [overlay layoutSnapshotForTesting];
+    [overlay performEditorActionForTesting:3];
+    [overlay moveSelectedForTestingToNormalizedPoint:CGPointMake(0.80, 0.52)];
+    NSDictionary* cAfter = [overlay layoutSnapshotForTesting];
+    const double cUpDelta = [cAfter[@"c_up"][@"y"] doubleValue] -
+                            [cBefore[@"c_up"][@"y"] doubleValue];
+    const double cRightDelta = [cAfter[@"c_right"][@"y"] doubleValue] -
+                               [cBefore[@"c_right"][@"y"] doubleValue];
+    if (![cAfter[@"_groups"][@"cButtonsLinked"] boolValue] ||
+        ![self nearlyEqual:cUpDelta other:cRightDelta]) {
+        [self fail:@"linked C controls did not move as a group"];
+        return;
+    }
+    [self pass:@"C-button link moves all four controls as a group"];
+
+    [overlay selectControlForTesting:"a"];
+    [overlay performEditorActionForTesting:5];
+    [overlay performEditorActionForTesting:6];
+    [overlay performEditorActionForTesting:7];
+    NSDictionary* hidden = [overlay layoutSnapshotForTesting];
+    if ([hidden[@"a"][@"visible"] boolValue]) {
+        [self fail:@"Hide did not change A visibility"];
+        return;
+    }
+    [overlay performEditorActionForTesting:2];
+    NSDictionary* undone = [overlay layoutSnapshotForTesting];
+    if (![undone[@"a"][@"visible"] boolValue]) {
+        [self fail:@"Undo did not restore A visibility"];
+        return;
+    }
+    [self pass:@"resize, fade, hide, and one-step Undo are functional"];
+
+    [overlay performEditorActionForTesting:7];
+    [overlay moveSelectedForTestingToNormalizedPoint:CGPointMake(2.0, -1.0)];
+    NSDictionary* clamped = [overlay layoutSnapshotForTesting];
+    const double clampedX = [clamped[@"a"][@"x"] doubleValue];
+    const double clampedY = [clamped[@"a"][@"y"] doubleValue];
+    if (!(clampedX > 0.0 && clampedX < 1.0 && clampedY > 0.0 && clampedY < 1.0)) {
+        [self fail:@"safe-area clamp allowed an unreachable control center"];
+        return;
+    }
+    [self pass:@"safe-area clamp keeps edited controls reachable"];
+    [overlay performEditorActionForTesting:0];
+
+    // Dismissal must restore gameplay touch handling.
+    const NSInteger bIndex = [overlay controlIndexForKey:"b"];
+    [overlay beginSimulatedTouchWithID:92 atPoint:[overlay centerForControlIndex:bIndex]];
+    dinopad_touch_snapshot(&buttons, &x, &y);
+    if ((buttons & 0x4000) == 0) {
+        [self fail:@"gameplay touch did not resume after editor dismissal"];
+        return;
+    }
+    [overlay clearInput];
+    [self pass:@"gameplay touch resumes after editor dismissal"];
+    [overlay beginEditingLayout];
+    std::fprintf(stderr, "[dinopad-layout-test] EDIT PHASE PASSED; persisted phone layout and tablet sentinel\n");
+    std::fflush(stderr);
+}
+
++ (void)runVerifyPhase:(DinoPadTouchOverlayView*)overlay {
+    std::fprintf(stderr, "[dinopad-layout-test] starting relaunch/reset phase\n");
+    std::fflush(stderr);
+    NSDictionary* phone = [overlay layoutSnapshotForTesting];
+    NSDictionary* tablet = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)];
+    const auto phoneDefaults = defaultControlsForIdiom(UIUserInterfaceIdiomPhone);
+    if ([phone[@"a"][@"visible"] boolValue] ||
+        ![phone[@"_groups"][@"dPadLinked"] boolValue] ||
+        ![phone[@"_groups"][@"cButtonsLinked"] boolValue] ||
+        !([phone[@"a"][@"size"] doubleValue] > phoneDefaults[9].size) ||
+        [self nearlyEqual:[phone[@"a"][@"opacity"] doubleValue]
+                    other:phoneDefaults[9].opacity] ||
+        [self nearlyEqual:[phone[@"a"][@"y"] doubleValue] other:phoneDefaults[9].y]) {
+        [self fail:@"phone edit did not persist across process relaunch"];
+        return;
+    }
+    [self pass:@"phone move/size/opacity/visibility/link persisted across relaunch"];
+    if (![self nearlyEqual:[tablet[@"a"][@"x"] doubleValue] other:0.314159] ||
+        [layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPhone)
+            isEqualToString:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)]) {
+        [self fail:@"phone and tablet persistence are not isolated"];
+        return;
+    }
+    [self pass:@"phone and tablet persistence keys are isolated"];
+
+    [overlay resetLayoutForIdiom:UIUserInterfaceIdiomPhone];
+    NSDictionary* resetPhone = [overlay layoutSnapshotForTesting];
+    tablet = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)];
+    if (![self nearlyEqual:[resetPhone[@"a"][@"x"] doubleValue] other:phoneDefaults[9].x] ||
+        ![resetPhone[@"a"][@"visible"] boolValue] ||
+        ![self nearlyEqual:[tablet[@"a"][@"x"] doubleValue] other:0.314159]) {
+        [self fail:@"phone reset changed tablet data or missed phone defaults"];
+        return;
+    }
+    [self pass:@"Reset Phone Layout restores only phone defaults"];
+
+    [overlay resetLayoutForIdiom:UIUserInterfaceIdiomPad];
+    tablet = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:layoutDefaultsKeyForIdiom(UIUserInterfaceIdiomPad)];
+    const auto tabletDefaults = defaultControlsForIdiom(UIUserInterfaceIdiomPad);
+    if (![self nearlyEqual:[tablet[@"a"][@"x"] doubleValue] other:tabletDefaults[9].x] ||
+        ![self nearlyEqual:[[overlay layoutSnapshotForTesting][@"a"][@"x"] doubleValue]
+                       other:phoneDefaults[9].x]) {
+        [self fail:@"tablet reset changed phone data or missed tablet defaults"];
+        return;
+    }
+    [self pass:@"Reset Tablet Layout restores only tablet defaults"];
+    [overlay beginEditingLayout];
+    std::fprintf(stderr, "[dinopad-layout-test] ALL LAYOUT TESTS PASSED\n");
+    std::fflush(stderr);
 }
 
 @end
@@ -1246,6 +1865,25 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
         if (gameplaySmoke != nullptr && gameplaySmoke[0] != '\0' &&
             gameplaySmoke[0] != '0') {
             [DinoPadGameplaySmokeRunner runWithOverlay:overlay];
+        }
+
+        const char* layoutSmoke = getenv("DINOPAD_RUN_LAYOUT_SMOKE");
+        const char* layoutPhase = getenv("DINOPAD_LAYOUT_SMOKE_PHASE");
+        if (layoutSmoke != nullptr && layoutSmoke[0] != '\0' && layoutSmoke[0] != '0') {
+            NSString* phase = layoutPhase == nullptr
+                ? @"edit" : [NSString stringWithUTF8String:layoutPhase];
+            [DinoPadLayoutSmokeRunner runWithOverlay:overlay phase:phase];
+        }
+
+        const char* touchMenuSmoke = getenv("DINOPAD_SHOW_TOUCH_MENU_SMOKE");
+        if (touchMenuSmoke != nullptr && touchMenuSmoke[0] != '\0' &&
+            touchMenuSmoke[0] != '0') {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.70 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                [overlay presentUtilityMenu];
+                std::fprintf(stderr, "[dinopad-layout-test] touch layout menu presented\n");
+                std::fflush(stderr);
+            });
         }
 
         const char* romManagerSmoke = getenv("DINOPAD_SHOW_ROM_MANAGER_SMOKE");

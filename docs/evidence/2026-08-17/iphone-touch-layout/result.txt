@@ -1,0 +1,1 @@
+IOS TOUCH LAYOUT RESULT: PASS (two-launch persistence; independent phone/tablet defaults; move/resize/fade/hide/link; undo/cancel; safe-area clamp; reset; input restoration; native menu; arm64 ROM-free app; no crash)

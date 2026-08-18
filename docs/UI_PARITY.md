@@ -25,11 +25,11 @@ external dependency.
 | Analog response | Deadzone, nonlinear precision, cardinal bias/flick handling | **Green** **(Goal 26c)** | Deadzone/nonlinear/cardinal plus analog flick retention units in touch_unit_test.cpp; all 4 cardinal directions + diagonal multi-touch verified in the runtime poll on 2026-08-17. |
 | Phone defaults | Grip-first compact layout | Partial | PaperPad-derived centers/sizes used; measured screenshot comparison not yet recorded. |
 | Tablet defaults | Independent larger-device layout | Partial/code only | Never run on iPad Simulator. |
-| Safe areas | Controls/menu avoid notch/Home indicator | Partial | Layout uses safe-area insets; orientation/device verification open. |
-| Persistent `•••` menu | Always reachable, accessible, controller-independent | Partial | Button/menu and Quit to DinoPad Home work; full menu tree and Resume presentation polish remain open. |
+| Safe areas | Controls/menu avoid notch/Home indicator | Partial | Defaults and edited movement clamp complete targets within UIKit safe-area bounds; iPad/orientation/device verification remains open. |
+| Persistent `•••` menu | Always reachable, accessible, controller-independent | Partial | Button/menu, layout customize/reset, ROM manager, and Quit to DinoPad Home work; full settings/status/diagnostics hierarchy remains open. |
 | Modal input policy | Clear input and hide controls for menu/picker/settings/share | Partial | Menu and ROM manager do this (Goals 26c/27a); settings/share flows remain. |
-| Layout editor | Move, group-link, resize, opacity, hide/show, reset, undo | Open | Must port behavior with DinoPad persistence keys. |
-| Independent idiom persistence | Phone/tablet layouts do not contaminate each other | Open | Default selection is idiom-specific; editable persistence absent. |
+| Layout editor | Move, group-link, resize, opacity, hide/show, reset, undo | **Green iPhone Simulator (Goal 28a)** | Adds explicit full-session Cancel to the PaperPad behavior; iPad/device usability proof remains. |
+| Independent idiom persistence | Phone/tablet layouts do not contaminate each other | **Green deterministic (Goal 28a)** | Separate versioned dictionaries and resets survived a two-process harness; actual iPad presentation remains Phase 6. |
 | Touch enable/opacity | Persisted settings and live update | Partial | Storage exists; no complete settings UI. |
 | Controller handoff | Connected controller hides gameplay controls, never menu | Partial | SDL events wired; real hardware/reconnect evidence open. |
 | Input clearing/lifecycle | Resign/background/modal clears held state | **Green Simulator** | Goal 26c proves background/foreground and modal clearing; physical-device interruption evidence remains. |

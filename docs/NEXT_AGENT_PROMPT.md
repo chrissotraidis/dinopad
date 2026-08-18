@@ -49,14 +49,19 @@ in the plan.
   ROM import, gameplay/audio/input/saves, clean shutdown, and smoke tests.
 - Phase 4 is partial and Phase 5 is a playable integration.
 - The ROM-free iPhone Simulator arm64 app builds and renders RT64 Metal/audio.
-- The initial UIKit touch overlay draws all 15 N64 controls plus an accessible
+- The UIKit touch overlay draws all 15 N64 controls plus an accessible
   persistent `•••` button using PaperPad-derived phone/tablet defaults.
 - The overlay is attached to SDL's UIKit window and merged into the actual
   `dino::input::get_n64_input` callback.
 - Goal 26c proved every digital N64 mask, all analog cardinals/zero return,
   simultaneous stick+A+B+Z, modal/background clearing, foreground resume, and
   controller handoff through the actual runtime input callback.
-- The menu still has explicit settings/diagnostics placeholders.
+- Goal 28a added a real native layout editor with move/resize/fade/hide,
+  D-pad/C linking, safe-area clamping, reset, one-step undo, full-session Cancel,
+  and independent persisted phone/tablet dictionaries. A guarded two-process
+  harness proved relaunch persistence, idiom isolation, and input restoration.
+- The menu exposes real layout, ROM-manager, and quit-to-home actions but still
+  lacks the complete settings/status hierarchy and diagnostics/share flow.
 - Goal 27a added and evidenced the real UIKit Files importer and ROM manager:
   exact size/MD5, z64/v64/n64 normalization, useful rejection, atomic protected
   private storage, replacement/removal, and ROM-free bundle proof.
@@ -74,26 +79,33 @@ in the plan.
 - DinoMod redistribution permission is an external release blocker, not a reason
   to stop technical development.
 
-## Immediate next goal: Goal 28a
+## Immediate next goal: Goal 28b
 
-Implement independent persisted phone/tablet touch-layout editing and reset as
-the first coherent slice of the section 3.4 native menu contract. Follow the
-pinned PaperPad behavior while retaining DinoPad controls and branding.
+Complete the native settings sheet and remaining section 3.4 menu/status
+structure as the next independently verifiable slice. Follow pinned PaperPad's
+native form behavior while retaining DinoPad branding and Restored/Prototype
+policy. Keep diagnostics capture/share as Goal 28c unless it is naturally small.
 
 Acceptance:
 
 1. Clean patch replay and repository-safety audit pass.
 2. macOS incremental build remains green.
 3. iPhone Simulator build remains ROM-free and arm64.
-4. The `•••` menu exposes real touch-layout customization and reset actions;
-   no placeholder remains for this slice.
-5. Phone and tablet layouts use independent persistence keys and defaults.
-6. The editor supports the plan/PaperPad behaviors: move, resize, opacity,
-   visibility, group/link where applicable, reset, and undo/cancel semantics.
-7. Safe-area clamping prevents controls from becoming unreachable or sitting
-   under excluded edges; the `•••` button remains reachable.
-8. A deterministic harness proves persistence across relaunch, reset, idiom
-   isolation, input clearing while editing, and restoration after dismissal.
+4. The `•••` menu has coherent Game, Controls, Display, Audio, Game Data, and
+   Support/status coverage; existing layout, ROM-manager, resume, and
+   quit-to-home actions remain reachable.
+5. A native settings surface exposes touch enable/opacity, master volume,
+   aspect ratio, and internal resolution with typed persisted values and live
+   application through narrow C/Objective-C++ bridges.
+6. Mode, restoration, save/recovery, controller, and effective-render status are
+   truthful and read-only where runtime switching is unsafe; no placeholder or
+   knowingly false status ships.
+7. Settings load defensively, modal transitions clear held input, dismissal
+   restores the correct touch/controller state, and phone/tablet presentations
+   remain safe-area readable.
+8. A deterministic two-launch harness proves serialization, relaunch loading,
+   invalid-value fallback/clamping, live bridge calls, input clearing, and
+   dismissal restoration without changing release behavior.
 9. Existing restoration, ROM-import, home/restart, input/lifecycle, and macOS
    smokes remain green with no new crash report or leaked runtime/Simulator.
 10. Curate evidence, update `STATUS`, `TECHNICAL_DEBT`, `UI_PARITY`, patch lock,
@@ -101,8 +113,8 @@ Acceptance:
 
 ## Then continue in this order
 
-1. Complete the native menu/settings/layout editor/diagnostics/ROM manager to
-   PaperPad feature parity and the plan's section 3.4 menu contract.
+1. Add bounded redacted diagnostics capture/share and finish any remaining menu
+   contract gap (Goal 28c).
 2. Finish iPhone save/relaunch and 10-minute smoke.
 3. Shut down iPhone Simulator, then complete iPad Simulator Phase 6.
 4. Complete physical iPhone and iPad phases.

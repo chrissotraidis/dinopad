@@ -20,6 +20,9 @@ gameplay back to home before launching a second isolated profile in-process.
 The iPhone app now embeds only a sanitized non-executable restoration data
 package, refuses writable mods, and visibly reaches the restored title and
 controllable tutorial through statically linked no-write arm64 dispatch.
+The touch layout is now a real persisted product surface: phone/tablet keys are
+independent, and the editor supports safe-area move, resize, fade, hide/show,
+directional linking, reset, undo, Done, and Cancel.
 
 It is not a release-ready iPhone/iPad product. Phase 4 (Apple shell) and Phase 5
 (iPhone Simulator) are partial. Phases 6-10 (iPad, physical devices,
@@ -51,6 +54,9 @@ progression/stability, and release) remain open.
 - Deterministic embedded restoration data with the complete MIPS executable
   segment erased, writable mod scanning disabled, and guarded iPhone proof of
   restored `PRESS START`, controllable cannon gameplay, and Prototype omission.
+- Native touch-layout customization/reset actions plus a guarded two-process
+  proof of phone persistence, tablet isolation, safe-area clamping, input
+  clearing/restoration, reset, undo, and full-session cancel.
 
 ## Current iPhone touch slice
 
@@ -74,20 +80,20 @@ Controller add/remove events drive touch visibility. CoreSimulator's synthetic
 controller is deliberately ignored so Simulator testing can show touch controls.
 
 The current menu is a functional scaffold, not the Definition-of-Done menu.
-ROM management is live; touch layout/settings and diagnostics remain incomplete.
+ROM management and touch-layout customization/reset are live; the complete
+settings/status hierarchy and diagnostics remain incomplete.
 
 ## What is actually left
 
 ### Phase 4/5: finish iPhone
 
-1. Implement independent persisted phone/tablet layout editing and reset.
-2. Replace menu placeholders with the complete plan-listed menu: game/mode,
+1. Replace the remaining flat scaffold with the complete plan-listed menu: game/mode,
    restoration/save status, controls, display, audio, game data, support,
    diagnostics, and quit-to-home.
-3. Add settings bridges for volume, aspect, internal resolution, frame rate,
+2. Add settings bridges for volume, aspect, internal resolution, frame rate,
    HUD placement, and touch opacity/enablement.
-4. Add bounded diagnostics log/redaction/share flows.
-5. Prove save/relaunch and the full 10-minute iPhone Simulator smoke.
+3. Add bounded diagnostics log/redaction/share flows.
+4. Prove save/relaunch and the full 10-minute iPhone Simulator smoke.
 
 ### Phase 6: iPad Simulator
 
@@ -139,5 +145,5 @@ ROM management is live; touch layout/settings and diagnostics remain incomplete.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Implement Goal 28: independent persisted phone/tablet layout editing and
-   reset, then complete the section 3.4 menu/settings/diagnostics contract.
+4. Continue Goal 28b with the remaining section 3.4 menu/settings/status
+   contract, then implement bounded redacted diagnostics/share in Goal 28c.
