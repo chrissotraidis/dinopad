@@ -168,7 +168,17 @@ macOS capture only the DinoPad window; never capture unrelated private desktop c
 
 ### Progression tests
 
-- Private chapter fixtures live only in `private-fixtures/`; commit a manifest (`id`, `mode`, `expected_area`, `expected_action`, `private_sha256`, `last_verified_commit`, `last_verified_target`), never the bytes.
+- Private chapter fixtures live only in ignored private storage; commit metadata
+  to `docs/PROGRESSION_FIXTURES.json`, never the bytes. Validate IDs, modes,
+  checksums, dates, targets, evidence links, and the no-private-path schema with:
+
+```sh
+tools/validate_progression_manifest.py
+```
+
+- The initial manifest entry is the game-created Restored `AAAAA` ship-deck
+  fixture proven on both Simulator idioms. It is explicitly early-game coverage,
+  not a chapter-boundary or start-to-credits claim.
 - Known DinoMod progression repairs are exercised per mode.
 - "Playable start-to-credits" requires one documented complete Restored playthrough on physical Apple hardware; the loop never claims a playthrough it did not perform.
 

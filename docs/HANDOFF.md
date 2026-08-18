@@ -129,7 +129,8 @@ contracts are green.
 
 ### Phase 9: progression and stability
 
-- Run the private fixture matrix.
+- Extend the validated `docs/PROGRESSION_FIXTURES.json` manifest beyond its one
+  early-game `AAAAA` entry, then run the private fixture matrix.
 - Complete at least one Restored start-to-credits physical-device playthrough.
 - Resolve any immediate progression or save blocker.
 - Add longer soak, repeated lifecycle, repeated import, and corruption-recovery
