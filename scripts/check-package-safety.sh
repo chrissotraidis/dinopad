@@ -39,13 +39,17 @@ fail() {
     exit 1
 }
 
-for command in lipo vtool otool codesign plutil unzip shasum strings rg; do
+for command in lipo vtool otool codesign plutil unzip shasum strings rg python3; do
     command -v "$command" >/dev/null || fail "required command is unavailable: $command"
 done
 
 [[ -d "$APP" ]] || fail "app not found: $APP"
 INFO="$APP/Info.plist"
 [[ -f "$INFO" ]] || fail "Info.plist is missing"
+PRIVACY_MANIFEST="$APP/PrivacyInfo.xcprivacy"
+[[ -f "$PRIVACY_MANIFEST" ]] || fail "PrivacyInfo.xcprivacy is missing"
+cmp -s "$ROOT/apple/app/PrivacyInfo.xcprivacy" "$PRIVACY_MANIFEST" ||
+    fail "bundled privacy manifest differs from the tracked declaration"
 
 plist_value() {
     /usr/libexec/PlistBuddy -c "Print :$1" "$INFO"
@@ -70,6 +74,35 @@ vtool -show-build "$EXECUTABLE" | grep -Eq 'minos +15\.0$' ||
 [[ "$(plist_value ITSAppUsesNonExemptEncryption)" == false ]] ||
     fail "encryption declaration is not false"
 plutil -lint "$INFO" >/dev/null || fail "Info.plist is invalid"
+plutil -lint "$PRIVACY_MANIFEST" >/dev/null || fail "privacy manifest is invalid"
+python3 - "$PRIVACY_MANIFEST" <<'PY' || exit 1
+import plistlib
+import sys
+
+path = sys.argv[1]
+with open(path, "rb") as stream:
+    manifest = plistlib.load(stream)
+
+expected = {
+    "NSPrivacyAccessedAPICategoryFileTimestamp": {"C617.1", "3B52.1"},
+    "NSPrivacyAccessedAPICategoryUserDefaults": {"CA92.1"},
+    "NSPrivacyAccessedAPICategorySystemBootTime": {"35F9.1"},
+}
+actual = {
+    entry.get("NSPrivacyAccessedAPIType"): set(entry.get("NSPrivacyAccessedAPITypeReasons", []))
+    for entry in manifest.get("NSPrivacyAccessedAPITypes", [])
+}
+valid = (
+    manifest.get("NSPrivacyTracking") is False
+    and manifest.get("NSPrivacyTrackingDomains") == []
+    and manifest.get("NSPrivacyCollectedDataTypes") == []
+    and actual == expected
+)
+if not valid:
+    print("DinoPad device-app safety audit failed: unexpected privacy manifest declaration",
+          file=sys.stderr)
+    raise SystemExit(1)
+PY
 
 if find "$APP" -type f \( \
     -iname '*.z64' -o -iname '*.v64' -o -iname '*.n64' -o -iname '*.rom' -o \
@@ -143,6 +176,7 @@ echo "DinoPad device-app safety audit passed: $APP"
 echo "  executable: arm64, iOS 15.0+, static system dependencies only"
 echo "  test harness: absent"
 echo "  ROM/save/log/private paths: absent"
+echo "  privacy manifest: no tracking/collection; exact required-reason set"
 echo "  restoration data: sanitized audit input $ACTUAL_RESTORATION_SHA"
 echo "  signing state: $([[ "$ALLOW_SIGNING" -eq 1 ]] && echo development-signed || echo unsigned)"
 echo "NOTE: DinoMod permission and complete license/notices remain separate release blockers."

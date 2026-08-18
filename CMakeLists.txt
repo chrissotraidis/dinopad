@@ -390,6 +390,11 @@ if (DINOPAD_ENABLE_STATIC_RESTORATION)
 endif()
 
 if (DINOPAD_IOS)
+    set(DINOPAD_PRIVACY_MANIFEST "${DINOPAD_ROOT}/apple/app/PrivacyInfo.xcprivacy")
+    set_source_files_properties("${DINOPAD_PRIVACY_MANIFEST}"
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(DinoPad PRIVATE "${DINOPAD_PRIVACY_MANIFEST}")
+
     if (DINOPAD_ENABLE_STATIC_RESTORATION)
         set(DINOPAD_RESTORATION_DATA
             "${DINOPAD_RESTORATION}/dinomod_restoration_data.nrm")

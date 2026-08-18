@@ -28,6 +28,10 @@ dynamic dependencies, no rpath/signing/ROM/save/log/private paths, exact
 sanitized restoration data, and absence of Simulator automation keys,
 selectors, and fixtures. A signed personal-development build uses
 `--allow-signing`; this does not make either build publicly releasable.
+The same gate requires a valid root `PrivacyInfo.xcprivacy` and its exact
+no-tracking/no-collection plus FileTimestamp/UserDefaults/SystemBootTime reason
+set. The privacy-manifest negative control mutates tracking to true and must be
+rejected; final transitive privacy-report review remains a release task.
 
 ### Unit tests
 

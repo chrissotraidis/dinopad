@@ -136,6 +136,11 @@ contracts are green.
   physical Mach-O contains no automation keys/selectors/fixtures or private
   paths and rejects a test-enabled Simulator app; see
   `docs/evidence/2026-08-17/physical-device-release-boundary/`.
+- Both iOS products now contain an exact root privacy manifest. The package gate
+  validates no tracking/collection and the known required-reason set, with a
+  tampered tracking declaration rejected. A final transitive dependency/Xcode
+  privacy report remains open; see
+  `docs/evidence/2026-08-17/privacy-manifest/`.
 
 ### Phase 9: progression and stability
 

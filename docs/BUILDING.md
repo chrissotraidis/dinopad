@@ -70,6 +70,10 @@ contains an automation key/selector/fixture, personal path, unexpected runtime
 dependency, signing residue in unsigned mode, ROM/save/log, or restoration data
 that differs from its generated sanitization audit. This is a development app
 gate; it does not close the separate rights/notices or public-package gates.
+Both iOS products also bundle `PrivacyInfo.xcprivacy` at the app root. The
+package gate validates its exact no-tracking/no-collection and required-reason
+declarations; the final release still requires a transitive dependency/Xcode
+privacy-report review.
 
 ## macOS session profiles
 

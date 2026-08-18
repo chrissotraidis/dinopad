@@ -1,0 +1,13 @@
+IOS PRIVACY MANIFEST: PASS
+bundle location: DinoPad.app/PrivacyInfo.xcprivacy
+plist validation: PASS
+tracking: false
+tracking domains: 0
+collected data types: 0
+required-reason categories: FileTimestamp, UserDefaults, SystemBootTime
+required reasons: C617.1, 3B52.1, CA92.1, 35F9.1
+device app exact-copy check: PASS
+Simulator app exact-copy check: PASS
+device package-safety integration: PASS
+negative control (tracking=true): REJECTED
+App Store/final transitive privacy audit claim: none
