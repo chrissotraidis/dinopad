@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T05:44:49Z
+Last updated: 2026-08-18T07:50:00Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -171,9 +171,14 @@ contracts are green.
   `docs/evidence/2026-08-17/physical-device-release-boundary/`.
 - Both iOS products now contain an exact root privacy manifest. The package gate
   validates no tracking/collection and the known required-reason set, with a
-  tampered tracking declaration rejected. A final transitive dependency/Xcode
-  privacy report remains open; see
-  `docs/evidence/2026-08-17/privacy-manifest/`.
+  tampered tracking declaration rejected. Goal 31m additionally produced an
+  unsigned Organizer-input archive using `CODE_SIGNING_ALLOWED=NO
+  SKIP_INSTALL=NO INSTALL_PATH=/Applications`; its app payload passed all local
+  package, compiler-inventory, and notice gates. This host cannot open Organizer
+  until Xcode's first-launch 8.52 GiB iOS platform component is installed, so no
+  aggregate Xcode report or final transitive privacy conclusion exists. The
+  audit-only archive's static-library byproducts also make it non-distributable.
+  See `docs/evidence/2026-08-18/ios-archive-privacy-preflight/`.
 
 ### Phase 9: progression and stability
 
@@ -213,5 +218,8 @@ contracts are green.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Continue Goal 31a with connected-device/signing inventory and the complete
-   physical iPhone Phase 7 matrix.
+4. When an authorized maintainer has installed the required Xcode platform,
+   open the Goal 31m archive in Organizer, generate and retain the aggregate
+   privacy report, and reconcile it against the final linked SDK set. Then
+   resume the complete physical iPhone Phase 7 matrix once a device and signing
+   identity are available.

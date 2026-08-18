@@ -1,9 +1,9 @@
 # DinoPad Status
 
-Last updated: 2026-08-18T07:32:09Z
-Current commit: Goal 31l unsigned physical-iOS rebuild/package-audit (this commit)
+Last updated: 2026-08-18T07:50:00Z
+Current commit: Goal 31m unsigned Xcode archive/privacy-report preflight complete (predecessor 5b0fd2f)
 Current phase: Phase 7 - Physical iPhone
-Active goal: Goal 31a (physical iPhone build/install and product validation)
+Active goal: Goal 31m outcome documented; Xcode Organizer report remains externally unavailable on this host
 
 ## Green
 
@@ -66,6 +66,7 @@ Active goal: Goal 31a (physical iPhone build/install and product validation)
 - Goal 31j inline-primary notice assembly is green as a mechanical package step and remains red for release (2026-08-18): five tracked notice documents assemble the visible primary inline blocks and attributions for ConcurrentQueue, nlohmann/json, SSE2NEON, miniz, and plainargs. Seven component records bind those files exactly, including duplicate vendored roots. Rebuilt macOS and physical-iOS apps now index and package one notice file for every 46/41 compiler-derived component root. Modified assembled-file and assembly-hash controls reject; both package audits pass. Secondary-notice and second-person legal-completeness review remain open, so the rights gate still fails closed with 5 blockers. No clearance or release is claimed. Evidence: docs/evidence/2026-08-18/assembled-inline-notices/.
 - Goal 31k external prerequisites remain blocked on recheck (2026-08-18): `devicectl` reports no physical devices and the keychain reports 0 valid code-signing identities, so Phase 7/8 install/runtime work cannot begin. Zero Simulators and zero DinoPad processes are active. The source tree was clean after Goal 31j. The earlier 14 GiB disk finding is superseded by Goal 31l's recheck: 25 GiB are currently free, clearing the documented 20 GiB build gate; device/signing remain externally blocked. Evidence: docs/evidence/2026-08-18/external-blocker-recheck/.
 - Goal 31l unsigned physical-iOS rebuild/package-audit is green (2026-08-18): with 25 GiB free, a fresh unsigned `iphoneos` build regenerated the 41-component target-specific notice tree and passed the independent compiler-inventory, notice, privacy, restoration, architecture, ROM/private-path, signing-absence, and test-harness-absence audits. The 58 MiB app is arm64-only and iOS 15.0+; strict rights validation correctly remains fail-closed with the five documented release blockers. No simulator/runtime was launched, and no physical-device claim is made. Evidence: docs/evidence/2026-08-18/unsigned-ios-rebuild-package-audit/.
+- Goal 31m Xcode archive/privacy-report preflight is locally green but does not close the final privacy gate (2026-08-18): an unsigned `iphoneos` archive was reproducibly created with `CODE_SIGNING_ALLOWED=NO SKIP_INSTALL=NO INSTALL_PATH=/Applications`; its 56 MiB `DinoPad.app` contains the exact root privacy manifest and passes the device package-safety, compiler-inventory, and compiled-notice gates. The normal generated target defaults to `SKIP_INSTALL=YES` with an empty install path, so a plain archive is only a 4 KiB shell; the archive-only overrides are required for an Organizer input and also leave static-library byproducts beside the app, making this audit-only archive non-distributable. Xcode 26.6 cannot reach Organizer on this host because its first-launch chooser requires an 8.52 GiB iOS platform download (plus an optional 2 GiB predictive model), which was not installed. Therefore no aggregate Xcode privacy report or transitive-SDK conclusion is claimed. Evidence: docs/evidence/2026-08-18/ios-archive-privacy-preflight/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
 - docs/UPSTREAM.md written and current (2026-08-18): pinned sources table, 26-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
 - scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
@@ -185,14 +186,14 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: f
 
 ## Selected next goal
 
-Goal 31a: inventory connected Apple devices and signing availability, then build,
-sign, install, and validate DinoPad on one supported physical iPhone. Cover native
-setup/home/import/menu/layout/settings/diagnostics, orientation and safe areas,
-touch/controller/lifecycle/audio behavior, Restored gameplay, save/relaunch,
-thermal/memory observations, ROM-free device-arm64 packaging, and crash cleanup.
-The refreshed unsigned build/package preflight is green, but no known device or
-signing identity is currently available. Recheck these prerequisites before any
-physical runtime claim.
+Goal 31m outcome: the ignored audit archive is reproducible without signing or
+a device only when `SKIP_INSTALL=NO` and `INSTALL_PATH=/Applications` accompany
+`CODE_SIGNING_ALLOWED=NO`. Its app payload passes all local device-package,
+compiler-inventory, and notice checks. Xcode Organizer's documented report
+action could not be inspected because this host's Xcode first-launch chooser
+requires the 8.52 GiB iOS platform component; it was deliberately not installed.
+No aggregate report or final transitive privacy conclusion exists. Evidence:
+docs/evidence/2026-08-18/ios-archive-privacy-preflight/.
 
 Goal 30a outcome: iPad Simulator Phase 6 is green. The complete tablet shell and
 runtime matrix passed under one-runtime guards, including measured PaperPad
