@@ -27,6 +27,7 @@ cmake -S "$ROOT" -B "$BUILD_DIR" -G Xcode \
     -DCMAKE_SYSTEM_NAME=iOS \
     -DCMAKE_OSX_SYSROOT=iphonesimulator \
     -DCMAKE_OSX_ARCHITECTURES=arm64 \
+    -DDINOPAD_ENABLE_TEST_HARNESS=ON \
     -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
 
 cmake --build "$BUILD_DIR" --config Release --target DinoPad -- \

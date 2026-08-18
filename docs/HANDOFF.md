@@ -131,6 +131,11 @@ contracts are green.
   mode: arm64-only, physical `IOS` platform, ROM-free, and free of signature or
   provisioning state. Resume signing/install when hardware and an identity exist;
   see `docs/evidence/2026-08-17/physical-device-preflight/`.
+- Simulator automation is now compile-time test-only. Simulator builds opt in;
+  physical builds force it off. The reusable device-app safety gate proves the
+  physical Mach-O contains no automation keys/selectors/fixtures or private
+  paths and rejects a test-enabled Simulator app; see
+  `docs/evidence/2026-08-17/physical-device-release-boundary/`.
 
 ### Phase 9: progression and stability
 

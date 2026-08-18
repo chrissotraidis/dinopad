@@ -1,6 +1,7 @@
 // home.mm - DinoPad-owned native iPhone/iPad home and profile chooser.
 
 #import "home.h"
+#import "test_harness.h"
 
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
@@ -79,8 +80,10 @@ UIButton* profileButton(NSString* title, NSString* subtitle, BOOL primary) {
 
 @interface DinoPadHomeController : UIViewController
 @property(nonatomic, assign) NSInteger selection;
+#if DINOPAD_ENABLE_TEST_HARNESS
 @property(nonatomic, assign) NSInteger presentationOrdinal;
 @property(nonatomic, assign) BOOL automationStarted;
+#endif
 @end
 
 @implementation DinoPadHomeController
@@ -192,6 +195,7 @@ UIButton* profileButton(NSString* title, NSString* subtitle, BOOL primary) {
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+#if DINOPAD_ENABLE_TEST_HARNESS
     if (self.automationStarted) return;
     self.automationStarted = YES;
 
@@ -222,6 +226,7 @@ UIButton* profileButton(NSString* title, NSString* subtitle, BOOL primary) {
             });
         });
     }
+#endif
 }
 
 - (void)selectRestored {
@@ -254,11 +259,15 @@ UIButton* profileButton(NSString* title, NSString* subtitle, BOOL primary) {
 
 int dinopad_present_home(void) {
     @autoreleasepool {
+#if DINOPAD_ENABLE_TEST_HARNESS
         static NSInteger presentationCount = 0;
         ++presentationCount;
+#endif
 
         DinoPadHomeController* controller = [[DinoPadHomeController alloc] init];
+#if DINOPAD_ENABLE_TEST_HARNESS
         controller.presentationOrdinal = presentationCount;
+#endif
 
         UIWindowScene* scene = activeWindowScene();
         UIWindow* window = scene != nil

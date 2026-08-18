@@ -1,0 +1,11 @@
+PHYSICAL DEVICE RELEASE BOUNDARY: PASS
+device executable: arm64; platform IOS; min iOS 15.0; unsigned
+device executable bytes: 21670752
+device executable sha256: 6852b86e8bd7145318e61949c42ed7475f251b944f84aae261d549bfe8cd452c
+test automation keys/selectors/fixtures in device binary: 0
+ROM/save/log/private paths/signing/runtime dylibs: 0
+restoration package sha256: 2ee8befb8ee724e776f52b7654eb2202ae9f6971d716df1aafc5346e617be5e1
+negative control: test-enabled Simulator app rejected
+Simulator regression: PASS (all input/lifecycle suites; live 8s)
+cleanup: 0 booted Simulators; 0 DinoPad processes
+release claim: none; rights/notices, physical runtime, and progression remain open

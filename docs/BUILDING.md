@@ -24,6 +24,7 @@ scripts/build-macos-app.sh --rom /absolute/path/to/your/rom
 scripts/build-ios-simulator.sh
 scripts/build-ios-device.sh                 # unsigned iphoneos build
 scripts/build-ios-device.sh --team TEAM_ID # personal-development signed build
+scripts/check-package-safety.sh             # audit unsigned device app
 # later: scripts/package-ios.sh
 ```
 
@@ -61,6 +62,14 @@ Scripts still verify/fetch pins and apply maintained patches; they refuse to con
 | Physical iOS | `build-ios-device/Release-iphoneos/DinoPad.app` | arm64 device app; unsigned by default, or personal-team signed with `--team` |
 
 Both app artifacts must remain ROM-free (`scripts/check-package-safety.sh` in Phase 10).
+
+The Simulator target explicitly compiles deterministic environment-driven test
+harnesses used by the guarded smoke scripts. The physical-device target forces
+those harnesses off. `scripts/check-package-safety.sh` fails a physical app that
+contains an automation key/selector/fixture, personal path, unexpected runtime
+dependency, signing residue in unsigned mode, ROM/save/log, or restoration data
+that differs from its generated sanitization audit. This is a development app
+gate; it does not close the separate rights/notices or public-package gates.
 
 ## macOS session profiles
 

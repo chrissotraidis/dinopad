@@ -17,6 +17,18 @@ Status: Active implementation contract (updated 2026-08-18).
 - macOS arm64 app; iOS Simulator arm64 app; iOS device arm64 app.
 - Package audit (Phase 10): ROM-free, save-free, signing-free, no personal paths.
 
+The current device-app gate is:
+
+```sh
+scripts/check-package-safety.sh
+```
+
+It verifies an unsigned physical-iOS arm64 app, iOS 15 minimum, system-only
+dynamic dependencies, no rpath/signing/ROM/save/log/private paths, exact
+sanitized restoration data, and absence of Simulator automation keys,
+selectors, and fixtures. A signed personal-development build uses
+`--allow-signing`; this does not make either build publicly releasable.
+
 ### Unit tests
 
 Target areas: ROM byte-order normalization; fingerprint validation; path sanitization; settings serialization; mode/save namespace selection; touch coordinate mapping; controller mapping; DinoMod manifest parsing; diagnostics redaction; runtime-guard behavior.

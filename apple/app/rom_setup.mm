@@ -3,6 +3,7 @@
 // 2000 Dinosaur Planet prototype fingerprint before private storage.
 
 #import "rom_setup.h"
+#import "test_harness.h"
 
 #import <CommonCrypto/CommonDigest.h>
 #import <Foundation/Foundation.h>
@@ -159,6 +160,7 @@ BOOL installROMFromURL(NSURL* sourceURL, NSError** error) {
     return YES;
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 BOOL runROMImportSmokeIfRequested(NSURL* root) {
     NSDictionary<NSString*, NSString*>* environment = NSProcessInfo.processInfo.environment;
     if (![environment[@"DINOPAD_RUN_ROM_IMPORT_SMOKE"] boolValue]) return YES;
@@ -245,6 +247,7 @@ BOOL runROMImportSmokeIfRequested(NSURL* root) {
     std::fflush(stderr);
     return YES;
 }
+#endif
 
 UIViewController* topViewController(UIViewController* controller) {
     while (controller.presentedViewController != nil) {
@@ -354,18 +357,24 @@ void styleButton(UIButton* button) {
     picker.allowsMultipleSelection = NO;
     picker.modalPresentationStyle = UIModalPresentationFormSheet;
     [self presentViewController:picker animated:YES completion:nil];
+#if DINOPAD_ENABLE_TEST_HARNESS
     std::fprintf(stderr, "[dinopad-rom-test] Files picker presented\n");
+#else
+    std::fprintf(stderr, "[DinoPad] Files picker presented\n");
+#endif
     std::fflush(stderr);
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+#if DINOPAD_ENABLE_TEST_HARNESS
     NSString* smoke = NSProcessInfo.processInfo.environment[@"DINOPAD_SHOW_ROM_PICKER_SMOKE"];
     if (!self.smokePickerPresented && smoke.boolValue) {
         self.smokePickerPresented = YES;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ [self chooseROM]; });
     }
+#endif
 }
 
 - (void)documentPicker:(UIDocumentPickerViewController*)controller
@@ -399,7 +408,9 @@ bool dinopad_prepare_rom_setup(void) {
                          error.localizedDescription.UTF8String);
             return false;
         }
+#if DINOPAD_ENABLE_TEST_HARNESS
         if (!runROMImportSmokeIfRequested(root)) return false;
+#endif
         if (validateInstalledROM(root)) return true;
 
         DinoPadROMSetupController* controller = [[DinoPadROMSetupController alloc] init];
@@ -407,7 +418,11 @@ bool dinopad_prepare_rom_setup(void) {
         window.windowLevel = UIWindowLevelNormal + 2.0;
         window.rootViewController = controller;
         [window makeKeyAndVisible];
+#if DINOPAD_ENABLE_TEST_HARNESS
         std::fprintf(stderr, "[dinopad-rom-test] First-run setup presented\n");
+#else
+        std::fprintf(stderr, "[DinoPad] First-run setup presented\n");
+#endif
         std::fflush(stderr);
 
         while (!controller.imported) {

@@ -67,6 +67,7 @@ configure_args=(
     -DCMAKE_SYSTEM_NAME=iOS
     -DCMAKE_OSX_SYSROOT=iphoneos
     -DCMAKE_OSX_ARCHITECTURES=arm64
+    -DDINOPAD_ENABLE_TEST_HARNESS=OFF
 )
 build_args=(-quiet -sdk iphoneos)
 
@@ -111,10 +112,12 @@ if [[ -n "$TEAM" ]]; then
         exit 1
     }
     echo "DinoPad signed iOS device app ready: $APP"
+    "$ROOT/scripts/check-package-safety.sh" --allow-signing "$APP"
 else
     [[ ! -e "$APP/_CodeSignature" && ! -e "$APP/embedded.mobileprovision" ]] || {
         echo "ERROR: unsigned device app unexpectedly contains signing state" >&2
         exit 1
     }
     echo "DinoPad unsigned iOS device app ready: $APP"
+    "$ROOT/scripts/check-package-safety.sh" "$APP"
 fi

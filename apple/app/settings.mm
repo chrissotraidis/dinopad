@@ -11,6 +11,7 @@
 #import "diagnostics.h"
 #import "rom_setup.h"
 #import "settings.h"
+#import "test_harness.h"
 
 #include "config/config.hpp"
 #include "ultramodern/ultramodern.hpp"
@@ -24,7 +25,9 @@ extern "C" void dinopad_shell_reset_current_layout(void);
 extern "C" void dinopad_shell_quit_to_home(void);
 extern "C" int dinopad_shell_controller_connected(void);
 extern "C" void dinopad_shell_request_config_save(void);
+#if DINOPAD_ENABLE_TEST_HARNESS
 extern "C" int dinopad_shell_test_touch_after_settings(void);
+#endif
 extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y);
 
 namespace {
@@ -112,15 +115,19 @@ bool configFilesExist() {
     return sound && graphics;
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 void settingsTestLog(NSString* message) {
     std::fprintf(stderr, "[dinopad-settings-test] %s\n", message.UTF8String);
     std::fflush(stderr);
 }
+#endif
 
 } // namespace
 
 @interface DinoPadSettingsViewController : UIViewController
+#if DINOPAD_ENABLE_TEST_HARNESS
 - (void)runAutomationPhase:(NSString*)phase;
+#endif
 @end
 
 @implementation DinoPadSettingsViewController {
@@ -457,6 +464,7 @@ void settingsTestLog(NSString* message) {
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 - (void)runAutomationPhase:(NSString*)phase {
     uint16_t buttons = 0;
     float x = 0.0F;
@@ -543,6 +551,7 @@ void settingsTestLog(NSString* message) {
         }];
     });
 }
+#endif
 
 @end
 
@@ -555,6 +564,7 @@ extern "C" void dinopad_present_settings(void* presenter_pointer) {
     dinopad_shell_set_modal_hidden(1);
     DinoPadSettingsViewController* settings = [DinoPadSettingsViewController new];
     settings.modalPresentationStyle = UIModalPresentationFormSheet;
+#if DINOPAD_ENABLE_TEST_HARNESS
     [presenter presentViewController:settings animated:YES completion:^{
         const char* smoke = std::getenv("DINOPAD_RUN_SETTINGS_SMOKE");
         const char* phase = std::getenv("DINOPAD_SETTINGS_SMOKE_PHASE");
@@ -563,4 +573,7 @@ extern "C" void dinopad_present_settings(void* presenter_pointer) {
                 ? @"edit" : [NSString stringWithUTF8String:phase]];
         }
     }];
+#else
+    [presenter presentViewController:settings animated:YES completion:nil];
+#endif
 }

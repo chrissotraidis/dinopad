@@ -16,6 +16,7 @@
 
 #import "diagnostics.h"
 #import "rom_setup.h"
+#import "test_harness.h"
 
 #include "config/config.hpp"
 #include "ultramodern/ultramodern.hpp"
@@ -58,9 +59,11 @@ NSURL* previousSessionUncleanMarkerURL(NSURL* root) {
     return [diagnosticsDirectory(root) URLByAppendingPathComponent:@"dinopad-previous-unclean"];
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 NSURL* smokeEvidenceURL(NSURL* root) {
     return [diagnosticsDirectory(root) URLByAppendingPathComponent:@"dinopad-smoke-report.txt"];
 }
+#endif
 
 void writeAll(int descriptor, const char* bytes, size_t length) {
     while (length > 0) {
@@ -313,6 +316,7 @@ bool writePrivateText(NSString* text, NSURL* url, NSError** error) {
     return true;
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 bool validateDiagnosticsSmoke(NSString* report, NSURL* root, NSURL* reportURL) {
     NSData* reportData = [report dataUsingEncoding:NSUTF8StringEncoding];
     NSArray<NSString*>* required = @[
@@ -347,6 +351,7 @@ bool validateDiagnosticsSmoke(NSString* report, NSURL* root, NSURL* reportURL) {
         [storedText rangeOfString:[@"/" stringByAppendingString:@"Users/diagnostic-owner"]].location == NSNotFound &&
         [storedText rangeOfString:@"<PATH>"].location != NSNotFound;
 }
+#endif
 
 } // namespace
 
@@ -378,7 +383,9 @@ extern "C" void dinopad_start_diagnostics_log(void) {
     if (previousMayBeUnclean) createPrivateMarker(unclean);
     [files removeItemAtURL:active error:nil];
     createPrivateMarker(active);
+#if DINOPAD_ENABLE_TEST_HARNESS
     [files removeItemAtURL:smokeEvidenceURL(root) error:nil];
+#endif
 
     const int logDescriptor = open(latest.fileSystemRepresentation,
         O_WRONLY | O_CREAT | O_TRUNC, 0600);
@@ -470,6 +477,7 @@ extern "C" void dinopad_present_diagnostics_share(void* presenter_pointer,
             return;
         }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
         const BOOL smoke =
             [NSProcessInfo.processInfo.environment[@"DINOPAD_RUN_DIAGNOSTICS_SMOKE"] boolValue];
         if (smoke) {
@@ -482,6 +490,9 @@ extern "C" void dinopad_present_diagnostics_share(void* presenter_pointer,
                 std::fflush(stderr);
             }
         }
+#else
+        const BOOL smoke = NO;
+#endif
 
         __block BOOL finished = NO;
         void (^finishOnce)(void) = ^{

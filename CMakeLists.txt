@@ -5,6 +5,9 @@ project(DinoPad LANGUAGES C CXX)
 set(DINOPAD_VERSION "0.1.0")
 set(DINOPAD_BUILD_NUMBER "1")
 
+option(DINOPAD_ENABLE_TEST_HARNESS
+    "Compile environment-driven iOS Simulator automation" OFF)
+
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Minimum iOS version" FORCE)
     set(DINOPAD_IOS TRUE)
@@ -378,6 +381,9 @@ target_compile_options(DinoPad PRIVATE
 target_link_libraries(DinoPad PRIVATE
     dinopad_runtime
     dinopad_sdl2)
+
+target_compile_definitions(DinoPad PRIVATE
+    DINOPAD_ENABLE_TEST_HARNESS=$<BOOL:${DINOPAD_ENABLE_TEST_HARNESS}>)
 
 if (DINOPAD_ENABLE_STATIC_RESTORATION)
     target_link_libraries(DinoPad PRIVATE dinopad_restoration)

@@ -13,6 +13,7 @@
 #import "home.h"
 #import "rom_setup.h"
 #import "settings.h"
+#import "test_harness.h"
 #import <UIKit/UIKit.h>
 
 #include "config/config.hpp"
@@ -153,9 +154,13 @@ std::atomic<uint8_t> g_touchFlickPolls{0};
 std::atomic_bool g_controllerConnected{false};
 std::atomic_bool g_quitToHome{false};
 std::atomic<int> g_currentProfile{0};
+#if DINOPAD_ENABLE_TEST_HARNESS
 std::atomic_bool g_quitSmokeTriggered{false};
+#endif
 std::atomic_bool g_settingsSaveRequested{false};
+#if DINOPAD_ENABLE_TEST_HARNESS
 std::atomic<uint64_t> g_gameInputPolls{0};
+#endif
 TouchTapLatch g_touchTaps;
 
 void drainUIKitQueue() {
@@ -182,7 +187,9 @@ void drainUIKitQueue() {
 - (void)dismissUtilityMenu;
 - (void)quitToHome;
 
-// Deterministic test injection methods
+#if DINOPAD_ENABLE_TEST_HARNESS
+// Deterministic test injection methods. These selectors do not exist in
+// physical-device or release builds.
 - (CGPoint)centerForControlIndex:(NSInteger)index;
 - (CGFloat)radiusForControlIndex:(NSInteger)index;
 - (NSInteger)controlIndexForKey:(const char*)key;
@@ -193,8 +200,10 @@ void drainUIKitQueue() {
 - (void)selectControlForTesting:(const char*)key;
 - (void)moveSelectedForTestingToNormalizedPoint:(CGPoint)point;
 - (NSDictionary*)layoutSnapshotForTesting;
+#endif
 @end
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 @interface DinoPadInputSmokeRunner : NSObject
 + (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay;
 @end
@@ -206,6 +215,7 @@ void drainUIKitQueue() {
 @interface DinoPadLayoutSmokeRunner : NSObject
 + (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay phase:(NSString*)phase;
 @end
+#endif
 
 @implementation DinoPadTouchOverlayView {
     std::array<TouchControl, kControlCount> _controls;
@@ -213,8 +223,10 @@ void drainUIKitQueue() {
     std::array<TouchControl, kControlCount> _editingStartControls;
     NSMapTable<UITouch*, NSNumber*>* _touchRoles;
     NSMapTable<UITouch*, NSValue*>* _touchOffsets;
+#if DINOPAD_ENABLE_TEST_HARNESS
     NSMutableDictionary<NSNumber*, NSNumber*>* _simulatedTouchRoles;
     NSMutableDictionary<NSNumber*, NSValue*>* _simulatedTouchPoints;
+#endif
     CGPoint _stickOrigin;
     CGPoint _stickKnob;
     BOOL _editing;
@@ -243,8 +255,10 @@ void drainUIKitQueue() {
         _controls = defaultControls();
         _touchRoles = [NSMapTable weakToStrongObjectsMapTable];
         _touchOffsets = [NSMapTable weakToStrongObjectsMapTable];
+#if DINOPAD_ENABLE_TEST_HARNESS
         _simulatedTouchRoles = [NSMutableDictionary dictionary];
         _simulatedTouchPoints = [NSMutableDictionary dictionary];
+#endif
         _selected = 9;
         _controlsEnabled = YES;
         _globalOpacity = 0.70;
@@ -438,9 +452,11 @@ void drainUIKitQueue() {
                                            forKey:layoutDefaultsKey()];
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 - (NSDictionary*)layoutSnapshotForTesting {
     return [self serializedLayout];
 }
+#endif
 
 - (CGRect)frameForControl:(const TouchControl&)control {
     CGPoint center = [self centerForControl:control];
@@ -531,11 +547,13 @@ void drainUIKitQueue() {
         for (NSNumber* role in _touchRoles.objectEnumerator) {
             if (role.integerValue == index) { pressed = YES; break; }
         }
+#if DINOPAD_ENABLE_TEST_HARNESS
         if (!pressed) {
             for (NSNumber* role in _simulatedTouchRoles.allValues) {
                 if (role.integerValue == index) { pressed = YES; break; }
             }
         }
+#endif
         CGFloat alpha = _editing
             ? (control.visible ? 0.82 : 0.26)
             : MIN(1.0, control.opacity * (_globalOpacity / 0.70));
@@ -739,9 +757,11 @@ void drainUIKitQueue() {
     return YES;
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 - (BOOL)performEditorActionForTesting:(NSInteger)action {
     return [self performEditorAction:action];
 }
+#endif
 
 - (BOOL)handleToolbarPoint:(CGPoint)point {
     if (!_editing) return NO;
@@ -753,10 +773,12 @@ void drainUIKitQueue() {
     return NO;
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 - (void)selectControlForTesting:(const char*)key {
     const NSInteger index = [self controlIndexForKey:key];
     if (index != NSNotFound) _selected = index;
 }
+#endif
 
 - (void)moveSelectedToPoint:(CGPoint)point recordUndo:(BOOL)recordUndo {
     if (_selected < 0 || _selected >= static_cast<NSInteger>(kControlCount)) return;
@@ -801,6 +823,7 @@ void drainUIKitQueue() {
     [self setNeedsDisplay];
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 - (void)moveSelectedForTestingToNormalizedPoint:(CGPoint)point {
     CGRect usable = [self usableBounds];
     [self moveSelectedToPoint:CGPointMake(
@@ -808,6 +831,7 @@ void drainUIKitQueue() {
         CGRectGetMinY(usable) + point.y * usable.size.height) recordUndo:YES];
     [self saveLayout];
 }
+#endif
 
 - (void)setControlsEnabled:(BOOL)enabled {
     [self setControlsEnabled:enabled opacity:_globalOpacity];
@@ -958,6 +982,7 @@ void drainUIKitQueue() {
         }
     }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
     // Simulated touches (test harness)
     for (NSNumber* touchID in _simulatedTouchRoles) {
         NSInteger role = [_simulatedTouchRoles[touchID] integerValue];
@@ -970,6 +995,7 @@ void drainUIKitQueue() {
             buttons |= control.mask;
         }
     }
+#endif
 
     if (hasStickTouch) {
         const TouchControl& stick = _controls[0];
@@ -1016,8 +1042,10 @@ void drainUIKitQueue() {
 - (void)clearInput {
     [_touchRoles removeAllObjects];
     [_touchOffsets removeAllObjects];
+#if DINOPAD_ENABLE_TEST_HARNESS
     [_simulatedTouchRoles removeAllObjects];
     [_simulatedTouchPoints removeAllObjects];
+#endif
     _stickOrigin = CGPointZero;
     _stickKnob = CGPointZero;
     g_touchButtons.store(0, std::memory_order_relaxed);
@@ -1113,6 +1141,7 @@ void drainUIKitQueue() {
     [self finishTouches:touches];
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 #pragma mark - Simulated Touch Injection (Test Harness)
 
 - (void)beginSimulatedTouchWithID:(NSInteger)touchID atPoint:(CGPoint)point {
@@ -1153,9 +1182,11 @@ void drainUIKitQueue() {
     [_simulatedTouchPoints removeObjectForKey:@(touchID)];
     [self publishInput];
 }
+#endif
 
 @end
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 #pragma mark - Automated Touch Layout Smoke Test Runner
 
 @implementation DinoPadLayoutSmokeRunner
@@ -1856,6 +1887,8 @@ void drainUIKitQueue() {
 
 @end
 
+#endif  // DINOPAD_ENABLE_TEST_HARNESS
+
 static __weak DinoPadTouchOverlayView* g_touchOverlay = nil;
 
 extern "C" int dinopad_shell_touch_enabled(void) {
@@ -1903,6 +1936,7 @@ extern "C" void dinopad_shell_request_config_save(void) {
     g_settingsSaveRequested.store(true, std::memory_order_release);
 }
 
+#if DINOPAD_ENABLE_TEST_HARNESS
 extern "C" int dinopad_shell_test_touch_after_settings(void) {
     if (g_touchOverlay == nil) return 0;
     [g_touchOverlay clearInput];
@@ -1936,6 +1970,7 @@ static void scheduleQuitToHomeSmoke(DinoPadTouchOverlayView* overlay, int attemp
         [overlay quitToHome];
     });
 }
+#endif
 
 extern "C" void dinopad_touch_attach(void* windowPointer) {
     if (windowPointer == nullptr) return;
@@ -1962,6 +1997,7 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
             UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad
                 ? "tablet" : "phone");
 
+#if DINOPAD_ENABLE_TEST_HARNESS
         const char* smokeEnv = getenv("DINOPAD_RUN_INPUT_SMOKE");
         if (smokeEnv != nullptr && smokeEnv[0] != '\0' && smokeEnv[0] != '0') {
             [DinoPadInputSmokeRunner runWithOverlay:overlay];
@@ -2058,11 +2094,14 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
             !g_quitSmokeTriggered.exchange(true, std::memory_order_relaxed)) {
             scheduleQuitToHomeSmoke(overlay, 100);
         }
+#endif
     });
 }
 
 extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y) {
+#if DINOPAD_ENABLE_TEST_HARNESS
     g_gameInputPolls.fetch_add(1, std::memory_order_relaxed);
+#endif
     if (g_settingsSaveRequested.exchange(false, std::memory_order_acq_rel)) {
         dino::config::save_config();
         std::fprintf(stderr, "[dinopad-settings] active profile configuration saved\n");
@@ -2115,7 +2154,9 @@ extern "C" int SDL_main(int, char **) {
         g_currentProfile.store(selectedProfile, std::memory_order_relaxed);
         g_quitToHome.store(false, std::memory_order_relaxed);
         g_settingsSaveRequested.store(false, std::memory_order_relaxed);
+#if DINOPAD_ENABLE_TEST_HARNESS
         g_gameInputPolls.store(0, std::memory_order_relaxed);
+#endif
 
         char appName[] = "DinoPad";
         char skipLauncher[] = "--skip-launcher";
