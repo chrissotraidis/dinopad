@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "audited_target": "macos",
-  "basis": "Direct static archives in the warning-fatal Ninja link for build-macos/DinoPad plus selected files copied into build-macos/DinoPad.app for Goal 31g (predecessor 9c0449c). This is an engineering inventory, not a legal conclusion or a complete transitive notice set.",
+  "basis": "Direct static archives in the warning-fatal Ninja link for build-macos/DinoPad plus selected files copied into build-macos/DinoPad.app for Goal 31h (predecessor 13beb6a). Compiler-derived dependency coverage is validated separately. This is an engineering inventory, not a legal conclusion or a complete notice set.",
   "components": [
     {
       "id": "dino-recomp",
@@ -287,8 +287,8 @@
     },
     {
       "id": "transitive-notice-completeness",
-      "summary": "This first pass covers direct linked archives and selected resources, not every incorporated header/source dependency.",
-      "required_closure": "Audit the full compiler dependency graph, identify every shipped direct/transitive component, assemble exact notice text, and reconcile it against both macOS and iOS products."
+      "summary": "The macOS compiler graph is fully mapped and standalone license files are assembled, but seven inline notice sources still need reviewed extraction and iOS-product reconciliation remains open.",
+      "required_closure": "Assemble reviewed exact notices for every inline source, derive equivalent coverage from the iOS build graph, and reconcile both final products against their indexed notice sets."
     }
   ]
 }

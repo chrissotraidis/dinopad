@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T05:22:31Z
+Last updated: 2026-08-18T05:32:37Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -50,6 +50,10 @@ compiled private AOT. The package now removes the unproven DinoFont, Noto Emoji,
 logo, and character-art files, uses the pinned Lato family, and carries exact
 Lato attribution plus SIL OFL 1.1 text. This closes those selected-resource
 findings without claiming a complete transitive notice audit.
+The macOS compiler graph is now separately fail-closed: all 2,227 pinned
+source/header dependencies map to 46 ownership roots. The app carries an exact
+indexed copy of 39 standalone licenses, while 7 inline-primary-notice roots and
+the equivalent iOS graph remain explicitly pending.
 
 ## Completed foundation
 
@@ -61,6 +65,9 @@ findings without claiming a complete transitive notice audit.
 - Fail-closed macOS package-rights inventory covering 17 direct linked
   components and 8 selected resources. Its 2 unresolved states and 5 release
   blockers remain explicitly red.
+- Compiler-derived macOS notice coverage for 2,227 source/header paths across
+  46 components, with zero uncovered and exact packaging for 39 standalone
+  license files; 7 inline-source cases remain open.
 - Static arm64 DinoMod code plus no-write replacement/hook dispatch.
 - Restored-default and warned Prototype profiles with isolated config/save roots.
 - Native macOS ROM setup, exact fingerprint validation, byte-order normalization,

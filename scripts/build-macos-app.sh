@@ -85,6 +85,7 @@ cp "$ROOT/notices/Lato-NOTICE.txt" \
   "$APP/Contents/Resources/Notices/Lato-NOTICE.txt"
 cp "$ROOT/ref/dino-recomp/assets/promptfont/LICENSE.txt" \
   "$APP/Contents/Resources/Notices/OFL-1.1.txt"
+python3 "$ROOT/tools/package_compiled_dependency_notices.py" --app "$APP"
 # Controller mappings file is read from program_path directly.
 cp build-macos/recompcontrollerdb.txt "$APP/Contents/Resources/recompcontrollerdb.txt"
 

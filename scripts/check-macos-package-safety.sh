@@ -80,6 +80,10 @@ cmp -s "$ROOT/notices/Lato-NOTICE.txt" \
 cmp -s "$ROOT/ref/dino-recomp/assets/promptfont/LICENSE.txt" \
   "$APP/Contents/Resources/Notices/OFL-1.1.txt" || \
   fail "SIL Open Font License text is missing or modified"
+python3 "$ROOT/tools/validate_compiled_dependency_inventory.py" || \
+  fail "compiled dependency inventory is invalid"
+python3 "$ROOT/tools/package_compiled_dependency_notices.py" \
+  --app "$APP" --verify || fail "compiled dependency notice set is invalid"
 
 codesign --verify --deep --strict "$APP" >/dev/null 2>&1 || \
   fail "bundle signature verification failed"
@@ -90,5 +94,6 @@ echo "DinoPad macOS app safety audit passed: $APP"
 echo "  executable: arm64, macOS 11.0+, system runtime dependencies only"
 echo "  ROM/save/log/private paths: absent"
 echo "  removed launcher fonts/art and development-only Sass: absent"
+echo "  compiled dependency notices: exact standalone set assembled; inline sources pending"
 echo "  signing state: ad-hoc development signature"
 echo "NOTE: rights/notices, physical testing, notarization, and release remain separate blockers."

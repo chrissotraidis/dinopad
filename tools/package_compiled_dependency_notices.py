@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""Assemble or verify hash-bound standalone notices for compiled dependencies."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import pathlib
+import shutil
+import sys
+
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+MANIFEST = ROOT / "docs" / "COMPILED_DEPENDENCY_INVENTORY.json"
+DEFAULT_APP = ROOT / "build-macos" / "DinoPad.app"
+
+
+def fail(message: str) -> None:
+    raise ValueError(message)
+
+
+def sha256(path: pathlib.Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def expected_index() -> tuple[dict[str, object], dict[pathlib.PurePosixPath, pathlib.Path]]:
+    data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    copies: dict[pathlib.PurePosixPath, pathlib.Path] = {}
+    records: list[dict[str, object]] = []
+    for component in data["components"]:
+        source_rel = pathlib.PurePosixPath(component["notice_source"])
+        source = ROOT / source_rel
+        if sha256(source) != component["sha256"]:
+            fail(f"notice source hash mismatch: {component['id']}")
+        package_rel: str | None = None
+        if component["notice_kind"] == "file":
+            destination = pathlib.PurePosixPath(component["id"]) / source_rel.name
+            if destination in copies:
+                fail(f"duplicate notice destination: {destination}")
+            copies[destination] = source
+            package_rel = destination.as_posix()
+        records.append(
+            {
+                "id": component["id"],
+                "coverage_prefix": component["coverage_prefix"],
+                "notice_kind": component["notice_kind"],
+                "notice_source": component["notice_source"],
+                "sha256": component["sha256"],
+                "package_path": package_rel,
+            }
+        )
+    index = {
+        "schema_version": 1,
+        "target": "macos",
+        "basis": "Generated from docs/COMPILED_DEPENDENCY_INVENTORY.json; null package paths identify inline notice sources that still require assembly review.",
+        "components": records,
+    }
+    return index, copies
+
+
+def encoded_index(index: dict[str, object]) -> bytes:
+    return (json.dumps(index, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def assemble(destination: pathlib.Path) -> None:
+    index, copies = expected_index()
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True)
+    for relative, source in copies.items():
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    (destination / "INDEX.json").write_bytes(encoded_index(index))
+    print(
+        f"Compiled dependency notices assembled: {len(copies)} standalone files, "
+        f"{len(index['components']) - len(copies)} inline sources pending"
+    )
+
+
+def verify(destination: pathlib.Path) -> None:
+    index, copies = expected_index()
+    expected_files = {pathlib.PurePosixPath("INDEX.json"), *copies.keys()}
+    actual_files = {
+        path.relative_to(destination)
+        for path in destination.rglob("*")
+        if path.is_file()
+    }
+    if actual_files != {pathlib.Path(path) for path in expected_files}:
+        missing = sorted(str(path) for path in expected_files - {pathlib.PurePosixPath(path.as_posix()) for path in actual_files})
+        extra = sorted(str(path) for path in {pathlib.PurePosixPath(path.as_posix()) for path in actual_files} - expected_files)
+        fail(f"notice file set mismatch; missing={missing}, extra={extra}")
+    if (destination / "INDEX.json").read_bytes() != encoded_index(index):
+        fail("compiled notice INDEX.json mismatch")
+    for relative, source in copies.items():
+        packaged = destination / relative
+        if packaged.read_bytes() != source.read_bytes():
+            fail(f"compiled notice differs from source: {relative}")
+    print(
+        f"Compiled dependency notices verified: {len(copies)} standalone files, "
+        f"{len(index['components']) - len(copies)} inline sources pending"
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--app", type=pathlib.Path, default=DEFAULT_APP)
+    parser.add_argument("--verify", action="store_true")
+    args = parser.parse_args()
+    destination = args.app.resolve() / "Contents" / "Resources" / "Notices" / "Compiled"
+    if args.verify:
+        verify(destination)
+    else:
+        assemble(destination)
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        raise SystemExit(1)

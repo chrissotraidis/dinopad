@@ -40,11 +40,16 @@ system-only runtime dependencies, no bundle symlinks or private paths, matching
 development signature. It also rejects the removed DinoFont, Noto Emoji, logo,
 Krazoa art, and Sass tree; scans the executable and UI resources for stale
 references; and requires exact Lato attribution and SIL OFL 1.1 notice copies.
+The same gate validates all 2,227 current Ninja-tracked `ref/` source/header
+dependencies against 46 deepest-prefix component records, then verifies the
+indexed byte-exact package copy of 39 standalone licenses. Seven inline notice
+sources remain explicitly pending and therefore do not close release readiness.
 
 Package-content hygiene is distinct from rights readiness. Validate the current
 macOS direct-link/resource inventory with:
 
 ```sh
+python3 tools/validate_compiled_dependency_inventory.py
 python3 tools/validate_package_rights_inventory.py
 python3 tools/validate_package_rights_inventory.py --require-release-ready
 ```

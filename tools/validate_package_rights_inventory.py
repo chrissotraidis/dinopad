@@ -102,6 +102,10 @@ def final_link_command() -> str:
 
 
 def validate(manifest_path: pathlib.Path, app: pathlib.Path, require_ready: bool) -> int:
+    subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "validate_compiled_dependency_inventory.py")],
+        check=True,
+    )
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     expected_top = {
         "schema_version",
