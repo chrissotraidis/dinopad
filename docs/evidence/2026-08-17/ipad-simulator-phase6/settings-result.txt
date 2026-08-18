@@ -1,0 +1,1 @@
+IOS NATIVE SETTINGS RESULT: PASS (live touch/audio/display apply; defensive clamping; two-launch persistence; profile isolation; modal input suppression and restoration; reset defaults; arm64 ROM-free app; no crash)

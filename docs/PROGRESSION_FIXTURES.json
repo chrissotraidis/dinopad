@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {
+      "id": "restored-ship-deck-aaaaa",
+      "mode": "restored",
+      "expected_area": "Ship-deck cannon tutorial",
+      "expected_action": "Load the AAAAA slot, reach late controllable gameplay, deliver analog movement and N64 A",
+      "private_sha256": "6f4ccb8a45e7ea25f4853d9487544eaff19d52d385faae5a93e3d2cff44c9f28",
+      "known_risk": "Early-game fixture only; it does not cover a chapter boundary or imply start-to-credits completion",
+      "last_verification_date": "2026-08-17",
+      "last_verified_commit": "e3ca0bf",
+      "last_verified_target": "ipad-simulator",
+      "evidence": "docs/evidence/2026-08-17/ipad-simulator-phase6/"
+    }
+  ]
+}

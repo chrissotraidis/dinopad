@@ -1,0 +1,34 @@
+[dinopad-home-test] Home presented
+[dinopad-home-test] Restored selected
+Failed to preload executable!
+DinoPad profile: Restored (namespace=Profiles/Restored)
+Bundled restoration data registered (37994172 bytes; filesystem mods disabled)
+[dinopad-touch] overlay attached (phone)
+2026-08-17 19:57:07.411 DinoPad[70488:19814908] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1029f4500>.
+2026-08-17 19:57:07.411 DinoPad[70488:19814908] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1029f4500>.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+objc[70488]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10c9ec310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x109f44398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Using statically linked code for mod dinomod_enhanced
+Static restoration dispatch enabled (294 replacements; 35 hook slots; no runtime code writes)
+[reasset] WARN: Map 2 contains a duplicate object UID 0x3419C (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 4 contains a duplicate object UID 0x417F1 (obj ID: 0xD4)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 11 contains a duplicate object UID 0x30AE9 (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 19 contains a duplicate object UID 0x1A51 (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x2CD9 (obj ID: 0x589)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x30011 (obj ID: 0x11)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x30012 (obj ID: 0x11)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 38 contains a duplicate object UID 0x1F4B (obj ID: 0x26)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!
+[dinopad-settings-test] modal input suppression verified
+[dinopad-settings-test] RELAUNCH VALUES VERIFIED
+[dinopad-settings] active profile configuration saved
+[dinopad-settings-test] ALL SETTINGS TESTS PASSED
+com.chrissotraidis.dinopad: 70488

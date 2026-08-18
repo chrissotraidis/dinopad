@@ -123,9 +123,16 @@ index 1384fe9..a43ff26 100644
          } else {
              dispatch_async(dispatch_get_main_queue(), updateBlock);
          }
-@@ -120,51 +137,30 @@ namespace plume {
+@@ -120,51 +137,42 @@ namespace plume {
  
      void CocoaWindow::getWindowAttributes(CocoaWindowAttributes* attributes) const {
++#if TARGET_OS_IPHONE
++        // iOS is fixed to the app's supported landscape orientations. The
++        // constructor synchronously seeds this cache on the main queue; do not
++        // enqueue refresh blocks that can outlive this CocoaWindow instance.
++        std::lock_guard<std::mutex> lock(attributesMutex);
++        *attributes = cachedAttributes;
++#else
          if ([NSThread isMainThread]) {
 -            NSWindow *nsWindow = (__bridge NSWindow *)windowHandle;
 -            NSRect contentFrame = [[nsWindow contentView] frame];
@@ -155,9 +162,13 @@ index 1384fe9..a43ff26 100644
 +        if (![NSThread isMainThread]) {
              const_cast<CocoaWindow*>(this)->updateWindowAttributesInternal(false);
          }
++#endif
      }
  
      int CocoaWindow::getRefreshRate() const {
++#if TARGET_OS_IPHONE
++        return cachedRefreshRate.load();
++#else
          if ([NSThread isMainThread]) {
 -            NSWindow *nsWindow = (__bridge NSWindow *)windowHandle;
 -            NSScreen *screen = [nsWindow screen];
@@ -181,6 +192,7 @@ index 1384fe9..a43ff26 100644
 +            const_cast<CocoaWindow*>(this)->updateRefreshRateInternal(false);
 +        }
 +        return rate;
++#endif
      }
  
      void CocoaWindow::toggleFullscreen() {

@@ -1,0 +1,16 @@
+[dinopad-layout-test] starting edit/persist phase
+[dinopad-layout-test] PASS: editing clears held gameplay input
+[dinopad-layout-test] PASS: Cancel restores the pre-edit layout
+[dinopad-layout-test] PASS: D-pad link moves all four controls as a group
+[dinopad-layout-test] PASS: C-button link moves all four controls as a group
+[dinopad-layout-test] PASS: resize, fade, hide, and one-step Undo are functional
+[dinopad-layout-test] PASS: safe-area clamp keeps edited controls reachable
+[dinopad-layout-test] PASS: gameplay touch resumes after editor dismissal
+[dinopad-layout-test] EDIT PHASE PASSED; persisted phone layout and tablet sentinel
+[dinopad-layout-test] starting relaunch/reset phase
+[dinopad-layout-test] PASS: phone move/size/opacity/visibility/link persisted across relaunch
+[dinopad-layout-test] PASS: phone and tablet persistence keys are isolated
+[dinopad-layout-test] PASS: Reset Phone Layout restores only phone defaults
+[dinopad-layout-test] PASS: Reset Tablet Layout restores only tablet defaults
+[dinopad-layout-test] ALL LAYOUT TESTS PASSED
+[dinopad-layout-test] touch layout menu presented

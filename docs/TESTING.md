@@ -1,6 +1,6 @@
 # DinoPad testing and evidence
 
-Status: Active implementation contract (updated 2026-08-16).
+Status: Active implementation contract (updated 2026-08-18).
 
 ## Principles
 
@@ -16,6 +16,52 @@ Status: Active implementation contract (updated 2026-08-16).
 - Host tools (N64Recomp, RSPRecomp, MIPS patch toolchain) on Apple Silicon.
 - macOS arm64 app; iOS Simulator arm64 app; iOS device arm64 app.
 - Package audit (Phase 10): ROM-free, save-free, signing-free, no personal paths.
+
+The current app-package gates are:
+
+```sh
+scripts/check-package-safety.sh
+scripts/check-macos-package-safety.sh
+```
+
+The iOS gate verifies an unsigned physical-iOS arm64 app, iOS 15 minimum, system-only
+dynamic dependencies, no rpath/signing/ROM/save/log/private paths, exact
+sanitized restoration data, and absence of Simulator automation keys,
+selectors, and fixtures. A signed personal-development build uses
+`--allow-signing`; this does not make either build publicly releasable.
+The same gate requires a valid root `PrivacyInfo.xcprivacy` and its exact
+no-tracking/no-collection plus FileTimestamp/UserDefaults/SystemBootTime reason
+set. The privacy-manifest negative control mutates tracking to true and must be
+rejected; final transitive privacy-report review remains a release task.
+
+The macOS gate verifies an arm64 Mach-O for platform macOS with minimum 11.0,
+system-only runtime dependencies, no bundle symlinks or private paths, matching
+0.1.0 build 1 metadata, no game/save/log/signing material, and a valid ad-hoc
+development signature. It also rejects the removed DinoFont, Noto Emoji, logo,
+Krazoa art, and Sass tree; scans the executable and UI resources for stale
+references; and requires exact Lato attribution and SIL OFL 1.1 notice copies.
+The same gate validates all 2,227 current Ninja-tracked `ref/` source/header
+dependencies against 46 deepest-prefix component records, then verifies the
+indexed byte-exact package copy of 39 standalone and 7 mechanically assembled
+inline-primary notices. Secondary and legal review remain explicitly pending
+and therefore do not close release readiness.
+The physical-iOS gate performs the equivalent check over 1,032 Xcode dependency
+files: 2,578 unique paths, 41 active roots, 35 standalone plus 6 mechanically
+assembled inline-primary notices, and zero uncovered paths.
+
+Package-content hygiene is distinct from rights readiness. Validate the current
+macOS direct-link/resource inventory with:
+
+```sh
+python3 tools/validate_compiled_dependency_inventory.py
+python3 tools/validate_package_rights_inventory.py
+python3 tools/validate_package_rights_inventory.py --require-release-ready
+```
+
+The first command verifies exact pins, license hashes, link tokens, and selected
+source/package resource hashes. The second is expected to return 2 while any
+rights/notice blocker remains; it has no force-pass option. Neither command is
+legal advice or a substitute for second-person rights review.
 
 ### Unit tests
 
@@ -39,24 +85,70 @@ tools/check_patchable_aot.py build-macos/DinoPad \
 
 ### Automated smoke
 
-The completed macOS smoke verifies the full list below. The current
-`scripts/smoke-ios.sh` is intentionally the first bounded subset: ROM
-fingerprint validation, ROM-free bundle audit, install/launch, a live process
-for 20 seconds, rendered-frame capture, no new crash report, and clean guarded
-shutdown. It will be extended goal-by-goal until it verifies:
-
-1. app launch;
-2. ROM validation;
-3. title;
-4. first controllable scene;
-5. analog movement;
-6. A/B/Z/Start;
-7. menu open/close;
-8. settings persistence;
-9. save/relaunch;
-10. clean shutdown.
+The completed macOS smoke verifies the full list below. On iPhone/iPad Simulator,
+`scripts/smoke-ios-rom-import.sh` verifies the real Files picker, exact rejection
+without staging, z64/v64/n64 normalization, private atomic storage, the ROM
+manager, live runtime, ROM-free bundle, and cleanup. `scripts/smoke-ios.sh`
+verifies all 14 digital masks, analog cardinals/zero return, multi-touch,
+menu/lifecycle/controller handoff, a live render, no crash, and clean shutdown.
+`scripts/smoke-ios-restoration.sh` verifies the embedded package byte-for-byte,
+its exact three-member shape, writable-mod omission, static/no-write dispatch,
+an event-driven restored title boundary, and late controllable gameplay input;
+its screenshots require visual acceptance rather than a frame-count-only claim.
+`scripts/smoke-ios-layout.sh` starts from a clean install and uses three launches:
+edit/commit, relaunch/verify/reset, and real-menu capture. Its in-app assertions
+cover move/size/opacity/visibility, D-pad and C-button linking, undo/cancel,
+safe-area clamping, input clearing/restoration, independent phone/tablet keys,
+and independent resets while the script audits arm64, ROM-free, crashes, and
+guard cleanup.
+`scripts/smoke-ios-settings.sh` uses two cleanly separated process launches to
+exercise the production UIKit target/action paths. It verifies modal input
+clearing, invalid-value clamping, live touch/audio/display application,
+profile-local JSON serialization, relaunch loading, default restoration,
+Prototype-profile isolation, post-dismissal touch input, safe-area screenshots,
+ROM-free arm64 packaging, CrashReporter, and guard cleanup.
+`scripts/smoke-ios-diagnostics.sh` starts from a clean install and verifies the
+production private logger and native share action. It independently checks the
+4 MiB capture, 192 KiB tail, and 512 KiB report caps; protected mode `0600`;
+useful runtime/profile/ROM/save/controller/render fields; adversarial redaction
+before storage and sharing; modal input clearing/restoration; share cancellation;
+temporary report cleanup; ROM-free arm64 packaging; CrashReporter; and guard
+cleanup.
+`scripts/smoke-ios-phase5.sh` is the final endurance/save gate for each Simulator idiom. It keeps one
+Restored gameplay process live for at least 600 seconds, validates a private
+game-created 128 KiB save by size/hash/slot metadata only, terminates and
+relaunches the same installed app back into controllable gameplay, reruns the
+seven-suite input/lifecycle matrix, proves a Prototype sentinel is unchanged,
+audits bounded diagnostics/arm64/ROM-free/CrashReporter state, and relies on the
+guard for complete cleanup. iPhone Phase 5 and iPad Phase 6 are green.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
+
+Run the importer and input regressions through the guard:
+
+```sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-rom-import.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-layout.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-settings.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-phase5.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
+```
+
+The same eight shared harnesses run through
+`scripts/runtime-guard.sh ipad-simulator <IPAD_UDID> ...`. Goal 30a ran the
+complete matrix on iPad Pro 11-inch (M5), including explicit tablet diagnostics,
+visual acceptance, independent idiom persistence, measured PaperPad geometry,
+600 live seconds, and same-install save relaunch. Evidence is in
+`docs/evidence/2026-08-17/ipad-simulator-phase6/`.
+
+`smoke-ios-home.sh` starts from a private data-container ROM, proves the native
+home and Prototype warning do not initialize SDL, then runs Restored until the
+actual N64 input callback polls. It requests quit-to-home, verifies the same
+process returns to UIKit, confirms warned Prototype, starts a second renderer
+and game runtime, checks profile sentinels, CrashReporter, and guard cleanup.
 
 The macOS Metal teardown regression has a shorter focused smoke. It repeatedly
 closes the native window through the SDL quit path and fails on a nonzero exit,
@@ -122,7 +214,17 @@ macOS capture only the DinoPad window; never capture unrelated private desktop c
 
 ### Progression tests
 
-- Private chapter fixtures live only in `private-fixtures/`; commit a manifest (`id`, `mode`, `expected_area`, `expected_action`, `private_sha256`, `last_verified_commit`, `last_verified_target`), never the bytes.
+- Private chapter fixtures live only in ignored private storage; commit metadata
+  to `docs/PROGRESSION_FIXTURES.json`, never the bytes. Validate IDs, modes,
+  checksums, dates, targets, evidence links, and the no-private-path schema with:
+
+```sh
+tools/validate_progression_manifest.py
+```
+
+- The initial manifest entry is the game-created Restored `AAAAA` ship-deck
+  fixture proven on both Simulator idioms. It is explicitly early-game coverage,
+  not a chapter-boundary or start-to-credits claim.
 - Known DinoMod progression repairs are exercised per mode.
 - "Playable start-to-credits" requires one documented complete Restored playthrough on physical Apple hardware; the loop never claims a playthrough it did not perform.
 
@@ -149,6 +251,10 @@ scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-phase5.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 
@@ -156,4 +262,4 @@ Before every launch the guard: terminates `DinoPad`, terminates/shuts down all S
 
 ## Release evidence
 
-Phase 10 requires: source tag matching the packaged IPA; package file-by-file audit; SHA-256 published; clean-install through the documented self-signing workflow; save/relaunch and update-in-place verified; screenshots current; README claims consistent with `docs/STATUS.md` and `docs/PLAYTEST_MATRIX.md`.
+Phase 10 requires: source tag matching the packaged IPA; package file-by-file audit; SHA-256 published; clean-install through the documented self-signing workflow; save/relaunch and update-in-place verified; screenshots current; README claims consistent with `docs/STATUS.md` and `docs/PLAYTEST_MATRIX.md`. The complete gated matrix and current red stop conditions are in [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).

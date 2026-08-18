@@ -53,16 +53,24 @@
       "ref": "release-2.32.10",
       "commit": "5d249570393f7a37e037abf22cd6012a4cc56a71",
       "license_file": "LICENSE.txt",
-      "purpose": "Native SDL2 2.32.10 static build for macOS window/audio/input (avoids Homebrew sdl2-compat shim)"
+      "purpose": "Pinned in-tree static SDL2 2.32.10 build for Apple window/audio/input (avoids host packages and deployment-target drift)"
+    },
+    {
+      "name": "FreeType",
+      "url": "https://gitlab.freedesktop.org/freetype/freetype.git",
+      "ref": "VER-2-13-3",
+      "commit": "42608f77f20749dd6ddc9e0536788eaad70ea4b5",
+      "license_file": "LICENSE.TXT",
+      "purpose": "Pinned static macOS RmlUi font engine without host Homebrew dylib dependencies"
     }
   ],
   "notes": {
     "DinoMod_permission_status": "BLOCKED - Requires upstream maintainer written permission or license clearance before redistribution. All bridge code is DinoPad-owned and must remain compatible with upstream source.",
     "Dinosaur Planet ROM": "December 2000 prototype, MD5 49f7bb346ade39d1915c22e090ffd748 - user-supplied, never tracked",
     "patch_set": {
-      "recorded": "2026-08-16T19:30:00Z",
-      "file_count": 20,
-      "sha256": "f01b4ff2c74190171d37b7821a34f0af221675bf6edd9a371b4d9c05c3bfdbe4",
+      "recorded": "2026-08-18T00:00:00Z",
+      "file_count": 26,
+      "sha256": "2b66b9147f8b2cae2e96728a3841ef6e0a84e0c74c1a7ef83fe0d749c27233be",
       "algorithm": "SHA-256 of the sorted shasum -a 256 output for every patches/**/*.patch file"
     },
     "toolchain": {

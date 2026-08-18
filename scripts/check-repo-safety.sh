@@ -150,6 +150,7 @@ check_ref_repo() {
 
 check_ref_repo ref/paperpad
 check_ref_repo ref/SDL2
+check_ref_repo ref/freetype
 while IFS= read -r gitdir; do
   check_ref_repo "$(dirname "$gitdir")"
 done < <(find ref/dino-recomp ref/dinomod-enhanced-recompiled -name .git \( -type d -o -type f \) 2>/dev/null | sort)

@@ -1,0 +1,52 @@
+diff --git a/librecomp/include/librecomp/mods.hpp b/librecomp/include/librecomp/mods.hpp
+--- a/librecomp/include/librecomp/mods.hpp
++++ b/librecomp/include/librecomp/mods.hpp
+@@ -461,6 +461,9 @@ namespace recomp {
+             virtual bool good() = 0;
+             virtual uint32_t get_api_version() = 0;
+             virtual void set_imported_function(size_t import_index, GenericFunction func) = 0;
++            virtual bool set_extended_imported_function(size_t, recomp_func_ext_t*, uintptr_t) {
++                return false;
++            }
+             virtual CodeModLoadError populate_reference_symbols(const N64Recomp::Context& recompiler_context, std::string& error_param) = 0;
+             virtual uint32_t get_base_event_index() = 0;
+             virtual void set_local_section_address(size_t section_index, int32_t address) = 0;
+diff --git a/librecomp/src/mods.cpp b/librecomp/src/mods.cpp
+--- a/librecomp/src/mods.cpp
++++ b/librecomp/src/mods.cpp
+@@ -2514,6 +2514,7 @@ recomp::mods::CodeModLoadError recomp::mods::ModContext::resolve_code_dependenci
+ 
+         GenericFunction func_handle{};
+         bool did_find_func = false;
++        bool import_was_set = false;
+ 
+         if (dependency_id == N64Recomp::DependencyBaseRecomp) {
+             recomp_func_t* func_ptr = recomp::overlays::get_base_export(imported_func.base.name);
+@@ -2522,7 +2523,11 @@ recomp::mods::CodeModLoadError recomp::mods::ModContext::resolve_code_dependenci
+                 recomp_func_ext_t* func_ext_ptr = recomp::overlays::get_ext_base_export(imported_func.base.name);
+                 did_find_func = func_ext_ptr != nullptr;
+                 if (did_find_func) {
+-                    func_ptr = shim_functions.emplace_back(std::make_unique<N64Recomp::ShimFunction>(func_ext_ptr, mod_index)).get()->get_func();
++                    import_was_set = mod.code_handle->set_extended_imported_function(
++                        import_index, func_ext_ptr, mod_index);
++                    if (!import_was_set) {
++                        func_ptr = shim_functions.emplace_back(std::make_unique<N64Recomp::ShimFunction>(func_ext_ptr, mod_index)).get()->get_func();
++                    }
+                 }
+             }
+             func_handle = func_ptr;
+@@ -2557,7 +2562,13 @@ recomp::mods::CodeModLoadError recomp::mods::ModContext::resolve_code_dependenci
+             return CodeModLoadError::InvalidImport;
+         }
+ 
+-        mod.code_handle->set_imported_function(import_index, func_handle);
++        if (!import_was_set) {
++            if (std::get<recomp_func_t*>(func_handle) == nullptr) {
++                error_param = dependency_id + ":" + imported_func.base.name + " requires an unavailable generated shim";
++                return CodeModLoadError::FailedToRecompile;
++            }
++            mod.code_handle->set_imported_function(import_index, func_handle);
++        }
+     }
+ 
+     // Register callbacks.

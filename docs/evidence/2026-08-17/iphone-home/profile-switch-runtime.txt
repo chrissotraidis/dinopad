@@ -1,0 +1,24 @@
+[dinopad-home-test] Home presented
+[dinopad-home-test] Restored selected
+Failed to preload executable!
+DinoPad profile: Restored (namespace=Profiles/Restored)
+[dinopad-touch] overlay attached (phone)
+2026-08-17 16:47:32.008 DinoPad[14524:19460186] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1055c8500>.
+2026-08-17 16:47:32.009 DinoPad[14524:19460186] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1055c8500>.
+objc[14524]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10d138310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10c354398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!
+[dinopad-home-test] Gameplay input polled before quit
+[dinopad-home-test] Quit to home requested
+[dinopad-home-test] Runtime returned to home
+[dinopad-home-test] Home presented
+[dinopad-home-test] Prototype warning presented
+[dinopad-home-test] Prototype selected
+Failed to preload executable!
+DinoPad profile: Prototype (namespace=Profiles/Prototype)
+[dinopad-touch] overlay attached (phone)
+2026-08-17 16:47:34.707 DinoPad[14524:19460186] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1055c9900>.
+2026-08-17 16:47:34.708 DinoPad[14524:19460186] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1055c9900>.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!
+com.chrissotraidis.dinopad: 14524

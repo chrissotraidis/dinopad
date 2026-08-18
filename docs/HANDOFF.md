@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-16T20:11:57Z
+Last updated: 2026-08-18T08:10:00Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -12,17 +12,71 @@ It complements `docs/STATUS.md` (chronological evidence),
 DinoPad has a real ROM-free, native arm64 runtime. The macOS implementation is
 mature enough to boot both Restored and Prototype profiles, import and validate
 the supported ROM, play with audio and input, and persist saves. The iPhone
-Simulator target builds and renders through RT64 Metal, and the first native
-touch slice now reaches the actual N64 input poll path.
+Simulator target builds and renders through RT64 Metal. Full default N64 touch,
+input/lifecycle/controller handoff, native Files ROM import, and ROM replacement
+are verified through bounded guarded smokes. A native UIKit home now precedes
+SDL, makes Restored primary, warns before Prototype, and can tear down live
+gameplay back to home before launching a second isolated profile in-process.
+The iPhone app now embeds only a sanitized non-executable restoration data
+package, refuses writable mods, and visibly reaches the restored title and
+controllable tutorial through statically linked no-write arm64 dispatch.
+The touch layout is now a real persisted product surface: phone/tablet keys are
+independent, and the editor supports safe-area move, resize, fade, hide/show,
+directional linking, reset, undo, Done, and Cancel.
+The native settings/status sheet is also green on iPhone Simulator: typed live
+controls persist touch, audio, and display options per policy, while mode,
+restoration, save/recovery, controller, and effective-render status remain
+truthful. Bounded protected diagnostics now redact every complete line before
+persistence, expose useful non-content status, and share through native UIKit
+while preserving modal input policy.
 
-It is not a release-ready iPhone/iPad product. Phase 4 (Apple shell) and Phase 5
-(iPhone Simulator) are partial. Phases 6-10 (iPad, physical devices,
-progression/stability, and release) remain open.
+The iPhone Simulator Phase 5 and iPad Simulator Phase 6 gates are green. On each
+idiom, a game-created Restored save survived a 600-second controllable session
+and same-install process relaunch back into controllable gameplay while
+Prototype remained unchanged. The iPad run also proves native tablet
+presentation, independent layout persistence, complete input/lifecycle behavior,
+bounded diagnostics, and measured PaperPad parity. It is not a release-ready
+iPhone/iPad product: Phases 7-10 (physical devices, progression/stability, and
+release) remain open.
+
+The repository now has an evidence-backed root README and an explicit
+`docs/RIGHTS_AND_LICENSES.md` boundary. They advertise no download: the missing
+root license/complete third-party notice set and DinoMod permission are recorded
+release blockers alongside physical-device and progression work.
+The first package-specific rights inventory now validates exact pins,
+license-text hashes, direct macOS link inputs, and selected resource hashes. It
+also records that raw-ROM absence does not settle redistribution rights for the
+compiled private AOT. The package now removes the unproven DinoFont, Noto Emoji,
+logo, and character-art files, uses the pinned Lato family, and carries exact
+Lato attribution plus SIL OFL 1.1 text. This closes those selected-resource
+findings without claiming a complete transitive notice audit.
+Both Apple compiler graphs are now separately fail-closed. macOS maps 2,227
+pinned source/header dependencies to 46 ownership roots and packages 39 exact
+standalone licenses; physical iOS maps 2,578 dependencies to 41 roots and
+packages 35. Both have zero uncovered paths. The seven union inline-primary
+roots now have mechanically assembled, hash-bound notices too, so every 46/41
+root has a package entry. Secondary-notice and second-person completeness review
+remain explicitly pending.
 
 ## Completed foundation
 
 - Pinned and push-disabled reference sources with replayable maintained patches.
 - ROM-free native Apple Silicon macOS runtime and app bundle.
+- Self-contained macOS packaging with pinned static FreeType, resolved assets,
+  system-only runtime dependencies, ad-hoc signature verification, and a
+  reusable package-safety gate.
+- Fail-closed macOS package-rights inventory covering 17 direct linked
+  components and 8 selected resources. Its 2 unresolved states and 5 release
+  blockers remain explicitly red.
+- Compiler-derived macOS notice coverage for 2,227 source/header paths across
+  46 components, with zero uncovered and exact packaging for 39 standalone
+  license files; 7 inline-source cases remain open.
+- Compiler-derived physical-iOS notice coverage for 2,578 paths across 41
+  components, with zero uncovered and exact packaging for 35 standalone
+  license files; 6 target-present inline-source cases remain open.
+- Mechanically assembled and hash-bound inline-primary notices for all 7 union
+  roots (6 present on iOS), producing complete 46/41 component package indexes;
+  secondary and legal review remain open.
 - Static arm64 DinoMod code plus no-write replacement/hook dispatch.
 - Restored-default and warned Prototype profiles with isolated config/save roots.
 - Native macOS ROM setup, exact fingerprint validation, byte-order normalization,
@@ -30,23 +84,55 @@ progression/stability, and release) remain open.
 - Verified macOS title flow, controllable gameplay, audio pipeline, input, save
   persistence, clean shutdown, and bounded smoke automation.
 - ROM-free arm64 iPhone Simulator build with RT64 Metal first frame and audio.
-- Initial iPhone touch overlay with every N64 control, PaperPad-derived phone and
+- iPhone touch overlay with every N64 control, PaperPad-derived phone and
   tablet defaults, safe-area placement, tap latching, analog response, lifecycle
   clearing hooks, controller hiding, and an accessible persistent menu button.
-- Live iPhone input evidence for A (`0x8000`), Z (`0x2000`), Start (`0x1000`),
-  and C-left (`0x0002`) reaching `get_n64_input`.
-- The menu visibly hides gameplay controls and reports controller status.
-- The latest guarded iPhone run remained live for 90 seconds, captured a frame,
-  created no crash report, and left zero booted Simulators/processes.
+- Deterministic runtime evidence for all 14 digital masks, all analog cardinal
+  directions/zero return, simultaneous stick+A+B+Z, modal/background clearing,
+  foreground resume, and controller handoff through the actual N64 poll.
+- Native first-run Files picker and in-game ROM manager with exact 64 MiB/MD5
+  validation, z64/v64/n64 normalization, atomic protected private storage,
+  invalid rejection without staging, and ROM-free bundle proof.
+- Native UIKit Restored/Prototype chooser before SDL, explicit Prototype archival
+  warning, reachable quit-to-home action, isolated profile handoff, and a guarded
+  live Restored -> home -> Prototype in-process restart with no crash.
+- Deterministic embedded restoration data with the complete MIPS executable
+  segment erased, writable mod scanning disabled, and guarded iPhone proof of
+  restored `PRESS START`, controllable cannon gameplay, and Prototype omission.
+- Native touch-layout customization/reset actions plus a guarded two-process
+  proof of phone persistence, tablet isolation, safe-area clamping, input
+  clearing/restoration, reset, undo, and full-session cancel.
+- Safe-area native settings/status with live typed touch/audio/display bridges
+  and a guarded two-launch proof of clamping, serialization, relaunch loading,
+  profile isolation, modal clearing, and post-dismissal input.
+- Bounded protected diagnostics with pre-persistence path redaction, useful
+  content-free status, native share/cancel, temporary cleanup, and a guarded
+  adversarial proof of caps, permissions, modal clearing, and input restoration.
+- Completed iPhone Simulator Phase 5 with a 600-second live Restored gameplay
+  run, game-created FlashRAM persistence across same-install relaunch, complete
+  input/lifecycle rerun, profile isolation, and clean runtime-guard teardown.
+- Completed iPad Simulator Phase 6 on an iPad Pro 11-inch (M5): all shell,
+  layout, settings, diagnostics, ROM, restoration, input/lifecycle, endurance,
+  and same-install save/relaunch gates passed; menu geometry matched PaperPad
+  exactly and the largest conservative control-center delta was 0.64 point.
 
 ## Current iPhone touch slice
 
 The pause-point changes are centered in:
 
 - `apple/app/ios_main.mm`
+- `apple/app/home.h`
+- `apple/app/home.mm`
+- `apple/app/settings.h`
+- `apple/app/settings.mm`
+- `apple/app/diagnostics.h`
+- `apple/app/diagnostics.mm`
 - `patches/dino-recomp/0001-macos-sdl-metal-window.patch`
 - `patches/dino-recomp/0004-input-debug-log.patch`
 - `patches/dino-recomp/0008-ios-touch-input-bridge.patch`
+- `patches/dino-recomp/0010-restartable-ios-window-audio.patch`
+- `patches/N64ModernRuntime/0005-restartable-sessions.patch`
+- `patches/plume/0002-ios-metal-platform.patch`
 - `CMakeLists.txt`
 
 The overlay is attached to SDL's UIKit window after its Metal view is created.
@@ -55,40 +141,12 @@ Touch state is merged into the existing keyboard/controller result in
 Controller add/remove events drive touch visibility. CoreSimulator's synthetic
 controller is deliberately ignored so Simulator testing can show touch controls.
 
-The current menu is a functional scaffold, not the Definition-of-Done menu.
-`Touch Layout & Settings` and `Game Data & Diagnostics` are explicitly marked
-as coming next.
+The current menu reaches real ROM management, touch-layout customization/reset,
+quit-to-home, the complete settings/status hierarchy, and bounded redacted
+diagnostics through a native share sheet. The iPhone and iPad Simulator menu
+contracts are green.
 
 ## What is actually left
-
-### Phase 4/5: finish iPhone
-
-1. Add the native UIKit Files importer, exact rejection messages, normalization,
-   atomic private storage, and ROM replacement.
-2. Add DinoPad home/mode choice before runtime startup: Restored primary,
-   explicit warning for Prototype, and isolated profile handoff.
-3. Package the permitted non-code restoration data for mobile and prove that
-   Restored—not only the base prototype—boots on iPhone.
-4. Verify analog through the real N64 poll path, then exercise B, L, R, all
-   D-pad/C directions, A/Z/Start, and simultaneous multi-touch.
-5. Implement independent persisted phone/tablet layout editing and reset.
-6. Replace menu placeholders with the complete plan-listed menu: game/mode,
-   restoration/save status, controls, display, audio, game data, support,
-   diagnostics, and quit-to-home.
-7. Add settings bridges for volume, aspect, internal resolution, frame rate,
-   HUD placement, and touch opacity/enablement.
-8. Add diagnostics log/share and ROM manager flows.
-9. Prove background/foreground clears held input and safely pauses/resumes.
-10. Prove supported ROM -> Restored title -> controllable gameplay, save/relaunch,
-    clean shutdown, and the full 10-minute iPhone Simulator smoke.
-
-### Phase 6: iPad Simulator
-
-- Boot only after iPhone Simulator is shut down.
-- Validate independent tablet layout, layout persistence, safe areas, orientation,
-  larger menu/settings presentation, controller handoff, Restored gameplay, and
-  save/relaunch.
-- Produce a measured parity report against the PaperPad tablet shell.
 
 ### Phases 7-8: physical devices
 
@@ -97,10 +155,35 @@ as coming next.
   saves, thermal behavior, memory pressure, and clean relaunch.
 - Physical hardware is the authority for orientation; iOS 26.5 headless Simulator
   raw screenshots preserve a portrait framebuffer for landscape-only SDL apps.
+- Phase 7 preflight still finds zero CoreDevice devices and zero valid
+  code-signing identities on 2026-08-18. `scripts/build-ios-device.sh` is green
+  in unsigned mode: arm64-only, physical `IOS` platform, ROM-free, and free of
+  signature or provisioning state. Resume signing/install when hardware and an
+  identity exist; see `docs/evidence/2026-08-18/external-blocker-recheck/`.
+- A 2026-08-18 recheck found 25 GiB free, clearing the 20 GiB build gate. The
+  fresh unsigned physical-iOS build/package audit passed with the current
+  notice inputs; retain the standard disk preflight before future full cycles.
+  See `docs/evidence/2026-08-18/unsigned-ios-rebuild-package-audit/`.
+- Simulator automation is now compile-time test-only. Simulator builds opt in;
+  physical builds force it off. The reusable device-app safety gate proves the
+  physical Mach-O contains no automation keys/selectors/fixtures or private
+  paths and rejects a test-enabled Simulator app; see
+  `docs/evidence/2026-08-17/physical-device-release-boundary/`.
+- Both iOS products now contain an exact root privacy manifest. The package gate
+  validates no tracking/collection and the known required-reason set, with a
+  tampered tracking declaration rejected. Goals 31m/31n additionally produce a
+  clean unsigned Organizer-input archive using only `CODE_SIGNING_ALLOWED=NO`:
+  target-scoped Xcode settings install only `DinoPad.app`, whose payload passed
+  all local package, compiler-inventory, and notice gates; normal device builds
+  stay non-install builds. This host cannot open Organizer until Xcode's
+  first-launch 8.52 GiB iOS platform component is installed, so no aggregate
+  Xcode report or final transitive privacy conclusion exists.
+  See `docs/evidence/2026-08-18/ios-archive-privacy-preflight/`.
 
 ### Phase 9: progression and stability
 
-- Run the private fixture matrix.
+- Extend the validated `docs/PROGRESSION_FIXTURES.json` manifest beyond its one
+  early-game `AAAAA` entry, then run the private fixture matrix.
 - Complete at least one Restored start-to-credits physical-device playthrough.
 - Resolve any immediate progression or save blocker.
 - Add longer soak, repeated lifecycle, repeated import, and corruption-recovery
@@ -108,7 +191,10 @@ as coming next.
 
 ### Phase 10: release
 
-- Produce and audit a ROM-free unsigned IPA.
+- Keep [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) current; it now separates
+  green engineering audits from red distribution prerequisites and forbids
+  packaging while any P0 gate is red.
+- Produce and audit a ROM-free unsigned IPA only after those prerequisites pass.
 - Complete GPL source/notice obligations, attribution, non-affiliation language,
   README, installation guide, release checklist, tag, and checksums.
 - Obtain explicit DinoMod integration/redistribution permission. This is a real
@@ -132,6 +218,8 @@ as coming next.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Finish Goal 26c: fully verify and harden touch/lifecycle/menu behavior.
-5. Then implement the UIKit ROM setup/home boundary before expanding settings.
-
+4. When an authorized maintainer has installed the required Xcode platform,
+   open the Goal 31m archive in Organizer, generate and retain the aggregate
+   privacy report, and reconcile it against the final linked SDK set. Then
+   resume the complete physical iPhone Phase 7 matrix once a device and signing
+   identity are available.

@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "audited_target": "macos",
+  "basis": "Direct static archives in the warning-fatal Ninja link for build-macos/DinoPad plus selected files copied into build-macos/DinoPad.app for Goal 31j (predecessor 845fe4f). Compiler-derived macOS and physical-iOS coverage plus primary notice assembly are validated separately. This is an engineering inventory, not a legal conclusion or a complete reviewed notice set.",
+  "components": [
+    {
+      "id": "dino-recomp",
+      "name": "Dinosaur Planet: Recompiled",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp",
+      "commit": "725b2ede9cacc57968e0a028efed8df9235ba483",
+      "link_tokens": ["libdinopad_runtime.a", "libdinopad_patches.a", "libdinopad_rsp.a"],
+      "license_files": [{"path": "ref/dino-recomp/COPYING", "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"}],
+      "state": "notice-recorded",
+      "note": "GPLv3 text is pinned; corresponding-source and combined-work review remain release blockers."
+    },
+    {
+      "id": "rom-derived-aot",
+      "name": "Privately generated recompiled game AOT",
+      "targets": ["macos"],
+      "source_root": "",
+      "commit": "",
+      "link_tokens": ["libdinopad_base.a"],
+      "license_files": [],
+      "state": "rights-unresolved",
+      "note": "The binary is technically ROM-free but embeds locally generated code derived from user-supplied copyrighted game data; redistribution scope requires an explicit rights determination."
+    },
+    {
+      "id": "dinomod-enhanced",
+      "name": "DinoMod Enhanced Recompiled",
+      "targets": ["macos"],
+      "source_root": "ref/dinomod-enhanced-recompiled",
+      "commit": "d79e86be2304cba75216b0b98e9fb53ee99b7500",
+      "link_tokens": ["libdinopad_restoration.a"],
+      "license_files": [],
+      "state": "restricted",
+      "note": "No conventional redistribution license is present at the pin; generated static restoration code is linked into this development binary."
+    },
+    {
+      "id": "rt64",
+      "name": "RT64",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/rt64",
+      "commit": "e017b11119a970ee578ba6b7b8b0175fb97a925b",
+      "link_tokens": ["rt64/rt64.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/rt64/LICENSE", "sha256": "03d52856ed09784f7f57694f690ab0093d3cd40db69f9a318d45062f130f7116"}],
+      "state": "notice-recorded",
+      "note": "Direct static renderer archive; vendored header/source dependencies still need complete transitive notice review."
+    },
+    {
+      "id": "sdl2",
+      "name": "SDL2",
+      "targets": ["macos"],
+      "source_root": "ref/SDL2",
+      "commit": "5d249570393f7a37e037abf22cd6012a4cc56a71",
+      "link_tokens": ["sdl2/libSDL2.a"],
+      "license_files": [
+        {"path": "ref/SDL2/LICENSE.txt", "sha256": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127"},
+        {"path": "ref/SDL2/src/hidapi/LICENSE.txt", "sha256": "7d3b087c34f35d4d538e3bcddd1ff8f66e92f9ef336881999482800ddf840913"},
+        {"path": "ref/SDL2/src/video/yuv2rgb/LICENSE", "sha256": "f7d74004cc75778cae46c5f0139f244d67c07ef64cf51937e8272352197dcb18"}
+      ],
+      "state": "notice-recorded",
+      "note": "Pinned static archive; main and incorporated third-party source notices are hash-recorded."
+    },
+    {
+      "id": "re-spirv",
+      "name": "re-spirv",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/rt64/src/contrib/re-spirv",
+      "commit": "5d6b756ee62760f71b65d37e41a0b5a3dab90507",
+      "link_tokens": ["libre-spirv.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/rt64/src/contrib/re-spirv/LICENSE", "sha256": "761ecab744d5ed0528b5b794239abaa6f62bd5bd36fc1980b3cb98c48ce32868"}],
+      "state": "notice-recorded",
+      "note": "Direct static shader-processing archive."
+    },
+    {
+      "id": "plume",
+      "name": "Plume",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/rt64/src/contrib/plume",
+      "commit": "51b1ad443b9f202c5cfc930ae25345d3f2ba7716",
+      "link_tokens": ["libplume.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/rt64/src/contrib/plume/LICENSE", "sha256": "761ecab744d5ed0528b5b794239abaa6f62bd5bd36fc1980b3cb98c48ce32868"}],
+      "state": "notice-recorded",
+      "note": "Direct static Metal/RHI archive; its vendored headers remain in the transitive review."
+    },
+    {
+      "id": "nativefiledialog-extended",
+      "name": "nativefiledialog-extended",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/rt64/src/contrib/nativefiledialog-extended",
+      "commit": "17b6e8ce219c0677f94b63636abb9296b28841ca",
+      "link_tokens": ["libnfd.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/rt64/src/contrib/nativefiledialog-extended/LICENSE", "sha256": "b332d6f507142c66a0e904838b6437e6273734589c22a16b57392b89bfdccb2a"}],
+      "state": "notice-recorded",
+      "note": "Direct static native dialog archive."
+    },
+    {
+      "id": "zstd",
+      "name": "Zstandard",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/rt64/src/contrib/zstd",
+      "commit": "0ff651dd876823b99fa5c5f53292be28381aee9b",
+      "link_tokens": ["libzstd.a"],
+      "license_files": [
+        {"path": "ref/dino-recomp/lib/rt64/src/contrib/zstd/LICENSE", "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8"},
+        {"path": "ref/dino-recomp/lib/rt64/src/contrib/zstd/COPYING", "sha256": "f9c375a1be4a41f7b70301dd83c91cb89e41567478859b77eef375a52d782505"}
+      ],
+      "state": "notice-recorded",
+      "note": "Direct static compression archive with both upstream license alternatives recorded."
+    },
+    {
+      "id": "rmlui",
+      "name": "RmlUi",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/RmlUi",
+      "commit": "7a06f27db04fe5d13a5dacc19b2b4544673a4eca",
+      "link_tokens": ["librmlui.a", "librmlui_debugger.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/RmlUi/LICENSE.txt", "sha256": "30216823a4660a6656094b71981dfc7a6ec57ee19144fa135aafc6d3f018c63c"}],
+      "state": "notice-recorded",
+      "note": "Direct static UI core/debugger archives."
+    },
+    {
+      "id": "freetype",
+      "name": "FreeType",
+      "targets": ["macos"],
+      "source_root": "ref/freetype",
+      "commit": "42608f77f20749dd6ddc9e0536788eaad70ea4b5",
+      "link_tokens": ["freetype/libfreetype.a"],
+      "license_files": [{"path": "ref/freetype/docs/FTL.TXT", "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"}],
+      "state": "notice-recorded",
+      "note": "Direct static font engine; inventory records the FreeType License option and its required attribution text."
+    },
+    {
+      "id": "lunasvg",
+      "name": "lunasvg",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/lunasvg",
+      "commit": "4166d0cccfc059b39d5ecfc372524375e59448f9",
+      "link_tokens": ["liblunasvg.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/lunasvg/LICENSE", "sha256": "d424dea7cf155c1f7ff566cca1b3f504ee5c061ba63a73fe30d7372ee284086f"}],
+      "state": "notice-recorded",
+      "note": "Direct static SVG renderer archive."
+    },
+    {
+      "id": "n64-modern-runtime",
+      "name": "N64ModernRuntime",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/N64ModernRuntime",
+      "commit": "bf7c4e144d249686a3af42baa61968274326609c",
+      "link_tokens": ["liblibrecomp.a", "libultramodern.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/N64ModernRuntime/COPYING", "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"}],
+      "state": "notice-recorded",
+      "note": "Direct static runtime archives under GPLv3; corresponding-source review remains open."
+    },
+    {
+      "id": "n64recomp-runtime",
+      "name": "N64Recomp runtime libraries",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/N64ModernRuntime/N64Recomp",
+      "commit": "1c2569e2e3fa0965caaf90265b2a84ff951219d8",
+      "link_tokens": ["libLiveRecomp.a", "libN64Recomp.a", "libSymbolLists.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/N64ModernRuntime/N64Recomp/LICENSE", "sha256": "d439b523a90a07f87182b0cf8fab9b09e385642f9f573b7ae67306d3fb68af88"}],
+      "state": "notice-recorded",
+      "note": "The linked nested runtime pin differs from the separate top-level host-tool N64Recomp submodule and is recorded exactly here."
+    },
+    {
+      "id": "fmt",
+      "name": "fmt",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/N64ModernRuntime/N64Recomp/lib/fmt",
+      "commit": "407c905e45ad75fc29bf0f9bb7c5c2fd3475976f",
+      "link_tokens": ["libfmt.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/N64ModernRuntime/N64Recomp/lib/fmt/LICENSE", "sha256": "07580f2a3b35709ce703d523f447b242f6dfec7582a8c0df102c7fa2849375f8"}],
+      "state": "notice-recorded",
+      "note": "Direct static formatting archive."
+    },
+    {
+      "id": "rabbitizer",
+      "name": "Rabbitizer",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/N64ModernRuntime/N64Recomp/lib/rabbitizer",
+      "commit": "e0d8003047938e2ec3697eaf8d61a84d11d17b43",
+      "link_tokens": ["librabbitizer.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/N64ModernRuntime/N64Recomp/lib/rabbitizer/LICENSE", "sha256": "153ee8c5370552dcf673979821878f7f38f6503de1bf1b4b4dadc55b3fe726e3"}],
+      "state": "notice-recorded",
+      "note": "Direct static instruction-decoder archive."
+    },
+    {
+      "id": "miniz",
+      "name": "miniz",
+      "targets": ["macos"],
+      "source_root": "ref/dino-recomp/lib/N64ModernRuntime/thirdparty/miniz",
+      "commit": "8573fd7cd6f49b262a0ccc447f3c6acfc415e556",
+      "link_tokens": ["libminiz.a"],
+      "license_files": [{"path": "ref/dino-recomp/lib/N64ModernRuntime/thirdparty/miniz/LICENSE", "sha256": "0115478d567121238cf6cc1c0c361926cf07a49d9e4c9e66da97fac6a01646b3"}],
+      "state": "notice-recorded",
+      "note": "Direct static compression archive."
+    }
+  ],
+  "packaged_resources": [
+    {
+      "id": "lato-regular",
+      "source_path": "ref/dino-recomp/assets/LatoLatin-Regular.ttf",
+      "package_path": "Contents/Resources/assets/LatoLatin-Regular.ttf",
+      "sha256": "d785334ac4e7810f571def986bbad41161f68ac385db8813f798bf04d71478e1",
+      "state": "notice-recorded",
+      "note": "Embedded SIL OFL 1.1 metadata, author/reserved-name attribution, and exact license text are assembled under Contents/Resources/Notices."
+    },
+    {
+      "id": "lato-italic",
+      "source_path": "ref/dino-recomp/assets/LatoLatin-Italic.ttf",
+      "package_path": "Contents/Resources/assets/LatoLatin-Italic.ttf",
+      "sha256": "1121daa4b0f0510074f54b046b2a25016614cca419974b992e2b8a2b2231f5da",
+      "state": "notice-recorded",
+      "note": "Covered by the exact packaged Lato attribution and SIL OFL 1.1 text."
+    },
+    {
+      "id": "lato-bold",
+      "source_path": "ref/dino-recomp/assets/LatoLatin-Bold.ttf",
+      "package_path": "Contents/Resources/assets/LatoLatin-Bold.ttf",
+      "sha256": "74dc638cf436cce77a0217a2a55ce7906a4cc9e4c595c6f1dcd9dd858078c1b6",
+      "state": "notice-recorded",
+      "note": "Covered by the exact packaged Lato attribution and SIL OFL 1.1 text."
+    },
+    {
+      "id": "lato-bold-italic",
+      "source_path": "ref/dino-recomp/assets/LatoLatin-BoldItalic.ttf",
+      "package_path": "Contents/Resources/assets/LatoLatin-BoldItalic.ttf",
+      "sha256": "116bd3f939070d9df8c73acb76faa8f6b582bcce3c391eb6b3695f40e5ae404a",
+      "state": "notice-recorded",
+      "note": "Covered by the exact packaged Lato attribution and SIL OFL 1.1 text."
+    },
+    {
+      "id": "promptfont",
+      "source_path": "ref/dino-recomp/assets/promptfont/promptfont.ttf",
+      "package_path": "Contents/Resources/assets/promptfont/promptfont.ttf",
+      "sha256": "7206e62fdb7e07fdf137e52464d7fa862f2f8dc79931fa6500e6ceb8ed1f06b9",
+      "state": "notice-recorded",
+      "note": "The matching SIL Open Font License 1.1 text is already copied beside this font in the app assets."
+    },
+    {
+      "id": "promptfont-license",
+      "source_path": "ref/dino-recomp/assets/promptfont/LICENSE.txt",
+      "package_path": "Contents/Resources/assets/promptfont/LICENSE.txt",
+      "sha256": "91db5ab511830ae7b393be382e64423c5a783da51faf6211b3d42ac836ac0ce3",
+      "state": "notice-recorded",
+      "note": "Exact SIL Open Font License 1.1 text packaged beside promptfont."
+    },
+    {
+      "id": "lato-notice",
+      "source_path": "notices/Lato-NOTICE.txt",
+      "package_path": "Contents/Resources/Notices/Lato-NOTICE.txt",
+      "sha256": "29372c7637ac2fe2f399988a10c89c79fb932cd630eae04a7c6a883be4e6df0c",
+      "state": "notice-recorded",
+      "note": "Exact packaged Lato copyright, authorship, reserved-name, and license-pointer notice."
+    },
+    {
+      "id": "lato-ofl-license",
+      "source_path": "ref/dino-recomp/assets/promptfont/LICENSE.txt",
+      "package_path": "Contents/Resources/Notices/OFL-1.1.txt",
+      "sha256": "91db5ab511830ae7b393be382e64423c5a783da51faf6211b3d42ac836ac0ce3",
+      "state": "notice-recorded",
+      "note": "Exact SIL Open Font License 1.1 text packaged beside the Lato attribution."
+    }
+  ],
+  "release_blockers": [
+    {
+      "id": "root-license-decision",
+      "summary": "DinoPad-owned source has no root license or copyright-scope decision.",
+      "required_closure": "The owner must choose and document a license compatible with the combined work; engineering cannot infer this grant."
+    },
+    {
+      "id": "gpl-corresponding-source",
+      "summary": "GPLv3 texts are identified, but the exact corresponding-source offer/package for a binary is not assembled.",
+      "required_closure": "Review the combined work and ship matching complete corresponding source, build scripts, patches, notices, and any required offer with the exact artifact."
+    },
+    {
+      "id": "dinomod-permission",
+      "summary": "DinoMod-derived code is linked without a conventional redistribution license at the pin.",
+      "required_closure": "Archive written permission or a compatible published license, or build a reviewed release configuration with all restricted integration and claims removed."
+    },
+    {
+      "id": "rom-derived-binary-rights",
+      "summary": "The ROM-free executable still embeds privately generated AOT derived from copyrighted game data.",
+      "required_closure": "Obtain a rights/counsel determination for binary redistribution or limit delivery to a source-only local-generation workflow."
+    },
+    {
+      "id": "transitive-notice-completeness",
+      "summary": "The macOS and physical-iOS compiler graphs are fully mapped and standalone plus mechanically extracted inline-primary notices are assembled, but secondary-notice and legal-completeness review remains open.",
+      "required_closure": "Review every incorporated source family for secondary notice requirements, correct the assembled corpus as needed, and obtain second-person rights/license review against both final products."
+    }
+  ]
+}

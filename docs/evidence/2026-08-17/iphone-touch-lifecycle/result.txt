@@ -1,0 +1,1 @@
+IOS INPUT/LIFECYCLE RESULT: PASS (arm64 app; ROM-free bundle; live 8s; all 14 digital masks; 4 analog directions; multi-touch; menu lifecycle; app lifecycle; controller handoff; screenshot; no crash)

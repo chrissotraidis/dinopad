@@ -8,7 +8,9 @@
 #   2. Run RecompModTool to produce mod_syms.bin, mod_binary.bin, mod.json,
 #      and the .nrm package.
 #   3. Run OfflineModRecomp to emit C that DinoPad can compile statically.
-#   4. On macOS, compile the emitted C into the runtime's diagnostic offline
+#   4. Build a deterministic package containing manifest/symbol/data bytes but
+#      with every executable MIPS ELF segment erased.
+#   5. On macOS, compile the emitted C into the runtime's diagnostic offline
 #      dylib format for the full replacement/hook feasibility test. This is
 #      not the iOS production packaging path.
 #
@@ -105,6 +107,15 @@ tools/generate_static_dispatch.py \
     "generated/aot/RecompiledFuncs" \
     "generated/aot/RecompiledPatches"
 
+echo "== Building non-executable restoration data package =="
+tools/build_static_restoration_data.py \
+    --elf "$MOD_DIR/build/mod.elf" \
+    --manifest "$OUT_DIR/mod.json" \
+    --symbols "$OUT_DIR/mod_syms.bin" \
+    --binary "$OUT_DIR/mod_binary.bin" \
+    --output "$STATIC_DIR/dinomod_restoration_data.nrm" \
+    --audit-output "$STATIC_DIR/dinomod_restoration_data.audit.json"
+
 # 5. Build N64ModernRuntime's macOS offline-mod developer format. The package
 # filename suffix selects the precompiled code handle, avoiding live/JIT
 # recompilation while the production static bridge is brought up separately.
@@ -127,7 +138,9 @@ shasum -a 256 \
     "$STATIC_DIR/dinomod_enhanced.c" \
     "$STATIC_DIR/dinomod_static_dispatch.c" \
     "$STATIC_DIR/dinomod_static_exports.h" \
-    "$STATIC_DIR/dinomod_static_exports.c"
+    "$STATIC_DIR/dinomod_static_exports.c" \
+    "$STATIC_DIR/dinomod_restoration_data.nrm" \
+    "$STATIC_DIR/dinomod_restoration_data.audit.json"
 if [[ -f "$OUT_DIR/dinomod_enhanced.offline.dylib" ]]; then
     shasum -a 256 "$OUT_DIR/dinomod_enhanced.offline.dylib"
 fi

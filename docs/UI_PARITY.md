@@ -1,6 +1,6 @@
 # DinoPad / PaperPad Apple-Shell Parity
 
-Last updated: 2026-08-16
+Last updated: 2026-08-18
 Reference: pinned PaperPad commit `644945d4bc4facbbd8ecda8cdfd37ae64e7993fa`
 
 PaperPad is the required behavioral reference for native arm64 N64 features and
@@ -13,31 +13,33 @@ external dependency.
 
 | Capability | PaperPad reference behavior | DinoPad status | Gap / intentional difference |
 |---|---|---|---|
-| Native arm64 static game code | No emulation/JIT dependency | Green on macOS and iPhone Simulator | Device build still open. |
+| Native arm64 static game code | No emulation/JIT dependency | Green on macOS and iPhone/iPad Simulator | Device build still open. |
+| Mobile restored content | Static code plus application-owned data; no arbitrary executable mods | **Green iPhone/iPad Simulator (Goals 27c/30a)** | The embedded package has its MIPS executable segment zeroed; writable mod scanning is disabled; device proof and redistribution permission remain open. |
 | Metal presentation | SDL UIKit/AppKit window -> CAMetalLayer -> RT64 | Green first frame | Resize/orientation/device stress open. |
-| ROM-free bundle | User imports exact supported ROM | Green package audits | iOS user-facing importer open. |
-| ROM picker/normalization | `.z64/.v64/.n64`, exact revision, private normalized storage | Green macOS; Open iOS | DinoPad validates its December 2000 prototype fingerprint. |
-| First-run setup | Native controller before runtime | Green macOS; Open iOS | DinoPad additionally needs Restored/Prototype choice and warning. |
-| Full N64 touch surface | Stick, D-pad, A/B/Z/L/R/Start/all C buttons | Partial | All 15 are drawn/wired; four digital masks evidenced; analog/full matrix open. |
-| Touch tap latching | Short taps survive multiple runtime polls | Partial/implemented | Six-poll latch present; cadence matrix open. |
-| Analog response | Deadzone, nonlinear precision, cardinal bias/flick handling | Partial | Deadzone/nonlinear/cardinal behavior present; flick retention and runtime axis evidence incomplete. |
+| ROM-free bundle | User imports exact supported ROM | **Green** macOS + iPhone/iPad Simulator | Device/IPA audit remains Phase 10. |
+| ROM picker/normalization | `.z64/.v64/.n64`, exact revision, private normalized storage | **Green** macOS + iPhone/iPad Simulator **(Goals 27a/30a)** | DinoPad validates its December 2000 prototype fingerprint; physical Files providers remain open. |
+| First-run setup | Native controller before runtime | **Green** macOS + iPhone/iPad Simulator | iOS ROM setup and the post-setup mode chooser both precede SDL; device proof remains. |
+| Restored/Prototype home | Primary recommended mode, explicit archival alternative | **Green iPhone/iPad Simulator (Goals 27b/30a)** | Restored is primary; Prototype requires a prominent warning; both hand off isolated namespaces and quit-to-home can launch a second runtime. |
+| Full N64 touch surface | Stick, D-pad, A/B/Z/L/R/Start/all C buttons | **Green** **(Goal 26c)** | All 14 digital masks verified end-to-end in the [dinopad-in] runtime poll on 2026-08-17; all 15 draw/wire correctly. |
+| Touch tap latching | Short taps survive multiple runtime polls | **Green** | Six-poll latch + unit coverage present; used by the digital-mask smoke. |
+| Analog response | Deadzone, nonlinear precision, cardinal bias/flick handling | **Green** **(Goal 26c)** | Deadzone/nonlinear/cardinal plus analog flick retention units in touch_unit_test.cpp; all 4 cardinal directions + diagonal multi-touch verified in the runtime poll on 2026-08-17. |
 | Phone defaults | Grip-first compact layout | Partial | PaperPad-derived centers/sizes used; measured screenshot comparison not yet recorded. |
-| Tablet defaults | Independent larger-device layout | Partial/code only | Never run on iPad Simulator. |
-| Safe areas | Controls/menu avoid notch/Home indicator | Partial | Layout uses safe-area insets; orientation/device verification open. |
-| Persistent `•••` menu | Always reachable, accessible, controller-independent | Partial | Button/menu work; full menu tree and Resume presentation polish open. |
-| Modal input policy | Clear input and hide controls for menu/picker/settings/share | Partial | Menu does this; other modal flows not implemented. |
-| Layout editor | Move, group-link, resize, opacity, hide/show, reset, undo | Open | Must port behavior with DinoPad persistence keys. |
-| Independent idiom persistence | Phone/tablet layouts do not contaminate each other | Open | Default selection is idiom-specific; editable persistence absent. |
-| Touch enable/opacity | Persisted settings and live update | Partial | Storage exists; no complete settings UI. |
+| Tablet defaults | Independent larger-device layout | **Green iPad Simulator (Goal 30a)** | All controls were visually accepted inside safe areas; maximum conservative PaperPad center delta is 0.64 point. Physical iPad remains open. |
+| Safe areas | Controls/menu avoid notch/Home indicator | **Green Simulator** | Defaults and edited movement clamp complete targets within UIKit safe-area bounds on both idioms; physical orientation/device verification remains open. |
+| Persistent `•••` menu | Always reachable, accessible, controller-independent | **Green iPhone/iPad Simulator (Goals 28c/30a)** | Resume/touch, native settings/status, layout customize/reset, ROM manager, diagnostics share, and Quit to DinoPad Home are real; tablet menu rect matches PaperPad exactly. Device proof remains. |
+| Modal input policy | Clear input and hide controls for menu/picker/settings/share | **Green iPhone/iPad Simulator (Goals 28c/30a)** | Menu, ROM manager, settings, and diagnostics share clear held input and restore the correct touch/controller state after dismissal on both idioms. |
+| Layout editor | Move, group-link, resize, opacity, hide/show, reset, undo | **Green iPhone/iPad Simulator (Goals 28a/30a)** | Adds explicit full-session Cancel to the PaperPad behavior; tablet usability and persistence are visually and deterministically evidenced. Device proof remains. |
+| Independent idiom persistence | Phone/tablet layouts do not contaminate each other | **Green Simulator (Goals 28a/30a)** | Separate versioned dictionaries and resets survived two-process harnesses on both idioms. |
+| Touch enable/opacity | Persisted settings and live update | **Green iPhone/iPad Simulator (Goals 28b/30a)** | Native switch/slider apply immediately and survive process relaunch; device presentation remains. |
 | Controller handoff | Connected controller hides gameplay controls, never menu | Partial | SDL events wired; real hardware/reconnect evidence open. |
-| Input clearing/lifecycle | Resign/background/modal clears held state | Partial | Notifications wired; foreground/background proof open. |
-| Audio controls/session | Master volume and mobile audio lifecycle | Partial | Audio renders; settings/interruption/route evidence open. |
-| Display settings | Aspect/internal resolution/filter policy | Open mobile UI | Runtime has configuration; native bridge not implemented. |
-| Diagnostics | Bounded private log, redaction, report/share | Open | Must use DinoPad naming and paths. |
-| ROM manager | Replace/manage imported ROM from menu | Open iOS | macOS replacement exists. |
-| Save persistence | Private app storage survives relaunch/update | Green macOS; Open mobile proof | Restored/Prototype namespaces must remain isolated. |
+| Input clearing/lifecycle | Resign/background/modal clears held state | **Green Simulator** | Goal 26c proves background/foreground and modal clearing; physical-device interruption evidence remains. |
+| Audio controls/session | Master volume and mobile audio lifecycle | Partial | Goal 28b proves live persisted master volume; physical interruption/route evidence remains open. |
+| Display settings | Aspect/internal resolution/filter policy | **Green iPhone/iPad Simulator (Goals 28b/30a)** | Native typed resolution/aspect/frame-rate/HUD controls apply live and persist; device stress remains open. |
+| Diagnostics | Bounded private log, redaction, report/share | **Green iPhone/iPad Simulator (Goals 28c/30a)** | Uses DinoPad naming and paths; 4 MiB protected capture, 192 KiB shared tails, 512 KiB report, adversarial pre-persistence redaction, and native share/cancel are evidenced on both idioms. Repeat on device. |
+| ROM manager | Replace/manage imported ROM from menu | **Green** macOS + iPhone/iPad Simulator **(Goals 27a/30a)** | Replace/Remove UI and production import backend evidenced; physical device remains. |
+| Save persistence | Private app storage survives relaunch/update | **Green macOS + iPhone/iPad Simulator (Goals 29a/30a)** | A game-created Restored save survived 600-second gameplay and same-install relaunch back to controllable gameplay on both Simulator idioms while Prototype stayed unchanged; device/update-in-place proof remains. |
 | Physical controller play | SDL game controller mapping and handoff | Virtual path Green; physical Open | Requires connected hardware. |
-| Native menu/settings accessibility | Labels, hints, readable form sheets | Partial | Menu button/actions accessible; canvas controls need accessibility elements. |
+| Native menu/settings accessibility | Labels, hints, readable form sheets | Partial | Settings uses native labeled controls and safe-area scroll layout; canvas controls still need individual accessibility elements and device verification. |
 | iPhone/iPad packaging | ROM-free unsigned IPA | Open | Device build, audit, guide, and checksum open. |
 
 ## DinoPad-specific additions
@@ -48,6 +50,7 @@ These intentional differences are required rather than parity regressions:
 - Prototype Mode requires a prominent incompleteness warning.
 - Saves/configuration are isolated between Restored and Prototype.
 - Restoration code is statically linked and dispatches without runtime writes.
+- Mobile restoration data is embedded-only and sanitized of its MIPS executable segment.
 - No arbitrary mod installation or downloaded executable code.
 - Menu includes restoration settings/status and quit-to-DinoPad-home actions.
 
@@ -59,4 +62,3 @@ These intentional differences are required rather than parity regressions:
   Planet-specific control need is documented.
 - Full N64 input, lifecycle, controller handoff, settings, diagnostics, ROM
   management, saves, and packaging must be evidenced on physical iPhone/iPad.
-

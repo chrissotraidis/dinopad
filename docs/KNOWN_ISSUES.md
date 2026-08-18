@@ -18,6 +18,8 @@ window scale/chrome. Analog drag did not produce a logged axis transition before
 the pause point. Add a release-inert deterministic injection boundary or pure
 input harness before treating the full touch matrix as regression-protected.
 
+**Update 2026-08-17 (Goal 26c): Resolved.** A DinoPad-owned deterministic test harness in `apple/app/ios_main.mm` (DinoPadInputSmokeRunner, gated by the DINOPAD_RUN_INPUT_SMOKE environment variable) injects simulated touches directly through the same UIKit overlay path the runtime uses. Combined with a hardened `scripts/smoke-ios.sh` cleanup trap, the guarded 8-second run proves every digital N64 mask, all four analog cardinal directions with return-to-zero, simultaneous multi-touch, menu open/dismiss, background/foreground lifecycle, and controller handoff. Unit coverage lives in `tools/touch_unit_test.cpp` (21 ctest checks).
+
 ### `smoke-ios.sh` can wait on its console child after an early failure
 
 **Status:** Open harness defect (2026-08-16).
@@ -27,6 +29,8 @@ waited for `simctl launch --console` without first terminating the app/child and
 needed runtime-guard interruption. Default 20/90-second green runs terminate
 normally. Add a trap that always terminates the bundle and console child before
 returning failure.
+
+**Update 2026-08-17 (Goal 26c): Resolved.** The script now installs a single EXIT/INT/TERM trap that terminates the bundle, sends SIGTERM (then SIGKILL) to the `simctl launch --console` child, waits for it, and reaps it. Early failures can no longer block on the console process.
 
 ### `osascript` keystrokes go to the frontmost app, not the DinoPad window
 

@@ -1,0 +1,13 @@
+IOS RESTORATION RESULT: PASS
+package sha256: 2ee8befb8ee724e776f52b7654eb2202ae9f6971d716df1aafc5346e617be5e1
+package members: mod.json, mod_syms.bin, mod_binary.bin
+MIPS executable bytes erased: 316592 (independent readback: all zero)
+static dispatch: 460 functions; 294 replacements; 42 hooks / 35 slots
+title: visually accepted restored PRESS START scene
+gameplay: visually accepted controllable ship-deck cannon tutorial
+late input: analog up frame 26536; A frame 26656
+iOS filesystem mods: disabled; writable invalid sentinel ignored
+Prototype: package and static dispatch omitted after live in-process restart
+bundle: arm64; ROM-free; no native restoration library
+runtime: no new crash; guard cleanup 0 processes / 0 booted Simulators
+legal: private generated package remains ignored; redistribution permission blocked

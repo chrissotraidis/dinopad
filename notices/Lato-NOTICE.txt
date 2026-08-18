@@ -1,0 +1,15 @@
+Lato font family
+================
+
+Copyright (c) 2011-2015 by tyPoland Lukasz Dziedzic
+(http://www.typoland.com/) with Reserved Font Name "Lato".
+
+Authors recorded in the packaged font metadata:
+Lukasz Dziedzic with Adam Twardoch and Botio Nikoltchev.
+
+The packaged LatoLatin Regular, Italic, Bold, and Bold Italic faces state that
+they are licensed under the SIL Open Font License, Version 1.1. The complete
+license text is provided beside this notice as OFL-1.1.txt.
+
+This notice records the metadata embedded in the exact pinned font files. It
+does not apply to any other DinoPad component.

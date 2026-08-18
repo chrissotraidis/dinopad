@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# build-sdl2.sh - build the pinned native SDL2 static library for macOS.
-# Port of PaperPad's build-sdl2.sh; avoids the Homebrew sdl2-compat shim.
+# build-sdl2.sh - optional standalone build of the pinned native SDL2 static
+# library for macOS diagnostics. The DinoPad CMake build compiles SDL in-tree.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,6 +16,8 @@ fi
 
 cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" -G Ninja \
   -DSDL_STATIC=ON -DSDL_SHARED=OFF -DSDL_TEST=OFF -DSDL_TESTS=OFF \
+  -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
   -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR" --parallel "${DINOPAD_MAX_JOBS:-4}" --target SDL2-static
 

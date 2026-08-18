@@ -1,0 +1,1 @@
+IOS DIAGNOSTICS RESULT: PASS (4 MiB private sanitized capture; 192 KiB tails; 512 KiB report; adversarial path redaction; useful status; native share/cancel; modal input restoration; temporary/test cleanup; arm64 ROM-free app; no crash)
