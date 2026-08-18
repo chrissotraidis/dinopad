@@ -1,6 +1,7 @@
 # Building DinoPad
 
-Status: macOS arm64 and iPhone Simulator arm64 builds active (updated 2026-08-17).
+Status: macOS arm64, iPhone/iPad Simulator arm64, and unsigned physical iOS
+arm64 builds active (updated 2026-08-17).
 
 DinoPad does not distribute a ROM or ROM-derived playable output. All generation output is private and ignored.
 
@@ -21,7 +22,9 @@ The target top-level entry point is:
 ```sh
 scripts/build-macos-app.sh --rom /absolute/path/to/your/rom
 scripts/build-ios-simulator.sh
-# later: scripts/build-ios-device.sh and scripts/package-ios.sh
+scripts/build-ios-device.sh                 # unsigned iphoneos build
+scripts/build-ios-device.sh --team TEAM_ID # personal-development signed build
+# later: scripts/package-ios.sh
 ```
 
 The pipeline (mirroring `ref/dino-recomp/BUILDING.md` sections 3-5, plus PaperPad's Apple flow):
@@ -44,6 +47,7 @@ Once `generated/aot/<game>/lookup.cpp` exists, omit `--rom`:
 ```sh
 scripts/build-macos-app.sh
 scripts/build-ios-simulator.sh
+scripts/build-ios-device.sh
 ```
 
 Scripts still verify/fetch pins and apply maintained patches; they refuse to continue when generated source is absent.
@@ -54,7 +58,7 @@ Scripts still verify/fetch pins and apply maintained patches; they refuse to con
 |---|---|---|
 | macOS | `build-macos/DinoPad.app` | Apple Silicon; ad-hoc signed and verified by the script |
 | iOS Simulator | `build-ios-simulator/Release-iphonesimulator/DinoPad.app` | arm64 Simulator app; signing disabled; iPhone+iPad |
-| Physical iOS | `build-ios-device/Release/DinoPad.app` | arm64 device app; requires your own Apple Development signing team |
+| Physical iOS | `build-ios-device/Release-iphoneos/DinoPad.app` | arm64 device app; unsigned by default, or personal-team signed with `--team` |
 
 Both app artifacts must remain ROM-free (`scripts/check-package-safety.sh` in Phase 10).
 
@@ -155,7 +159,19 @@ xcrun simctl shutdown all
 
 ## Physical devices and unsigned IPA
 
-Physical device builds require a personal Apple Development team and are installed with `xcrun devicectl` or Xcode. The public deliverable is an unsigned, self-signable IPA produced by `scripts/package-ios.sh`, audited by `scripts/check-package-safety.sh`, and published only after every Phase 10 gate (source tag, ROM-free audit, no provisioning profile, checksums, notices). Installation instructions will live in `docs/INSTALL_IPA.md` at release time.
+`scripts/build-ios-device.sh` always cross-compiles for the physical `iphoneos`
+platform and audits arm64 architecture plus ROM-free contents. With no arguments
+it produces an unsigned app containing neither `_CodeSignature` nor
+`embedded.mobileprovision`. Pass `--team TEAM_ID` only when a valid personal
+Apple Development identity/provision is available; add
+`--allow-provisioning-updates` only when Xcode may contact the developer service.
+Signed apps are installed with `xcrun devicectl` or Xcode.
+
+The public deliverable is a separate unsigned, self-signable IPA produced by
+`scripts/package-ios.sh`, audited by `scripts/check-package-safety.sh`, and
+published only after every Phase 10 gate (source tag, ROM-free audit, no
+provisioning profile, checksums, notices). Installation instructions will live
+in `docs/INSTALL_IPA.md` at release time.
 
 ## Troubleshooting notes
 

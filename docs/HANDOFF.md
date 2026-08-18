@@ -121,6 +121,11 @@ contracts are green.
   saves, thermal behavior, memory pressure, and clean relaunch.
 - Physical hardware is the authority for orientation; iOS 26.5 headless Simulator
   raw screenshots preserve a portrait framebuffer for landscape-only SDL apps.
+- Phase 7 preflight currently finds zero CoreDevice devices and zero valid
+  code-signing identities. `scripts/build-ios-device.sh` is green in unsigned
+  mode: arm64-only, physical `IOS` platform, ROM-free, and free of signature or
+  provisioning state. Resume signing/install when hardware and an identity exist;
+  see `docs/evidence/2026-08-17/physical-device-preflight/`.
 
 ### Phase 9: progression and stability
 

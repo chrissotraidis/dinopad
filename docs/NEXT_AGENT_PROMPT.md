@@ -99,6 +99,11 @@ in the plan.
   still a separate release blocker.
 - Device builds, physical-device evidence, progression, and release packaging
   remain open.
+- Goal 31a preflight added `scripts/build-ios-device.sh` and proved an unsigned,
+  arm64-only, ROM-free `iphoneos` app with no signature/provisioning state.
+  CoreDevice currently reports zero known devices and the keychain zero valid
+  signing identities, so installation and physical runtime validation are
+  externally blocked until those prerequisites change.
 - DinoMod redistribution permission is an external release blocker, not a reason
   to stop technical development.
 
@@ -107,6 +112,11 @@ in the plan.
 Complete physical iPhone Phase 7 as the next independently verifiable target.
 Start with read-only connected-device and signing inventory. Run only after
 confirming every Simulator and DinoPad process is shut down.
+
+The last inventory found zero devices and zero valid identities. Recheck rather
+than assuming that state is permanent. If unchanged, preserve the documented
+external blocker and continue only safe preparation that does not fabricate
+physical evidence.
 
 Acceptance:
 

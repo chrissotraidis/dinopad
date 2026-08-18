@@ -134,4 +134,4 @@ supports only its bundled pins.
 | macOS arm64 | Xcode 26.6 / Apple Clang 21.0.0 / CMake 3.27.1 / Ninja 1.13.2 | Green (Phase 2 evidence) |
 | iPhone Simulator arm64 | Xcode 26.6 / iOS 26.5 Simulator | Green (Phase 5): full native shell/runtime matrix, save relaunch, and 600-second gameplay evidenced |
 | iPad Simulator arm64 | Xcode 26.6 / iPadOS 26.5 Simulator | Green (Phase 6): full native shell/runtime matrix, measured PaperPad parity, save relaunch, and 600-second gameplay evidenced |
-| Physical iPhone / iPad | tbd | Not started (Phases 7-8) |
+| Physical iPhone / iPad | Xcode 26.6 / iPhoneOS 26.5 SDK | Unsigned arm64 device build green; signing/install/runtime blocked by zero known devices and zero valid identities (Phases 7-8) |
