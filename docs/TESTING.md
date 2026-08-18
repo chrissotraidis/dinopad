@@ -68,11 +68,13 @@ useful runtime/profile/ROM/save/controller/render fields; adversarial redaction
 before storage and sharing; modal input clearing/restoration; share cancellation;
 temporary report cleanup; ROM-free arm64 packaging; CrashReporter; and guard
 cleanup.
-The remaining Phase 5 automation will extend these until it also verifies:
-
-1. save/relaunch;
-2. 10-minute stability;
-3. clean shutdown.
+`scripts/smoke-ios-phase5.sh` is the final iPhone Simulator gate. It keeps one
+Restored gameplay process live for at least 600 seconds, validates a private
+game-created 128 KiB save by size/hash/slot metadata only, terminates and
+relaunches the same installed app back into controllable gameplay, reruns the
+seven-suite input/lifecycle matrix, proves a Prototype sentinel is unchanged,
+audits bounded diagnostics/arm64/ROM-free/CrashReporter state, and relies on the
+guard for complete cleanup. Phase 5 is green.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
 
@@ -85,6 +87,7 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.s
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-layout.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-settings.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-phase5.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 
@@ -188,6 +191,7 @@ scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-phase5.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

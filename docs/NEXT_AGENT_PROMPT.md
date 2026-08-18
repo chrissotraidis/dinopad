@@ -47,7 +47,8 @@ in the plan.
 - Phases 0-3 are substantially green: repository/pins, macOS native arm64,
   static DinoMod integration, no-write dispatch, profiles, macOS native setup,
   ROM import, gameplay/audio/input/saves, clean shutdown, and smoke tests.
-- Phase 4 is partial and Phase 5 is a playable integration.
+- Phase 4 is partial pending tablet/device parity; iPhone Simulator Phase 5 is
+  green.
 - The ROM-free iPhone Simulator arm64 app builds and renders RT64 Metal/audio.
 - The UIKit touch overlay draws all 15 N64 controls plus an accessible
   persistent `•••` button using PaperPad-derived phone/tablet defaults.
@@ -72,6 +73,10 @@ in the plan.
   clearing, and post-dismissal touch restoration.
 - The iPhone menu exposes real settings, layout, ROM-manager, diagnostics share,
   resume, and quit-to-home actions. Its native menu contract is green.
+- Goal 29a completed Phase 5: a private game-created Restored save survived a
+  600-second controllable gameplay launch and same-install process relaunch back
+  into controllable gameplay, all seven input/lifecycle suites passed, and the
+  Prototype sentinel stayed unchanged.
 - Goal 27a added and evidenced the real UIKit Files importer and ROM manager:
   exact size/MD5, z64/v64/n64 normalization, useful rejection, atomic protected
   private storage, replacement/removal, and ROM-free bundle proof.
@@ -89,41 +94,36 @@ in the plan.
 - DinoMod redistribution permission is an external release blocker, not a reason
   to stop technical development.
 
-## Immediate next goal: Goal 29a
+## Immediate next goal: Goal 30a
 
-Prove iPhone save/relaunch and complete the full ten-minute Simulator smoke as
-the remaining Phase 5 gate. Use the real profile-local FlashRAM path and runtime
-input flow; do not substitute sentinel-only persistence for a game-produced save.
+Complete iPad Simulator Phase 6 as the next independently verifiable target.
+Run only after confirming the iPhone Simulator and DinoPad process are shut down.
 
 Acceptance:
 
 1. Clean patch replay and repository-safety audit pass.
 2. macOS incremental build remains green.
-3. iPhone Simulator build remains ROM-free and arm64.
-4. The guarded run reaches Restored controllable gameplay through the production
-   runtime and lasts at least ten minutes without crash, hang, fatal renderer/
-   audio error, or unbounded diagnostics growth.
-5. Produce a real game save change, record only non-sensitive size/hash/timestamp
-   evidence, terminate the process cleanly, relaunch the same installed app, and
-   prove the save is loaded back into controllable gameplay.
-6. A distinct Prototype save sentinel/hash remains unchanged throughout, proving
-   profile isolation; no ROM/save bytes or private absolute paths enter Git.
-7. Exercise A/B/Z/Start, analog, C-buttons, menu open/close, background/foreground,
-   settings persistence, diagnostics share/cancel, and post-modal input during
-   the long run without held-input residue.
-8. The app remains arm64 and ROM-free, no new CrashReporter entry appears, and
-   runtime-guard ends with no DinoPad process and zero booted Simulators.
-9. Existing restoration, ROM-import, home/restart, input/lifecycle, settings,
-   layout, diagnostics, and macOS regressions remain green.
-10. Curate evidence, update the canonical status/handoff/parity documents, and
-    commit the smallest coherent Phase 5 milestone.
+3. The shared iOS Simulator build remains ROM-free and arm64.
+4. Exactly one guarded iPad Simulator installs the arm64 ROM-free app and shows
+   native setup/error/import/home flows without booting an iPhone Simulator.
+5. Tablet defaults render within safe areas; menu, settings, diagnostics/share,
+   ROM manager, and layout editor use readable larger-device presentation.
+6. Tablet layout edits persist independently across process relaunch, phone keys
+   remain unchanged, and tablet reset/cancel/undo/input restoration are proven.
+7. Restored reaches title and controllable gameplay; full N64 touch, menu,
+   lifecycle clearing, and Simulator controller-handoff behavior remain green.
+8. A game-created Restored save survives same-install iPad relaunch back into
+   controllable gameplay while Prototype remains isolated.
+9. No new crash appears, diagnostics stay bounded/redacted, and runtime-guard
+   finishes with no DinoPad process and zero booted Simulators.
+10. Curate measured screenshots/evidence, update parity/status/handoff docs, and
+    commit the smallest coherent Phase 6 milestone.
 
 ## Then continue in this order
 
-1. Shut down iPhone Simulator, then complete iPad Simulator Phase 6.
-2. Complete physical iPhone and iPad phases.
-3. Run progression/stability matrix and start-to-credits Restored playthrough.
-4. Finish legal/release/docs/package gates and ROM-free unsigned IPA.
+1. Complete physical iPhone and iPad phases.
+2. Run progression/stability matrix and start-to-credits Restored playthrough.
+3. Finish legal/release/docs/package gates and ROM-free unsigned IPA.
 
 ## Hard constraints
 
@@ -146,7 +146,8 @@ Acceptance:
   criteria and evidence are actually satisfied.
 
 Start by inspecting `git status`, `git log -5`, the current patch lock, the
-current iPhone save paths/smokes, and pinned PaperPad persistence behavior.
+current iPad/tablet branches in the shell and smokes, and pinned PaperPad tablet
+presentation behavior.
 Then execute the smallest verified goal without asking for
 clarification unless a genuinely consequential unknown cannot be discovered.
 

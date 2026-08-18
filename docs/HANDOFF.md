@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T01:55:09Z
+Last updated: 2026-08-18T02:34:32Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -30,8 +30,11 @@ truthful. Bounded protected diagnostics now redact every complete line before
 persistence, expose useful non-content status, and share through native UIKit
 while preserving modal input policy.
 
-It is not a release-ready iPhone/iPad product. Phase 4 (Apple shell) and Phase 5
-(iPhone Simulator) are partial. Phases 6-10 (iPad, physical devices,
+The iPhone Simulator Phase 5 gate is green: a game-created Restored save
+survived a 600-second controllable session and same-install process relaunch
+back into controllable gameplay while Prototype remained unchanged. It is not a
+release-ready iPhone/iPad product. Phase 4 remains partial until tablet/device
+parity is evidenced, and Phases 6-10 (iPad, physical devices,
 progression/stability, and release) remain open.
 
 ## Completed foundation
@@ -69,6 +72,9 @@ progression/stability, and release) remain open.
 - Bounded protected diagnostics with pre-persistence path redaction, useful
   content-free status, native share/cancel, temporary cleanup, and a guarded
   adversarial proof of caps, permissions, modal clearing, and input restoration.
+- Completed iPhone Simulator Phase 5 with a 600-second live Restored gameplay
+  run, game-created FlashRAM persistence across same-install relaunch, complete
+  input/lifecycle rerun, profile isolation, and clean runtime-guard teardown.
 
 ## Current iPhone touch slice
 
@@ -100,10 +106,6 @@ quit-to-home, the complete settings/status hierarchy, and bounded redacted
 diagnostics through a native share sheet. The iPhone menu contract is green.
 
 ## What is actually left
-
-### Phase 4/5: finish iPhone
-
-1. Prove save/relaunch and the full 10-minute iPhone Simulator smoke.
 
 ### Phase 6: iPad Simulator
 
@@ -155,4 +157,4 @@ diagnostics through a native share sheet. The iPhone menu contract is green.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Continue Goal 29a with iPhone save/relaunch and the full 10-minute smoke.
+4. Continue Goal 30a with the complete iPad Simulator Phase 6 matrix.

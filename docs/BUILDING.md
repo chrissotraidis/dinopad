@@ -119,6 +119,15 @@ and temporary report cleanup:
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh
 ```
 
+The final Phase 5 smoke uses a private game-created save and one clean install
+to prove 600 seconds of live Restored gameplay, same-container process relaunch
+back to controllable gameplay, full input/lifecycle coverage, profile isolation,
+bounded diagnostics, and cleanup without storing save bytes in evidence:
+
+```sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-phase5.sh
+```
+
 The native-home smoke verifies that UIKit waits before SDL, warns before
 Prototype, starts Restored through the real gameplay input poll, returns from a
 live runtime to home, then starts Prototype in the same process with isolated
@@ -132,7 +141,8 @@ The iOS shell now has native Files import/replacement, complete default touch
 input/lifecycle verification, the Restored/Prototype home boundary, editable
 phone/tablet layouts, embedded Restored data, native settings/status, and
 bounded redacted diagnostics/share. Save/relaunch and the 10-minute Phase 5 run
-remain required before iPhone Simulator is green.
+are now evidenced; iPhone Simulator Phase 5 is green. Shut it down before
+starting the iPad Simulator Phase 6 matrix.
 
 Choose the ROM from the first-run screen. The app validates, normalizes, and stores it privately. Use the `•••` menu > Manage Game ROM to replace or remove it.
 

@@ -37,7 +37,7 @@ external dependency.
 | Display settings | Aspect/internal resolution/filter policy | **Green iPhone Simulator (Goal 28b)** | Native typed resolution/aspect/frame-rate/HUD controls apply live and persist; device stress remains open. |
 | Diagnostics | Bounded private log, redaction, report/share | **Green iPhone Simulator (Goal 28c)** | Uses DinoPad naming and paths; 4 MiB protected capture, 192 KiB shared tails, 512 KiB report, adversarial pre-persistence redaction, and native share/cancel are evidenced. Repeat on iPad/device. |
 | ROM manager | Replace/manage imported ROM from menu | **Green** macOS + iPhone Simulator **(Goal 27a)** | Replace/Remove UI and production import backend evidenced; physical device remains. |
-| Save persistence | Private app storage survives relaunch/update | Green macOS; Open mobile proof | Restored/Prototype namespaces must remain isolated. |
+| Save persistence | Private app storage survives relaunch/update | **Green macOS + iPhone Simulator (Goal 29a)** | A game-created Restored save survived 600-second gameplay and same-install relaunch back to controllable gameplay while the Prototype sentinel stayed unchanged; iPad/device/update-in-place proof remains. |
 | Physical controller play | SDL game controller mapping and handoff | Virtual path Green; physical Open | Requires connected hardware. |
 | Native menu/settings accessibility | Labels, hints, readable form sheets | Partial | Settings uses native labeled controls and safe-area scroll layout; canvas controls still need individual accessibility elements and device verification. |
 | iPhone/iPad packaging | ROM-free unsigned IPA | Open | Device build, audit, guide, and checksum open. |

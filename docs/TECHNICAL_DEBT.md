@@ -27,7 +27,7 @@ platform phase, and `P2` is maintainability or test debt that should not be lost
 | Controller handoff only event-driven | Add/remove events hide touch; the CoreSimulator synthetic controller exception is verified (touch stays available). Real MFi hardware, reconnect loops, rumble, and initial-state behavior remain unverified. | Test a real MFi/SDL controller on a physical device with repeated connect/disconnect (Phase 7/8). |
 | ~~No mobile home/profile UI~~ | **Closed 2026-08-17 (Goal 27b).** UIKit presents Restored as the primary action before SDL, requires an archival warning for Prototype, passes isolated profile roots, and supports live quit-to-home plus a second runtime in the same process. | Device presentation remains part of Phase 7/8; the Simulator product gate is green. |
 | ~~No diagnostics~~ | **Closed for iPhone Simulator 2026-08-17 (Goal 28c).** Protected current/previous logs are bounded, every complete line is sanitized before persistence, shared tails/reports have independent caps, useful status excludes ROM/save contents, and an adversarial harness proves native share/cancel and cleanup. | Repeat on iPad and physical devices; retain the existing bounds and redaction corpus as fields evolve. |
-| iPad untested | Tablet defaults exist in code but have never run. | Complete Phase 6 only after iPhone is green and shut down. |
+| iPad untested | iPhone Phase 5 is now green and shut down; tablet defaults exist in code but have never run. | Complete the guarded Phase 6 iPad setup/home/layout/menu/settings/diagnostics/gameplay/save matrix next. |
 
 ## P1: orientation and presentation
 

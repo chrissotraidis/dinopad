@@ -1,6 +1,6 @@
 # DinoPad Playtest Matrix
 
-Last updated: 2026-08-16
+Last updated: 2026-08-17
 
 Each row records a verified play session on a real target. "Verified" means
 the run was executed, its input/log evidence was captured, and the result was
@@ -11,6 +11,8 @@ claims a full playthrough it did not perform.
 
 | Date | Target | Mode | Start | End state | Duration | Result | Input | Evidence |
 |---|---|---|---|---|---|---|---|---|
+| 2026-08-17 | iPhone 17 Pro Simulator, iOS 26.5 arm64 | Restored | Native home with private game-created `AAAAA` save | Controllable ship-deck tutorial, live through ten-minute boundary | 600 s | PASS | UIKit touch analog + A; actual N64 poll | docs/evidence/2026-08-17/iphone-phase5/ |
+| 2026-08-17 | iPhone 17 Pro Simulator, iOS 26.5 arm64 | Restored relaunch, same install | Persisted profile-local `AAAAA` save | Controllable ship-deck tutorial at late input frame 26,685 | ~4.5 min | PASS | Full 7-suite touch/lifecycle matrix plus gameplay analog + A | docs/evidence/2026-08-17/iphone-phase5/ |
 | 2026-08-16 | macOS arm64 (M2) | Restored (native home primary action) | Native DinoPad home | Restored PRESS START; static no-write dispatch active | ~20 s | PASS | Native button + keyboard A | docs/evidence/2026-08-16/macos-native-home/ |
 | 2026-08-16 | macOS arm64 (M2) | Prototype (native home warned action) | Native DinoPad home + archival warning | Direct Game Select; restoration absent | ~25 s | PASS | Native buttons + keyboard A | docs/evidence/2026-08-16/macos-native-home/ |
 | 2026-08-16 | macOS arm64 (M2) | Restored (`--profile restored`, disposable isolated root) | Boot | Restored PRESS START; Prototype save unchanged | ~25 s | PASS | Keyboard A | docs/evidence/2026-08-16/macos-profiles/ |
@@ -27,7 +29,7 @@ claims a full playthrough it did not perform.
 ## Not yet covered
 
 - Controller play.
-- iPhone / iPad Simulator and physical devices (Phases 5-8).
+- iPad Simulator and physical devices (Phases 6-8).
 - Chapter-boundary fixtures and progression (Phase 9).
 
 ## Known behavior quirks observed

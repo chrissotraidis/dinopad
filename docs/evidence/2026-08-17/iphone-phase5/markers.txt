@@ -1,0 +1,27 @@
+Launch 1
+========
+Bundled restoration data registered; writable filesystem mods disabled.
+Static restoration dispatch enabled: 294 replacements, 35 hook slots, no runtime code writes.
+Restored title capture boundary reached.
+Gameplay analog input reached the N64 poll at frame 26427.
+Gameplay A input reached the N64 poll at frame 26547.
+Late-session replay completed at poll 26570.
+Process remained live through 600 wall-clock seconds.
+
+Launch 2 (same install and data container)
+==========================================
+All 7 input/lifecycle suites passed: 14 digital masks, 4 analog directions,
+multi-touch, menu lifecycle, app lifecycle, and controller handoff.
+Static restoration dispatch enabled with no runtime code writes.
+Restored title capture boundary reached.
+Persisted save loaded back into controllable gameplay.
+Late-session input reached frame 26685.
+
+Postconditions
+==============
+Restored save: 131072 bytes; AAAAA slot retained; SHA-256 unchanged across both launches.
+Prototype sentinel: SHA-256 unchanged across both Restored launches.
+Diagnostics: current and previous private logs each remained at or below 4 MiB.
+Packaging: arm64-only and ROM-free.
+CrashReporter: no new DinoPad report.
+Cleanup: zero DinoPad processes; zero booted Simulators.
