@@ -9,6 +9,7 @@
 
 #include <SDL.h>
 #include <TargetConditionals.h>
+#import "diagnostics.h"
 #import "home.h"
 #import "rom_setup.h"
 #import "settings.h"
@@ -871,6 +872,15 @@ void drainUIKitQueue() {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
                 dinopad_present_settings((__bridge void*)presenter);
+            });
+        }]];
+    [menu addAction:[UIAlertAction actionWithTitle:@"Share Diagnostics & Logs…"
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                dinopad_present_diagnostics_share((__bridge void*)presenter, ^{
+                    [self setModalControlsHidden:NO];
+                });
             });
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Customize Touch Layout"
@@ -1981,6 +1991,45 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
             });
         }
 
+        const char* diagnosticsSmoke = getenv("DINOPAD_RUN_DIAGNOSTICS_SMOKE");
+        if (diagnosticsSmoke != nullptr && diagnosticsSmoke[0] != '\0' &&
+            diagnosticsSmoke[0] != '0') {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.00 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                const NSInteger index = [overlay controlIndexForKey:"a"];
+                [overlay beginSimulatedTouchWithID:122
+                                           atPoint:[overlay centerForControlIndex:index]];
+                [overlay setModalControlsHidden:YES];
+                uint16_t buttons = 0;
+                float x = 0.0F;
+                float y = 0.0F;
+                dinopad_touch_snapshot(&buttons, &x, &y);
+                std::fprintf(stderr, buttons == 0 && x == 0.0F && y == 0.0F
+                    ? "[dinopad-diagnostics-test] PASS: share presentation cleared held input\n"
+                    : "[dinopad-diagnostics-test] FAIL: share presentation retained held input\n");
+                std::fprintf(stderr,
+                    "[dinopad-diagnostics-test] fixtures: "
+                    "/" "Users/diagnostic-owner/Secret/game.z64 "
+                    "/private/var/mobile/Containers/Data/Application/"
+                    "11111111-2222-3333-4444-555555555555/Documents/save.bin "
+                    "file:///var/mobile/Library/Mobile%%20Documents/provider/private.rom "
+                    "/tmp/dinopad-private/report.log /Volumes/Owner Drive/private/file\n");
+                std::fflush(stderr);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.50 * NSEC_PER_SEC)),
+                               dispatch_get_main_queue(), ^{
+                    dinopad_present_diagnostics_share((__bridge void*)[overlay topPresenter], ^{
+                        [overlay setModalControlsHidden:NO];
+                        const bool touchRestored =
+                            dinopad_shell_test_touch_after_settings() != 0;
+                        std::fprintf(stderr, touchRestored
+                            ? "[dinopad-diagnostics-test] ALL DIAGNOSTICS TESTS PASSED\n"
+                            : "[dinopad-diagnostics-test] FAIL: post-share touch input\n");
+                        std::fflush(stderr);
+                    });
+                });
+            });
+        }
+
         const char* romManagerSmoke = getenv("DINOPAD_SHOW_ROM_MANAGER_SMOKE");
         if (romManagerSmoke != nullptr && romManagerSmoke[0] != '\0' &&
             romManagerSmoke[0] != '0') {
@@ -2038,11 +2087,13 @@ extern "C" void dinopad_set_physical_controller_connected(int connected) {
 extern "C" int SDL_main(int, char **) {
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
     SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "1");
+    dinopad_start_diagnostics_log();
 
     // Phase 5 (Goal 27a): verify the private supported ROM via UIKit before
     // entering the runtime. Missing/invalid ROM presents an in-app Files
     // picker that normalizes and stores the December 2000 prototype.
     if (!dinopad_prepare_rom_setup()) {
+        dinopad_finish_diagnostics_log();
         return EXIT_FAILURE;
     }
 
@@ -2081,6 +2132,7 @@ extern "C" int SDL_main(int, char **) {
 
         if (result != EXIT_SUCCESS ||
             !g_quitToHome.exchange(false, std::memory_order_relaxed)) {
+            dinopad_finish_diagnostics_log();
             return result;
         }
         std::fprintf(stderr, "[dinopad-home-test] Runtime returned to home\n");

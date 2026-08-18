@@ -111,6 +111,14 @@ relaunch persistence, modal input clearing/restoration, and safe-area layout:
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-settings.sh
 ```
 
+The diagnostics smoke proves bounded protected capture, pre-persistence path
+redaction, useful ROM-free status, native share/cancel, modal input restoration,
+and temporary report cleanup:
+
+```sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh
+```
+
 The native-home smoke verifies that UIKit waits before SDL, warns before
 Prototype, starts Restored through the real gameplay input poll, returns from a
 live runtime to home, then starts Prototype in the same process with isolated
@@ -122,9 +130,9 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 
 The iOS shell now has native Files import/replacement, complete default touch
 input/lifecycle verification, the Restored/Prototype home boundary, editable
-phone/tablet layouts, embedded Restored data, and native settings/status.
-Diagnostics/share, save/relaunch, and the 10-minute Phase 5 run remain required
-before iPhone Simulator is green.
+phone/tablet layouts, embedded Restored data, native settings/status, and
+bounded redacted diagnostics/share. Save/relaunch and the 10-minute Phase 5 run
+remain required before iPhone Simulator is green.
 
 Choose the ROM from the first-run screen. The app validates, normalizes, and stores it privately. Use the `•••` menu > Manage Game ROM to replace or remove it.
 

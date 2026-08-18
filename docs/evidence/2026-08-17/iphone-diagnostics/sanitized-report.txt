@@ -1,0 +1,64 @@
+DinoPad diagnostics
+===================
+Generated: 2026-08-18 01:48:52 +0000
+App version: 0.1.0 (1)
+Bundle: com.chrissotraidis.dinopad
+System: iOS 26.5
+Device: iPhone (phone)
+Screen: 874x402 points @ 3.00x
+Profile: Restored Adventure
+Restoration: bundled static data active; writable mods disabled
+ROM validation: exact supported prototype verified
+Save / recovery: no profile save yet
+Controller: not connected
+Touch controls: yes
+Touch opacity: 70%
+Master volume: 100%
+Internal resolution: Automatic
+Aspect ratio: Fill Screen
+Frame rate: Original
+HUD placement: Safe 16:9
+Renderer: Metal; effective 6.00x at 60 Hz
+Diagnostics bounds: 192 KiB per shared log tail; 512 KiB report maximum
+
+Privacy: ROM/save contents and private absolute paths are excluded. Review this text before choosing a share destination.
+
+Current-session sanitized runtime log (bounded tail)
+----------------------------------------------------
+[DinoPad] private bounded sanitized diagnostics log started
+[dinopad-home-test] Home presented
+[dinopad-home-test] Restored selected
+Failed to preload executable!
+DinoPad profile: Restored (namespace=Profiles/Restored)
+Bundled restoration data registered (37994172 bytes; filesystem mods disabled)
+[dinopad-touch] overlay attached (phone)
+2026-08-17 20:48:49.989 DinoPad[81304:19892399] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1035d4500>.
+2026-08-17 20:48:49.989 DinoPad[81304:19892399] Unbalanced calls to begin/end appearance transitions for <SDL_uikitviewcontroller: 0x1035d4500>.
+objc[81304]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10be34310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1082e4398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+RenderPool in Metal is not implemented currently. Resources are created directly on device.
+Using statically linked code for mod dinomod_enhanced
+Static restoration dispatch enabled (294 replacements; 35 hook slots; no runtime code writes)
+[reasset] WARN: Map 2 contains a duplicate object UID 0x3419C (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 4 contains a duplicate object UID 0x417F1 (obj ID: 0xD4)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 11 contains a duplicate object UID 0x30AE9 (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x33656 (obj ID: 0x285)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 13 contains a duplicate object UID 0x412E1 (obj ID: 0x24F)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 19 contains a duplicate object UID 0x1A51 (obj ID: 0x4C)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x2CD9 (obj ID: 0x589)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x30011 (obj ID: 0x11)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 29 contains a duplicate object UID 0x30012 (obj ID: 0x11)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] WARN: Map 38 contains a duplicate object UID 0x1F4B (obj ID: 0x26)! Map object will be unavailable via the ReAsset API (but kept in the map).
+[reasset] Map 83 contains a zero size object setup (offset 0x0)!
+[dinopad-diagnostics-test] PASS: share presentation cleared held input
+[dinopad-diagnostics-test] fixtures: <PATH> <PATH> <PATH> <PATH> <PATH> Drive/private/file
+
+
+Previous-session sanitized runtime log (bounded tail)
+-----------------------------------------------------
+No previous-session runtime log was available.

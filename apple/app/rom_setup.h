@@ -9,6 +9,10 @@ extern "C" {
 // prototype, or when one is already present.
 bool dinopad_prepare_rom_setup(void);
 
+// Revalidates the installed private ROM against the exact supported
+// fingerprint without exposing its path or contents.
+bool dinopad_rom_validation_status(void);
+
 // Presents replace/remove controls above the running SDL view.
 void dinopad_present_rom_manager(void* presenter_pointer);
 

@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T00:47:00Z
+Last updated: 2026-08-18T01:55:09Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -26,7 +26,9 @@ directional linking, reset, undo, Done, and Cancel.
 The native settings/status sheet is also green on iPhone Simulator: typed live
 controls persist touch, audio, and display options per policy, while mode,
 restoration, save/recovery, controller, and effective-render status remain
-truthful. Diagnostics/share is the remaining native menu gap.
+truthful. Bounded protected diagnostics now redact every complete line before
+persistence, expose useful non-content status, and share through native UIKit
+while preserving modal input policy.
 
 It is not a release-ready iPhone/iPad product. Phase 4 (Apple shell) and Phase 5
 (iPhone Simulator) are partial. Phases 6-10 (iPad, physical devices,
@@ -64,6 +66,9 @@ progression/stability, and release) remain open.
 - Safe-area native settings/status with live typed touch/audio/display bridges
   and a guarded two-launch proof of clamping, serialization, relaunch loading,
   profile isolation, modal clearing, and post-dismissal input.
+- Bounded protected diagnostics with pre-persistence path redaction, useful
+  content-free status, native share/cancel, temporary cleanup, and a guarded
+  adversarial proof of caps, permissions, modal clearing, and input restoration.
 
 ## Current iPhone touch slice
 
@@ -74,6 +79,8 @@ The pause-point changes are centered in:
 - `apple/app/home.mm`
 - `apple/app/settings.h`
 - `apple/app/settings.mm`
+- `apple/app/diagnostics.h`
+- `apple/app/diagnostics.mm`
 - `patches/dino-recomp/0001-macos-sdl-metal-window.patch`
 - `patches/dino-recomp/0004-input-debug-log.patch`
 - `patches/dino-recomp/0008-ios-touch-input-bridge.patch`
@@ -89,15 +96,14 @@ Controller add/remove events drive touch visibility. CoreSimulator's synthetic
 controller is deliberately ignored so Simulator testing can show touch controls.
 
 The current menu reaches real ROM management, touch-layout customization/reset,
-quit-to-home, and the complete non-diagnostics settings/status hierarchy.
-Bounded redacted diagnostics/share remains incomplete.
+quit-to-home, the complete settings/status hierarchy, and bounded redacted
+diagnostics through a native share sheet. The iPhone menu contract is green.
 
 ## What is actually left
 
 ### Phase 4/5: finish iPhone
 
-1. Add bounded diagnostics log/redaction/share flows and finish Support.
-2. Prove save/relaunch and the full 10-minute iPhone Simulator smoke.
+1. Prove save/relaunch and the full 10-minute iPhone Simulator smoke.
 
 ### Phase 6: iPad Simulator
 
@@ -149,5 +155,4 @@ Bounded redacted diagnostics/share remains incomplete.
 2. Confirm `main` is clean and reference push URLs remain disabled.
 3. Run patch replay, repository safety, macOS incremental build, and iOS
    Simulator build before changing behavior.
-4. Continue Goal 28c with bounded redacted diagnostics capture/share, then
-   finish iPhone save/relaunch and the 10-minute smoke.
+4. Continue Goal 29a with iPhone save/relaunch and the full 10-minute smoke.

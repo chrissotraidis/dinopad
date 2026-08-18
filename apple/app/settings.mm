@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
+#import "diagnostics.h"
 #import "rom_setup.h"
 #import "settings.h"
 
@@ -298,10 +299,12 @@ void settingsTestLog(NSString* message) {
     [stack addArrangedSubview:[self actionButton:@"Manage Game ROM"
                                               image:@"externaldrive" action:@selector(manageROM)]];
     [stack addArrangedSubview:[self section:@"Support"]];
-    UILabel* support = [self label:@"Runtime status remains private to this app container. No diagnostics export is enabled in this build."];
+    UILabel* support = [self label:@"Shared diagnostics are bounded, redact private paths, and never include ROM or save contents."];
     support.font = [UIFont systemFontOfSize:14.0];
     support.textColor = [UIColor colorWithWhite:0.68 alpha:1.0];
     [stack addArrangedSubview:support];
+    [stack addArrangedSubview:[self actionButton:@"Share Diagnostics & Logs…"
+                                              image:@"square.and.arrow.up" action:@selector(shareDiagnostics)]];
     [stack addArrangedSubview:[self actionButton:@"Return to DinoPad Home"
                                               image:@"house" action:@selector(quitHome)]];
 
@@ -424,6 +427,22 @@ void settingsTestLog(NSString* message) {
     UIViewController* presenter = self.presentingViewController;
     [self dismissViewControllerAnimated:YES completion:^{
         if (presenter != nil) dinopad_present_rom_manager((__bridge void*)presenter);
+    }];
+}
+
+- (void)shareDiagnostics {
+    _keepControlsHidden = YES;
+    UIViewController* presenter = self.presentingViewController;
+    [self dismissViewControllerAnimated:YES completion:^{
+        if (presenter == nil) {
+            self->_keepControlsHidden = NO;
+            dinopad_shell_set_modal_hidden(0);
+            return;
+        }
+        dinopad_present_diagnostics_share((__bridge void*)presenter, ^{
+            self->_keepControlsHidden = NO;
+            dinopad_shell_set_modal_hidden(0);
+        });
     }];
 }
 

@@ -421,6 +421,14 @@ bool dinopad_prepare_rom_setup(void) {
     }
 }
 
+bool dinopad_rom_validation_status(void) {
+    @autoreleasepool {
+        NSError* error = nil;
+        NSURL* root = applicationSupportRoot(&error);
+        return root != nil && validateInstalledROM(root);
+    }
+}
+
 // MARK: - ROM Manager (replace / remove from in-game menu)
 
 @interface DinoPadROMManager : NSObject <UIDocumentPickerDelegate>

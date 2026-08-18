@@ -325,6 +325,7 @@ set(DINOPAD_APP_SOURCES
 
 if (DINOPAD_IOS)
     list(APPEND DINOPAD_APP_SOURCES
+        "${DINOPAD_ROOT}/apple/app/diagnostics.mm"
         "${DINOPAD_ROOT}/apple/app/home.mm"
         "${DINOPAD_ROOT}/apple/app/ios_main.mm"
         "${DINOPAD_ROOT}/apple/app/rom_setup.mm"
@@ -345,6 +346,8 @@ set_source_files_properties("${DINOPAD_ROOT}/apple/app/ios_main.mm"
 set_source_files_properties("${DINOPAD_ROOT}/apple/app/home.mm"
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 set_source_files_properties("${DINOPAD_ROOT}/apple/app/settings.mm"
+    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+set_source_files_properties("${DINOPAD_ROOT}/apple/app/diagnostics.mm"
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 
 target_include_directories(DinoPad PRIVATE

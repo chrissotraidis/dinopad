@@ -1,6 +1,6 @@
 # DinoPad testing and evidence
 
-Status: Active implementation contract (updated 2026-08-16).
+Status: Active implementation contract (updated 2026-08-18).
 
 ## Principles
 
@@ -61,12 +61,18 @@ clearing, invalid-value clamping, live touch/audio/display application,
 profile-local JSON serialization, relaunch loading, default restoration,
 Prototype-profile isolation, post-dismissal touch input, safe-area screenshots,
 ROM-free arm64 packaging, CrashReporter, and guard cleanup.
+`scripts/smoke-ios-diagnostics.sh` starts from a clean install and verifies the
+production private logger and native share action. It independently checks the
+4 MiB capture, 192 KiB tail, and 512 KiB report caps; protected mode `0600`;
+useful runtime/profile/ROM/save/controller/render fields; adversarial redaction
+before storage and sharing; modal input clearing/restoration; share cancellation;
+temporary report cleanup; ROM-free arm64 packaging; CrashReporter; and guard
+cleanup.
 The remaining Phase 5 automation will extend these until it also verifies:
 
-1. bounded redacted diagnostics/share;
-2. save/relaunch;
-3. 10-minute stability;
-4. clean shutdown.
+1. save/relaunch;
+2. 10-minute stability;
+3. clean shutdown.
 
 Prefer deterministic input replay; if unreliable, use a bounded human-assisted checklist and capture truthful evidence.
 
@@ -78,6 +84,7 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-layout.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-settings.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 
@@ -180,6 +187,7 @@ scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh
+scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-diagnostics.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh
 ```
 

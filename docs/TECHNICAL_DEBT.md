@@ -1,6 +1,6 @@
 # DinoPad Technical Debt Register
 
-Last updated: 2026-08-17
+Last updated: 2026-08-18
 
 Severity is relative to Preview 1. `P0` blocks correctness/release, `P1` blocks a
 platform phase, and `P2` is maintainability or test debt that should not be lost.
@@ -20,13 +20,13 @@ platform phase, and `P2` is maintainability or test debt that should not be lost
 | Debt | Evidence/impact | Required closure |
 |---|---|---|
 | ~~Touch analog not yet logged~~ | **Closed 2026-08-17 (Goal 26c).** The deterministic DINOPAD_RUN_INPUT_SMOKE harness produced non-zero x/y for all 4 cardinal directions plus return-to-zero, visible in the runtime's own [dinopad-in] poll log. | Analog runtime evidence exists; long-duration analog-flick retention across 30/60 Hz modes remains a Phase 6/7 check. |
-| Partial Support menu | **Settings/status closed 2026-08-17 (Goal 28b).** The persistent menu reaches the native Game, Controls, Display, Audio, and Game Data surface with truthful status and real actions; diagnostics capture/share is the remaining Support gap. | Complete bounded redacted diagnostics/share in Goal 28c. |
+| ~~Partial Support menu~~ | **Closed for iPhone Simulator 2026-08-17 (Goal 28c).** The persistent menu and Settings Support section reach a bounded, redacted diagnostics report through the native UIKit share sheet; held input clears and touch restores after cancellation. | Repeat presentation, redaction, and cleanup acceptance on iPad Simulator and physical devices. |
 | ~~No layout editor~~ | **Closed 2026-08-17 (Goal 28a).** The native editor supports safe-area move, size, per-control opacity, visibility, D-pad/C linking, reset, one-step undo, Done, and full-session Cancel. Independent versioned phone/tablet dictionaries survived a guarded process relaunch and reset in isolation. | Repeat visual/usability acceptance on iPad Simulator and physical devices; add individual accessibility elements separately. |
 | ~~Partial settings~~ | **Closed for iPhone Simulator 2026-08-17 (Goal 28b).** A safe-area UIKit sheet exposes touch, master volume, resolution, aspect, frame rate, and HUD through typed live bridges, while mode/restoration/save/controller/effective-render state is truthful and read-only. A two-launch guarded smoke proves defensive clamping, serialization, relaunch, profile isolation, and modal input restoration. | Repeat presentation and persistence acceptance on iPad Simulator and physical devices. |
 | ~~Lifecycle proof absent~~ | **Closed 2026-08-17 (Goal 26c).** A guarded smoke-ios.sh run delivers background/foreground notifications while holding a button+stick, verifies the snapshot clears to zero and resumes cleanly with no crash, and leaves no booted Simulator. | Explicit in-engine pause policy during modal sheets still needs validation once the full menu tree lands. |
 | Controller handoff only event-driven | Add/remove events hide touch; the CoreSimulator synthetic controller exception is verified (touch stays available). Real MFi hardware, reconnect loops, rumble, and initial-state behavior remain unverified. | Test a real MFi/SDL controller on a physical device with repeated connect/disconnect (Phase 7/8). |
 | ~~No mobile home/profile UI~~ | **Closed 2026-08-17 (Goal 27b).** UIKit presents Restored as the primary action before SDL, requires an archival warning for Prototype, passes isolated profile roots, and supports live quit-to-home plus a second runtime in the same process. | Device presentation remains part of Phase 7/8; the Simulator product gate is green. |
-| No diagnostics | The ROM manager is green (Goal 27a), but bounded private logging, redaction, and a diagnostics share sheet are absent. | Port diagnostics capture/redaction/share and wire it into the complete menu tree. |
+| ~~No diagnostics~~ | **Closed for iPhone Simulator 2026-08-17 (Goal 28c).** Protected current/previous logs are bounded, every complete line is sanitized before persistence, shared tails/reports have independent caps, useful status excludes ROM/save contents, and an adversarial harness proves native share/cancel and cleanup. | Repeat on iPad and physical devices; retain the existing bounds and redaction corpus as fields evolve. |
 | iPad untested | Tablet defaults exist in code but have never run. | Complete Phase 6 only after iPhone is green and shut down. |
 
 ## P1: orientation and presentation

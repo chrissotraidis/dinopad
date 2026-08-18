@@ -1,6 +1,6 @@
 # DinoPad / PaperPad Apple-Shell Parity
 
-Last updated: 2026-08-17
+Last updated: 2026-08-18
 Reference: pinned PaperPad commit `644945d4bc4facbbd8ecda8cdfd37ae64e7993fa`
 
 PaperPad is the required behavioral reference for native arm64 N64 features and
@@ -26,8 +26,8 @@ external dependency.
 | Phone defaults | Grip-first compact layout | Partial | PaperPad-derived centers/sizes used; measured screenshot comparison not yet recorded. |
 | Tablet defaults | Independent larger-device layout | Partial/code only | Never run on iPad Simulator. |
 | Safe areas | Controls/menu avoid notch/Home indicator | Partial | Defaults and edited movement clamp complete targets within UIKit safe-area bounds; iPad/orientation/device verification remains open. |
-| Persistent `•••` menu | Always reachable, accessible, controller-independent | **Green except diagnostics (Goal 28b)** | Resume/touch, native settings/status, layout customize/reset, ROM manager, and Quit to DinoPad Home are real; diagnostics/share remains Goal 28c. |
-| Modal input policy | Clear input and hide controls for menu/picker/settings/share | **Green except share** | Menu, ROM manager, and settings clear held input and restore the correct touch state; diagnostics share remains. |
+| Persistent `•••` menu | Always reachable, accessible, controller-independent | **Green iPhone Simulator (Goal 28c)** | Resume/touch, native settings/status, layout customize/reset, ROM manager, diagnostics share, and Quit to DinoPad Home are real; iPad/device proof remains. |
+| Modal input policy | Clear input and hide controls for menu/picker/settings/share | **Green iPhone Simulator (Goal 28c)** | Menu, ROM manager, settings, and diagnostics share clear held input and restore the correct touch/controller state after dismissal. |
 | Layout editor | Move, group-link, resize, opacity, hide/show, reset, undo | **Green iPhone Simulator (Goal 28a)** | Adds explicit full-session Cancel to the PaperPad behavior; iPad/device usability proof remains. |
 | Independent idiom persistence | Phone/tablet layouts do not contaminate each other | **Green deterministic (Goal 28a)** | Separate versioned dictionaries and resets survived a two-process harness; actual iPad presentation remains Phase 6. |
 | Touch enable/opacity | Persisted settings and live update | **Green iPhone Simulator (Goal 28b)** | Native switch/slider apply immediately and survive process relaunch; iPad/device presentation remains. |
@@ -35,7 +35,7 @@ external dependency.
 | Input clearing/lifecycle | Resign/background/modal clears held state | **Green Simulator** | Goal 26c proves background/foreground and modal clearing; physical-device interruption evidence remains. |
 | Audio controls/session | Master volume and mobile audio lifecycle | Partial | Goal 28b proves live persisted master volume; physical interruption/route evidence remains open. |
 | Display settings | Aspect/internal resolution/filter policy | **Green iPhone Simulator (Goal 28b)** | Native typed resolution/aspect/frame-rate/HUD controls apply live and persist; device stress remains open. |
-| Diagnostics | Bounded private log, redaction, report/share | Open | Must use DinoPad naming and paths. |
+| Diagnostics | Bounded private log, redaction, report/share | **Green iPhone Simulator (Goal 28c)** | Uses DinoPad naming and paths; 4 MiB protected capture, 192 KiB shared tails, 512 KiB report, adversarial pre-persistence redaction, and native share/cancel are evidenced. Repeat on iPad/device. |
 | ROM manager | Replace/manage imported ROM from menu | **Green** macOS + iPhone Simulator **(Goal 27a)** | Replace/Remove UI and production import backend evidenced; physical device remains. |
 | Save persistence | Private app storage survives relaunch/update | Green macOS; Open mobile proof | Restored/Prototype namespaces must remain isolated. |
 | Physical controller play | SDL game controller mapping and handoff | Virtual path Green; physical Open | Requires connected hardware. |
