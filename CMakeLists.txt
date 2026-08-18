@@ -460,6 +460,12 @@ if (DINOPAD_IOS)
         MACOSX_BUNDLE_BUNDLE_VERSION "${DINOPAD_BUILD_NUMBER}"
         OUTPUT_NAME "DinoPad"
         XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "15.0"
+        # CMake defaults generated Xcode targets to SKIP_INSTALL=YES with an
+        # empty INSTALL_PATH. Keep this application target installable so a
+        # normal Xcode archive contains DinoPad.app for Organizer's privacy
+        # report; static-library targets retain CMake's default behavior.
+        XCODE_ATTRIBUTE_SKIP_INSTALL NO
+        XCODE_ATTRIBUTE_INSTALL_PATH "/Applications"
         XCODE_ATTRIBUTE_CODE_SIGN_STYLE Automatic
         XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM}"
         XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.chrissotraidis.dinopad"

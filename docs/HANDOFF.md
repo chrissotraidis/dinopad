@@ -1,6 +1,6 @@
 # DinoPad Pause-Point Handoff
 
-Last updated: 2026-08-18T07:50:00Z
+Last updated: 2026-08-18T08:10:00Z
 
 This is the canonical pause-point summary for the next implementation session.
 It complements `docs/STATUS.md` (chronological evidence),
@@ -171,13 +171,13 @@ contracts are green.
   `docs/evidence/2026-08-17/physical-device-release-boundary/`.
 - Both iOS products now contain an exact root privacy manifest. The package gate
   validates no tracking/collection and the known required-reason set, with a
-  tampered tracking declaration rejected. Goal 31m additionally produced an
-  unsigned Organizer-input archive using `CODE_SIGNING_ALLOWED=NO
-  SKIP_INSTALL=NO INSTALL_PATH=/Applications`; its app payload passed all local
-  package, compiler-inventory, and notice gates. This host cannot open Organizer
-  until Xcode's first-launch 8.52 GiB iOS platform component is installed, so no
-  aggregate Xcode report or final transitive privacy conclusion exists. The
-  audit-only archive's static-library byproducts also make it non-distributable.
+  tampered tracking declaration rejected. Goals 31m/31n additionally produce a
+  clean unsigned Organizer-input archive using only `CODE_SIGNING_ALLOWED=NO`:
+  target-scoped Xcode settings install only `DinoPad.app`, whose payload passed
+  all local package, compiler-inventory, and notice gates; normal device builds
+  stay non-install builds. This host cannot open Organizer until Xcode's
+  first-launch 8.52 GiB iOS platform component is installed, so no aggregate
+  Xcode report or final transitive privacy conclusion exists.
   See `docs/evidence/2026-08-18/ios-archive-privacy-preflight/`.
 
 ### Phase 9: progression and stability

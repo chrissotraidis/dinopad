@@ -21,7 +21,7 @@ package or publish while any P0 gate below is red.
 | Written DinoMod redistribution permission or removal | P0 | **Red** | Written permission/compatible published license, or a release configuration with all restricted integration removed, required. |
 | Compiled game-AOT rights | P0 | **Red** | ROM-free binaries still contain private generated AOT. Rights determination or source-only local generation required. |
 | App privacy manifest | P1 | Green | Exact packaged manifest and negative-control audit in [`privacy-manifest`](evidence/2026-08-17/privacy-manifest/). |
-| Final transitive privacy report | P0 | **Red** | Goal 31m produced an unsigned Organizer-input archive and passed its local app gates, but Xcode Organizer cannot open on this host until its 8.52 GiB iOS platform component is installed. Final Xcode privacy report and exact linked-SDK/API review remain required. |
+| Final transitive privacy report | P0 | **Red** | Goals 31m/31n produce a clean unsigned Organizer-input archive and pass its local app gates, but Xcode Organizer cannot open on this host until its 8.52 GiB iOS platform component is installed. Final Xcode privacy report and exact linked-SDK/API review remain required. |
 | ROM-free unsigned IPA and clean self-sign install | P0 | **Red** | No public IPA exists; exact artifact build, audit, install, relaunch, and update evidence required. |
 | Source tag, artifact checksum, and source/artifact match | P0 | **Red** | Immutable tag, SHA-256, and reproducibility record required. |
 
@@ -173,8 +173,8 @@ scripts/check-package-safety.sh build-ios-device/Release-iphoneos/DinoPad.app
 - [ ] Generate the final Xcode privacy report, review required-reason API usage
   across the exact linked dependencies, and retain independently required SDK
   manifests. An audit-only unsigned archive can be created with
-  `CODE_SIGNING_ALLOWED=NO SKIP_INSTALL=NO INSTALL_PATH=/Applications`; use a
-  prepared Xcode Organizer host and do not treat that archive as distributable.
+  `CODE_SIGNING_ALLOWED=NO`; use a prepared Xcode Organizer host and do not
+  treat that archive as distributable.
 - [ ] Confirm the privacy manifest and public disclosure match the final binary's
   real collection, tracking, and API behavior.
 

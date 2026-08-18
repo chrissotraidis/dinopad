@@ -72,7 +72,10 @@ configure_args=(
     -DCMAKE_OSX_ARCHITECTURES=arm64
     -DDINOPAD_ENABLE_TEST_HARNESS=OFF
 )
-build_args=(-quiet -sdk iphoneos)
+# DinoPad itself is installable so `xcodebuild archive` emits a usable app for
+# Organizer. Ordinary builds must remain non-install installs so CMake writes
+# the development app to Release-iphoneos instead of an archive destination.
+build_args=(-quiet -sdk iphoneos SKIP_INSTALL=YES)
 
 if [[ -n "$TEAM" ]]; then
     configure_args+=(
@@ -92,6 +95,12 @@ else
 fi
 
 cmake "${configure_args[@]}"
+# Xcode archives can leave this generated product path as a symlink into their
+# temporary InstallationBuildProductsLocation. A normal build uses a real app
+# directory here, so discard only that stale generated symlink before building.
+if [[ -L "$APP" ]]; then
+    unlink "$APP"
+fi
 cmake --build "$BUILD_DIR" --config Release --target DinoPad -- "${build_args[@]}"
 
 [[ -x "$APP/DinoPad" ]] || { echo "ERROR: physical-device app was not produced" >&2; exit 1; }

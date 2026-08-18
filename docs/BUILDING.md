@@ -90,6 +90,20 @@ package gate validates its exact no-tracking/no-collection and required-reason
 declarations; the final release still requires a transitive dependency/Xcode
 privacy-report review.
 
+For that final Xcode review, first run the unsigned device build above, then
+create an ignored Organizer input with:
+
+```sh
+xcodebuild archive -project build-ios-device/DinoPad.xcodeproj \
+  -scheme DinoPad -configuration Release -sdk iphoneos \
+  -archivePath .goal-loop/DinoPadPrivacyAudit.xcarchive \
+  CODE_SIGNING_ALLOWED=NO
+```
+
+The generated archive contains only `DinoPad.app` under
+`Products/Applications`. It is an audit input, not a distribution artifact;
+the final report still must be generated in Xcode Organizer on a prepared host.
+
 ## macOS session profiles
 
 Restored Adventure is the default. The current engine boundary can also be

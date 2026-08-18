@@ -1,4 +1,4 @@
-# Goal 31m: unsigned iOS archive and privacy-report preflight
+# Goals 31m/31n: unsigned iOS archive and privacy-report preflight
 
 Date: 2026-08-18
 
@@ -10,13 +10,13 @@ generated or that the app is releasable.
 
 ## Archive result
 
-The generated `DinoPad` target is an iOS application, but its ordinary Xcode
-build settings resolve to `SKIP_INSTALL=YES` and an empty install path. A plain
-`xcodebuild archive` therefore succeeded yet produced only a 4 KiB archive shell
-with no application payload.
+The generated `DinoPad` target is an iOS application. CMake now marks that
+target, and only that target, installable in Xcode with `SKIP_INSTALL=NO` and
+`INSTALL_PATH=/Applications`. Its static-library dependencies retain their
+normal non-installable setting.
 
-The following ignored, local-only command produced a 96 MiB archive containing
-a 56 MiB `Products/Applications/DinoPad.app`:
+The following ignored, local-only command produced a clean 56 MiB archive
+containing exactly one `Products/Applications/DinoPad.app`:
 
 ```sh
 xcodebuild archive \
@@ -24,8 +24,8 @@ xcodebuild archive \
   -scheme DinoPad \
   -configuration Release \
   -sdk iphoneos \
-  -archivePath .goal-loop/DinoPadPrivacyAuditPackaged.xcarchive \
-  CODE_SIGNING_ALLOWED=NO SKIP_INSTALL=NO INSTALL_PATH=/Applications
+  -archivePath .goal-loop/DinoPadPrivacyAuditTargetScoped.xcarchive \
+  CODE_SIGNING_ALLOWED=NO
 ```
 
 The archived app is arm64, targets iOS 15.0+, is unsigned, has no ROM/private
@@ -37,16 +37,21 @@ These independent gates passed against the archived app:
 
 ```sh
 scripts/check-package-safety.sh \
-  .goal-loop/DinoPadPrivacyAuditPackaged.xcarchive/Products/Applications/DinoPad.app
+  .goal-loop/DinoPadPrivacyAuditTargetScoped.xcarchive/Products/Applications/DinoPad.app
 python3 tools/validate_compiled_dependency_inventory.py --target ios-device
 python3 tools/package_compiled_dependency_notices.py --target ios-device \
-  --app .goal-loop/DinoPadPrivacyAuditPackaged.xcarchive/Products/Applications/DinoPad.app \
+  --app .goal-loop/DinoPadPrivacyAuditTargetScoped.xcarchive/Products/Applications/DinoPad.app \
   --verify
 ```
 
-The global archive overrides also install static-library byproducts beside the
-app in `Products/Applications`. This archive is an Organizer input only, never
-a distribution artifact.
+The ordinary unsigned device build also remains green. Its build script passes
+`SKIP_INSTALL=YES` so the development app remains at
+`build-ios-device/Release-iphoneos/DinoPad.app`; it also removes only a stale
+archive-generated symlink at that generated output path before rebuilding.
+The exact archive-then-normal-build sequence was verified: the archive created
+the symlink, the script replaced it with a real app directory, and its full
+unsigned device package gate passed afterward.
+This archive is an Organizer input only, never a distribution artifact.
 
 ## Organizer blocker
 
