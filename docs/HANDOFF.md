@@ -39,6 +39,11 @@ bounded diagnostics, and measured PaperPad parity. It is not a release-ready
 iPhone/iPad product: Phases 7-10 (physical devices, progression/stability, and
 release) remain open.
 
+The repository now has an evidence-backed root README and an explicit
+`docs/RIGHTS_AND_LICENSES.md` boundary. They advertise no download: the missing
+root license/complete third-party notice set and DinoMod permission are recorded
+release blockers alongside physical-device and progression work.
+
 ## Completed foundation
 
 - Pinned and push-disabled reference sources with replayable maintained patches.
