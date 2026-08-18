@@ -184,7 +184,10 @@ The public deliverable is a separate unsigned, self-signable IPA produced by
 `scripts/package-ios.sh`, audited by `scripts/check-package-safety.sh`, and
 published only after every Phase 10 gate (source tag, ROM-free audit, no
 provisioning profile, checksums, notices). Installation instructions will live
-in `docs/INSTALL_IPA.md` at release time.
+in `docs/INSTALL_IPA.md` at release time. The authoritative stop conditions and
+physical/package matrices are in
+[`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md); its current P0 gates are red, so
+the build script's successful audit is not permission to package or publish.
 
 ## Troubleshooting notes
 

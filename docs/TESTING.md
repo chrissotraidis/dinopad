@@ -232,4 +232,4 @@ Before every launch the guard: terminates `DinoPad`, terminates/shuts down all S
 
 ## Release evidence
 
-Phase 10 requires: source tag matching the packaged IPA; package file-by-file audit; SHA-256 published; clean-install through the documented self-signing workflow; save/relaunch and update-in-place verified; screenshots current; README claims consistent with `docs/STATUS.md` and `docs/PLAYTEST_MATRIX.md`.
+Phase 10 requires: source tag matching the packaged IPA; package file-by-file audit; SHA-256 published; clean-install through the documented self-signing workflow; save/relaunch and update-in-place verified; screenshots current; README claims consistent with `docs/STATUS.md` and `docs/PLAYTEST_MATRIX.md`. The complete gated matrix and current red stop conditions are in [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).

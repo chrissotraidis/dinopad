@@ -153,7 +153,10 @@ contracts are green.
 
 ### Phase 10: release
 
-- Produce and audit a ROM-free unsigned IPA.
+- Keep [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) current; it now separates
+  green engineering audits from red distribution prerequisites and forbids
+  packaging while any P0 gate is red.
+- Produce and audit a ROM-free unsigned IPA only after those prerequisites pass.
 - Complete GPL source/notice obligations, attribution, non-affiliation language,
   README, installation guide, release checklist, tag, and checksums.
 - Obtain explicit DinoMod integration/redistribution permission. This is a real

@@ -204,6 +204,8 @@ There is currently no release artifact to install. Developers can build the
 macOS app or an unsigned device app from source using the commands above. Do not
 publish or redistribute a DinoPad binary until the Phase 10 checklist, physical
 device gates, third-party notices, and DinoMod permission gate are complete.
+The live gate status and artifact stop conditions are in
+[docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md).
 
 ## Rights and credits
 

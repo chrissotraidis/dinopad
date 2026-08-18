@@ -80,5 +80,7 @@ the project must at minimum:
    log, path, signing identity, or provisioning profile;
 7. tie the artifact and SHA-256 checksum to a matching source tag.
 
-The release checklist in [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
-remains authoritative.
+The operational release gate is [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md);
+the product requirements remain in
+[`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md). Neither document authorizes
+distribution while a required gate remains open.
