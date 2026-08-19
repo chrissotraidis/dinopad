@@ -281,7 +281,26 @@ index a5f30a3..4162f9b 100644
      }
  
      uint32_t MetalSwapChain::getWidth() const {
-@@ -2209,8 +2247,14 @@ namespace plume {
+@@ -2094,8 +2132,18 @@ namespace plume {
+     void MetalSwapChain::getWindowSize(uint32_t &dstWidth, uint32_t &dstHeight) const {
++#if TARGET_OS_IPHONE
++        // SDL owns this CAMetalLayer and may run layout after swap-chain
++        // creation. Its drawable is the authoritative render size on iOS;
++        // deriving a second size from UIWindow bounds can leave RT64 at 2x
++        // while SDL has reset the actual drawable to 1x.
++        const CGSize drawableSize = layer->drawableSize();
++        dstWidth = static_cast<uint32_t>(drawableSize.width);
++        dstHeight = static_cast<uint32_t>(drawableSize.height);
++#else
+         CocoaWindowAttributes attributes;
+         windowWrapper->getWindowAttributes(&attributes);
+         dstWidth = attributes.width;
+         dstHeight = attributes.height;
++#endif
+     }
+ 
+     // MetalAttachment
+@@ -2209,8 +2257,14 @@ namespace plume {
      void MetalQueryPool::queryResults() {
          NS::AutoreleasePool *releasePool = NS::AutoreleasePool::alloc()->init();
  
@@ -298,7 +317,7 @@ index a5f30a3..4162f9b 100644
  
          releasePool->release();
      }
-@@ -3778,8 +3819,9 @@ namespace plume {
+@@ -3778,8 +3829,9 @@ namespace plume {
          this->renderInterface = renderInterface;
  
          // Device Selection
@@ -309,7 +328,7 @@ index a5f30a3..4162f9b 100644
          for (NS::UInteger i = 0; i < devices->count(); i++) {
              MTL::Device *device = (MTL::Device *)devices->object(i);
              const NS::String *preferredDeviceNameNS = NS::String::string(preferredDeviceName.c_str(), NS::UTF8StringEncoding);
-@@ -3788,14 +3830,22 @@ namespace plume {
+@@ -3788,14 +3840,22 @@ namespace plume {
                  break;
              }
          }
@@ -333,7 +352,7 @@ index a5f30a3..4162f9b 100644
  
          timestampCounterSet = findTimestampCounterSet();
  
-@@ -3816,9 +3866,18 @@ namespace plume {
+@@ -3816,9 +3876,18 @@ namespace plume {
          capabilities.resolveModes = false;
          capabilities.scalarBlockLayout = true;
          capabilities.presentWait = true;
@@ -353,7 +372,7 @@ index a5f30a3..4162f9b 100644
          capabilities.gpuUploadHeap = capabilities.uma;
          capabilities.queryPools = timestampCounterSet != nullptr;
          capabilities.samplerMirrorClampToEdge = true;
-@@ -4147,11 +4206,17 @@ namespace plume {
+@@ -4147,11 +4216,17 @@ namespace plume {
          releasePool->release();
  
          // Fill device names.

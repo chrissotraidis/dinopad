@@ -83,7 +83,7 @@ Nested upstream patches applied by checkout basename:
 | `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
 The twenty-eight-file patch set is locked in `dependencies.lock.json` at SHA-256
-`7d8bcc29b44cd7bbbb30c55ca77836bf67a675669d375153a072d44df182a679`.
+`80e0d9c1bdb7bfc6deae859c7a9a383db745df7a9fd759864b4e092a6dc17999`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested

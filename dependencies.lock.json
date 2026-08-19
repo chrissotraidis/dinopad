@@ -70,7 +70,7 @@
     "patch_set": {
       "recorded": "2026-08-19T00:00:00Z",
       "file_count": 28,
-      "sha256": "7d8bcc29b44cd7bbbb30c55ca77836bf67a675669d375153a072d44df182a679",
+      "sha256": "80e0d9c1bdb7bfc6deae859c7a9a383db745df7a9fd759864b4e092a6dc17999",
       "algorithm": "SHA-256 of the sorted shasum -a 256 output for every patches/**/*.patch file"
     },
     "toolchain": {

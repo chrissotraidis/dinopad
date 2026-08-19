@@ -14,7 +14,7 @@ package or publish while any P0 gate below is red.
 | README and rights boundary match verified behavior | P0 | Green | [`README.md`](../README.md), [`RIGHTS_AND_LICENSES.md`](RIGHTS_AND_LICENSES.md) |
 | macOS and iPhone/iPad Simulator builds and smokes | P1 | Green | Packaged macOS launcher, fresh keyboard defaults, fullscreen, and bounded memory smoke are current. [`STATUS.md`](STATUS.md), [`PLAYTEST_MATRIX.md`](PLAYTEST_MATRIX.md) |
 | Physical iPhone product matrix | P1 | Partial | Signed in-place install and Restored gameplay are user-observed; longer audio/thermal/update coverage remains release QA. |
-| Physical iPad product matrix | P1 | Partial | Signed in-place install, extended Restored play, Xbox-controller input/reconnect, and current screenshots are user-observed; the remaining soak matrix is release QA. |
+| Physical iPad product matrix | P1 | Partial | Signed in-place install, extended Restored play, Xbox-controller input/reconnect, and the 0.1.2 mode → Home → second-mode visual regression are user-observed; the remaining soak matrix is release QA. |
 | Restored start-to-credits and chapter fixture matrix | P1 | Partial | Ongoing play has passed multiple chapters; one recorded start-to-credits run remains desirable for Restored certification. |
 | DinoPad-owned root license and scope | P0 | Green | Root `LICENSE` is GPL-3.0-only; [`LICENSE_SCOPE.md`](LICENSE_SCOPE.md) distinguishes DinoPad-owned and third-party material. |
 | Complete shipped primary licenses/notices | P0 | Green | Every 45/41 compiler-derived macOS/iOS root has a hash-bound standalone or mechanically assembled primary notice. [`COMPILED_DEPENDENCY_INVENTORY.json`](COMPILED_DEPENDENCY_INVENTORY.json) |
@@ -23,9 +23,9 @@ package or publish while any P0 gate below is red.
 | App privacy manifest | P1 | Green | Exact packaged manifest and negative-control audit in [`privacy-manifest`](evidence/2026-08-17/privacy-manifest/). |
 | Final transitive privacy report | P1 | Partial | The exact manifest and API reasons pass automated audits. An Organizer aggregate report remains optional final release QA on a prepared Xcode host. |
 | ROM-free unsigned base IPA | P0 | Green | The 13.4 MB base IPA passes strict compliance and payload audits with DinoMod absent. [`base-ipa`](evidence/2026-08-19/base-ipa/) |
-| Source tag, artifact checksum, and source/artifact match | P0 | Green | `v0.1.1` identifies the reviewed source; the release publishes the audited IPA, matching source archive, and SHA-256 records. |
+| Source tag, artifact checksum, and source/artifact match | P0 | Green | `v0.1.2` identifies the reviewed source; the release publishes the audited IPA, matching source archive, and SHA-256 records. |
 
-The refreshed base distribution is published as DinoPad 0.1.1. Restored Adventure has
+The refreshed base distribution is published as DinoPad 0.1.2. Restored Adventure has
 the additional red DinoMod-permission gate and is not part of that release.
 
 ## Stop conditions
@@ -235,5 +235,5 @@ been observed without clearing mobile app data. That is meaningful progress,
 but it does not close the formal physical matrices or start-to-credits gate.
 The owner-controlled license, source-package, notice, and base-IPA gaps are now
 closed. The base artifact passes the strict compliance gate; it still needs a
-clean `v0.1.1` tag, matching source archive, and publication decision. Restored
+clean `v0.1.2` tag, matching source archive, and publication decision. Restored
 Adventure remains separately blocked only by DinoMod redistribution permission.

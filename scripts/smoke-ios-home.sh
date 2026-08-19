@@ -188,6 +188,14 @@ fi
 [[ "$(grep '\[dinopad-gfx\] window created' "$EVIDENCE_DIR/profile-switch-runtime.log" | sort -u | wc -l | tr -d ' ')" -eq 1 ]] || {
   echo "ERROR: Metal window dimensions changed after in-process restart" >&2; exit 1;
 }
+while IFS= read -r geometry; do
+  pixels="$(sed -E 's/.* pixels=([0-9]+x[0-9]+).*/\1/' <<<"$geometry")"
+  drawable="$(sed -E 's/.* drawable=([0-9]+x[0-9]+).*/\1/' <<<"$geometry")"
+  [[ "$pixels" =~ ^[0-9]+x[0-9]+$ && "$pixels" == "$drawable" ]] || {
+    echo "ERROR: SDL pixel size and Metal drawable diverged: $geometry" >&2
+    exit 1
+  }
+done < <(grep '\[dinopad-gfx\] window created' "$EVIDENCE_DIR/profile-switch-runtime.log")
 grep -q '\[dinopad-gfx\] SDL gameplay subsystems stopped' \
   "$EVIDENCE_DIR/profile-switch-runtime.log" || {
     echo "ERROR: first runtime did not release its SDL gameplay subsystems" >&2; exit 1;
