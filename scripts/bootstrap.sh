@@ -76,10 +76,11 @@ PY
     fi
   else
     echo "== $name: cloning $ref =="
+    git clone "$url" "$dir"
+    git -C "$dir" checkout --detach "$commit"
     if [ "$recursive" = "yes" ]; then
-      git clone --recursive --branch "$ref" "$url" "$dir"
+      git -C "$dir" submodule update --init --recursive
     else
-      git clone --branch "$ref" "$url" "$dir"
       git -C "$dir" submodule update --init 2>/dev/null || true
     fi
     got="$(git -C "$dir" rev-parse HEAD)"
@@ -100,11 +101,16 @@ clone_or_verify "dinomod-enhanced-recompiled" "ref/dinomod-enhanced-recompiled"
 clone_or_verify "SDL2" "ref/SDL2"
 clone_or_verify "FreeType" "ref/freetype"
 
+# A second pass discovers submodules declared by freshly initialized nested
+# repositories (notably DinoMod's pinned dinosaur-planet bridge checkout).
+git -C ref/dino-recomp submodule update --init --recursive
+git -C ref/dinomod-enhanced-recompiled submodule update --init --recursive
+
 # Disable push URLs recursively for every nested reference repository.
 while IFS= read -r gitdir; do
   repo="$(dirname "$gitdir")"
   git -C "$repo" remote set-url --push origin DISABLED 2>/dev/null || true
-done < <(find ref -name .git -type d 2>/dev/null)
+done < <(find ref -name .git 2>/dev/null)
 
 echo "== Reference push URLs =="
 for d in ref/paperpad ref/dino-recomp ref/dinomod-enhanced-recompiled ref/SDL2 ref/freetype; do

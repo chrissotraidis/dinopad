@@ -5,7 +5,7 @@
 set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP="$ROOT/build-macos/DinoPad"
+APP="$ROOT/build-macos/DinoPad.app/Contents/MacOS/DinoPad"
 RUNS="${1:-5}"
 LOG_DIR="$ROOT/.goal-loop/graceful-shutdown"
 CRASH_DIR="$HOME/Library/Logs/DiagnosticReports"

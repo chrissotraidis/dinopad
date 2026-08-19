@@ -49,33 +49,3 @@ index f7f0a84..5b90ee8 100644
 +void shutdown_audio();
  
  }
-diff --git a/src/runtime/gfx.cpp b/src/runtime/gfx.cpp
-index 1d784d8..36c7c60 100644
---- a/src/runtime/gfx.cpp
-+++ b/src/runtime/gfx.cpp
-@@ -149,6 +149,13 @@ SDL_Window *get_window() {
-     return window;
- }
- 
-+void destroy_window() {
-+    if (window != nullptr) {
-+        SDL_DestroyWindow(window);
-+        window = nullptr;
-+    }
-+}
-+
- void update_gfx(void*) {
-     dino::input::handle_events();
- }
-diff --git a/src/runtime/gfx.hpp b/src/runtime/gfx.hpp
-index 5942487..99a1f16 100644
---- a/src/runtime/gfx.hpp
-+++ b/src/runtime/gfx.hpp
-@@ -7,6 +7,7 @@ namespace dino::runtime {
- ultramodern::gfx_callbacks_t::gfx_data_t create_gfx();
- ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::gfx_data_t, int width, int height);
- SDL_Window *get_window();
-+void destroy_window();
- void update_gfx(void*);
- 
- }

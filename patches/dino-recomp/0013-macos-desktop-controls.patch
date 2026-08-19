@@ -1,0 +1,133 @@
+diff --git a/src/input/input.cpp b/src/input/input.cpp
+index 43d33d7..7542c03 100644
+--- a/src/input/input.cpp
++++ b/src/input/input.cpp
+@@ -40,6 +40,7 @@ static struct {
+     const Uint8* keys = nullptr;
+     SDL_Keymod keymod = SDL_Keymod::KMOD_NONE;
+     int numkeys = 0;
++    Uint32 mouse_buttons = 0;
+     std::atomic_int32_t mouse_wheel_pos = 0;
+     std::mutex cur_controllers_mutex;
+     std::vector<SDL_GameController*> cur_controllers{};
+@@ -381,44 +382,48 @@ constexpr SDL_GameControllerButton SDL_CONTROLLER_BUTTON_NORTH = SDL_CONTROLLER
+ 
+ const dino::input::DefaultN64Mappings dino::input::default_n64_keyboard_mappings = {
+     .a = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_SPACE}
++        {.input_type = (uint32_t)InputType::Mouse, .input_id = SDL_BUTTON_LEFT},
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_SPACE}
+     },
+     .b = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_LSHIFT}
++        {.input_type = (uint32_t)InputType::Mouse, .input_id = SDL_BUTTON_RIGHT},
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_X}
+     },
+     .l = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_E}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_Z}
+     },
+     .r = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_R}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_C}
+     },
+     .z = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_Q}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_LSHIFT},
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_RSHIFT}
+     },
+     .start = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_RETURN}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_ESCAPE},
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_GRAVE}
+     },
+     .c_left = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_LEFT}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_Q}
+     },
+     .c_right = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_RIGHT}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_E}
+     },
+     .c_up = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_UP}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_R}
+     },
+     .c_down = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_DOWN}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_F}
+     },
+     .dpad_left = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_J}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_LEFT}
+     },
+     .dpad_right = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_L}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_RIGHT}
+     },
+     .dpad_up = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_I}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_UP}
+     },
+     .dpad_down = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_K}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_DOWN}
+     },
+@@ -436,12 +444,12 @@ const dino::input::DefaultN64Mappings dino::input::default_n64_keyboard_mappings
+         {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_S}
+     },
+     .toggle_menu = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_ESCAPE}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_TAB}
+     },
+     .accept_menu = {
+         {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_RETURN}
+     },
+     .apply_menu = {
+-        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_F}
++        {.input_type = (uint32_t)InputType::Keyboard, .input_id = SDL_SCANCODE_SPACE}
+     }
+ };
+@@ -518,6 +526,7 @@ const dino::input::DefaultN64Mappings dino::input::default_n64_controller_mappin
+ void dino::input::poll_inputs() {
+     InputState.keys = SDL_GetKeyboardState(&InputState.numkeys);
+     InputState.keymod = SDL_GetModState();
++    InputState.mouse_buttons = SDL_GetMouseState(nullptr, nullptr);
+ 
+     {
+         std::lock_guard lock{ InputState.cur_controllers_mutex };
+@@ -654,8 +663,10 @@ float dino::input::get_input_analog(const dino::input::InputField& field) {
+     case InputType::ControllerAnalog:
+         return controller_axis_state(field.input_id, true);
+     case InputType::Mouse:
+-        // TODO mouse support
+-        return 0.0f;
++        if (field.input_id >= SDL_BUTTON_LEFT && field.input_id <= 32) {
++            return (InputState.mouse_buttons & SDL_BUTTON(field.input_id)) ? 1.0f : 0.0f;
++        }
++        return 0.0f;
+     case InputType::None:
+         return false;
+     }
+@@ -685,8 +696,10 @@ bool dino::input::get_input_digital(const dino::input::InputField& field) {
+         // TODO adjustable threshold
+         return controller_axis_state(field.input_id, true) >= axis_threshold;
+     case InputType::Mouse:
+-        // TODO mouse support
+-        return false;
++        if (field.input_id >= SDL_BUTTON_LEFT && field.input_id <= 32) {
++            return (InputState.mouse_buttons & SDL_BUTTON(field.input_id)) != 0;
++        }
++        return false;
+     case InputType::None:
+         return false;
+     }
+@@ -935,6 +948,8 @@ std::string dino::input::InputField::to_string() const {
+             return controller_axis_to_string(input_id);
+         case InputType::Keyboard:
+             return keyboard_input_to_string((SDL_Scancode)input_id);
++        case InputType::Mouse:
++            return "Mouse " + std::to_string(input_id);
+         default:
+             return std::to_string(input_type) + "," + std::to_string(input_id);
+     }

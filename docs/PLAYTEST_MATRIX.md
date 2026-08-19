@@ -1,6 +1,6 @@
 # DinoPad Playtest Matrix
 
-Last updated: 2026-08-17
+Last updated: 2026-08-19
 
 Each row records a verified play session on a real target. "Verified" means
 the run was executed, its input/log evidence was captured, and the result was
@@ -11,6 +11,9 @@ claims a full playthrough it did not perform.
 
 | Date | Target | Mode | Start | End state | Duration | Result | Input | Evidence |
 |---|---|---|---|---|---|---|---|---|
+| 2026-08-19 | macOS arm64 (Mac15,9) | Restored + Prototype, packaged app | Native missing-ROM setup and DinoPad home | Both profile handoffs live; no styling abort | ~50 s | PASS | Native accessible buttons + Space | local guarded `smoke-native-home-macos.sh` run |
+| 2026-08-19 | macOS arm64 (Mac15,9) | Prototype, disposable fresh profile | Packaged 960x720 window | Keyboard masks, 1728x1084 fullscreen, and flat warm RSS observed across bounded runs; final uninterrupted rerun stopped | ~90 s | PARTIAL | WASD and desktop keyboard mapping automation | docs/evidence/2026-08-19/macos-desktop-controls/ |
+| 2026-08-19 | Physical iPad (user device) | Restored | Existing in-place install and save | Later gameplay/story scenes; controller reconnect working | Exact duration not recorded | USER-OBSERVED PASS | Xbox controller | docs/evidence/2026-08-19/ipad-gameplay/ |
 | 2026-08-17 | iPad Pro 11-inch (M5) Simulator, iPadOS 26.5 arm64 | Restored | Native home with private game-created `AAAAA` save | Controllable ship-deck tutorial, live through ten-minute boundary | 600 s | PASS | UIKit tablet touch analog + A; actual N64 poll | docs/evidence/2026-08-17/ipad-simulator-phase6/ |
 | 2026-08-17 | iPad Pro 11-inch (M5) Simulator, iPadOS 26.5 arm64 | Restored relaunch, same install | Persisted profile-local `AAAAA` save | Controllable ship-deck tutorial at late input frame 26,669 | ~4.5 min | PASS | Full 7-suite tablet touch/lifecycle matrix plus gameplay analog + A | docs/evidence/2026-08-17/ipad-simulator-phase6/ |
 | 2026-08-17 | iPhone 17 Pro Simulator, iOS 26.5 arm64 | Restored | Native home with private game-created `AAAAA` save | Controllable ship-deck tutorial, live through ten-minute boundary | 600 s | PASS | UIKit touch analog + A; actual N64 poll | docs/evidence/2026-08-17/iphone-phase5/ |
@@ -30,9 +33,14 @@ claims a full playthrough it did not perform.
 
 ## Not yet covered
 
-- Controller play.
-- Physical iPhone/iPad devices (Phases 7-8).
+- Physical mouse-button acceptance and a Mac-connected physical controller.
+- The complete recorded physical iPhone/iPad duration, audio-route,
+  lifecycle, thermal, memory-pressure, and update-in-place matrices.
 - Chapter-boundary fixtures and progression (Phase 9).
+
+The physical-iPad row records the user's direct observation and supplied
+screenshots. It is intentionally distinguished from instrumented smoke evidence
+and does not close the release checklist's formal hardware gate.
 
 ## Known behavior quirks observed
 

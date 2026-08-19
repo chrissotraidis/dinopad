@@ -1,6 +1,6 @@
 # DinoPad release checklist
 
-Last updated: 2026-08-18
+Last updated: 2026-08-19
 
 This is the operational gate for any public DinoPad source archive, app bundle,
 IPA, download, or release announcement. A successful build, package audit, or
@@ -12,9 +12,9 @@ package or publish while any P0 gate below is red.
 | Gate | Priority | Status | Closure evidence |
 |---|---|---|---|
 | README and rights boundary match verified behavior | P0 | Green | [`README.md`](../README.md), [`RIGHTS_AND_LICENSES.md`](RIGHTS_AND_LICENSES.md) |
-| macOS and iPhone/iPad Simulator builds and smokes | P1 | Green | [`STATUS.md`](STATUS.md), [`PLAYTEST_MATRIX.md`](PLAYTEST_MATRIX.md) |
-| Physical iPhone product matrix | P0 | **Red** | Signed install, 30-minute run, audio/controller/lifecycle/thermal/memory, save, and update-in-place evidence required. |
-| Physical iPad product matrix | P0 | **Red** | Signed install, 60 cumulative minutes, tablet/controller/audio/lifecycle/thermal/memory, save, and update-in-place evidence required. |
+| macOS and iPhone/iPad Simulator builds and smokes | P1 | Green | Packaged macOS launcher, fresh keyboard defaults, fullscreen, and bounded memory smoke are current. [`STATUS.md`](STATUS.md), [`PLAYTEST_MATRIX.md`](PLAYTEST_MATRIX.md) |
+| Physical iPhone product matrix | P0 | **Red** | Signed in-place install and Restored gameplay are user-observed; the recorded 30-minute audio/controller/lifecycle/thermal/memory/save/update matrix is incomplete. |
+| Physical iPad product matrix | P0 | **Red** | Signed in-place install, Restored play, Xbox-controller input/reconnect, and current screenshots are user-observed; the complete recorded 60-minute tablet/audio/lifecycle/thermal/memory/update matrix is incomplete. |
 | Restored start-to-credits and chapter fixture matrix | P0 | **Red** | One complete physical-device playthrough and chapter-boundary evidence required. |
 | DinoPad-owned root license decision | P0 | **Red** | Root license file and scope decision required. |
 | Complete shipped third-party licenses/notices | P0 | **Red** | Every 46/41 compiler-derived macOS/iOS root has a standalone or mechanically assembled inline-primary package notice; secondary and second-person legal review remain. [`COMPILED_DEPENDENCY_INVENTORY.json`](COMPILED_DEPENDENCY_INVENTORY.json) |
@@ -22,7 +22,7 @@ package or publish while any P0 gate below is red.
 | Compiled game-AOT rights | P0 | **Red** | ROM-free binaries still contain private generated AOT. Rights determination or source-only local generation required. |
 | App privacy manifest | P1 | Green | Exact packaged manifest and negative-control audit in [`privacy-manifest`](evidence/2026-08-17/privacy-manifest/). |
 | Final transitive privacy report | P0 | **Red** | Goals 31m/31n produce a clean unsigned Organizer-input archive and pass its local app gates, but Xcode Organizer cannot open on this host until its 8.52 GiB iOS platform component is installed. Final Xcode privacy report and exact linked-SDK/API review remain required. |
-| ROM-free unsigned IPA and clean self-sign install | P0 | **Red** | No public IPA exists; exact artifact build, audit, install, relaunch, and update evidence required. |
+| ROM-free unsigned IPA and clean self-sign install | P0 | **Red** | A deterministic ROM-free unsigned candidate is locally audited; publication, exact self-sign install/relaunch, and update evidence remain required. [`ipa-candidate`](evidence/2026-08-19/ipa-candidate/) |
 | Source tag, artifact checksum, and source/artifact match | P0 | **Red** | Immutable tag, SHA-256, and reproducibility record required. |
 
 The current project state is **not releasable**. Green engineering rows do not
@@ -228,9 +228,11 @@ Evidence paths:
 
 ## Current blockers
 
-As of 2026-08-18, CoreDevice reports no available physical device and the
-keychain reports no valid Apple Development signing identity. Physical iPhone,
-physical iPad, and start-to-credits evidence therefore remain open. The root
-license decision, assembled third-party notices, final transitive privacy
-report, and DinoMod redistribution permission also remain unresolved. No source
-or binary release is authorized by this checklist's existence.
+As of 2026-08-19, signed development builds have been installed in place on the
+user's iPhone and iPad, and Restored gameplay plus iPad Xbox-controller use have
+been observed without clearing mobile app data. That is meaningful progress,
+but it does not close the formal physical matrices or start-to-credits gate.
+The root license decision, final notice/legal review, transitive privacy report,
+DinoMod redistribution permission, and compiled game-AOT rights also remain
+unresolved. No source or binary release is authorized by this checklist's
+existence.

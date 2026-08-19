@@ -120,6 +120,23 @@ mkdir -p generated/aot/RecompiledPatches
 "$PY" tools/file_to_c.py generated/patches/build/patches.bin dp_patches_bin \
   generated/aot/RecompiledPatches/patches_bin.c generated/aot/RecompiledPatches/patches_bin.h
 
+echo "== 10. Link generated outputs for upstream relative includes =="
+for output in RecompiledFuncs RecompiledPatches; do
+  link="$DINO_RECOMP/$output"
+  target="../../generated/aot/$output"
+  if [ -L "$link" ]; then
+    [ "$(readlink "$link")" = "$target" ] || {
+      echo "ERROR: unexpected generated-output link: $link" >&2
+      exit 1
+    }
+  elif [ -e "$link" ]; then
+    echo "ERROR: generated-output path is not a symlink: $link" >&2
+    exit 1
+  else
+    ln -s "$target" "$link"
+  fi
+done
+
 echo ""
 echo "== Base AOT generation complete =="
 du -sh generated/aot generated/rom generated/patches 2>/dev/null

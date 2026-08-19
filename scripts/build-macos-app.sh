@@ -5,9 +5,9 @@
 # Behavior:
 #   1. Verifies the arm64 DinoPad executable exists (build-macos/DinoPad).
 #   2. Assembles DinoPad.app with Info.plist, executable, and assets.
-#   3. Stages the user-supplied supported ROM into
-#      ~/Library/Application Support/DinoPad/dino.z64 (private, OUTSIDE the
-#      app bundle) and verifies its MD5.
+#   3. Stages the user-supplied supported ROM and privately generated
+#      restoration data under ~/Library/Application Support/DinoPad (private,
+#      OUTSIDE the app bundle) and verifies the ROM's MD5.
 #   4. Ad-hoc codesigns the bundle so `open DinoPad.app` works locally.
 #   5. Prints a ROM-free bundle assertion (no game data inside .app).
 #
@@ -22,6 +22,8 @@ BIN="$ROOT/build-macos/DinoPad"
 APP="$ROOT/build-macos/DinoPad.app"
 SUPPORT="$HOME/Library/Application Support/DinoPad"
 ROM_DEST="$SUPPORT/dino.z64"
+RESTORATION_SOURCE="$ROOT/generated/restoration/dinomod_restoration_data.nrm"
+RESTORATION_DEST="$SUPPORT/mods/dinomod_enhanced.offline.nrm"
 EXPECTED_ROM_MD5="49f7bb346ade39d1915c22e090ffd748"
 VERSION="0.1.0"
 BUILD_NUMBER="1"
@@ -58,9 +60,10 @@ cp "$BIN" "$APP/Contents/MacOS/DinoPad"
 
 # Asset layout matches get_asset_path() (program_path/assets/...):
 # program_path on Apple is the bundle Resources dir.
-# CMake exposes this source tree through a build-directory symlink. Resolve it
-# while copying so the app never contains an absolute checkout-path symlink.
-cp -RL build-macos/assets "$APP/Contents/Resources/assets"
+# Copy from the pinned source tree. This keeps bundle assembly independent of
+# generator-specific build-directory symlinks while still producing ordinary
+# files in the app bundle.
+cp -RL "$ROOT/ref/dino-recomp/assets" "$APP/Contents/Resources/assets"
 # Remove resources with no affirmative package provenance and development-only
 # Sass/npm inputs. The maintained launcher patch uses text plus the OFL Lato
 # family, so these files are neither loaded nor needed at runtime.
@@ -87,7 +90,8 @@ cp "$ROOT/ref/dino-recomp/assets/promptfont/LICENSE.txt" \
   "$APP/Contents/Resources/Notices/OFL-1.1.txt"
 python3 "$ROOT/tools/package_compiled_dependency_notices.py" --app "$APP"
 # Controller mappings file is read from program_path directly.
-cp build-macos/recompcontrollerdb.txt "$APP/Contents/Resources/recompcontrollerdb.txt"
+cp "$ROOT/ref/dino-recomp/lib/SDL_GameControllerDB/gamecontrollerdb.txt" \
+  "$APP/Contents/Resources/recompcontrollerdb.txt"
 # DinoPad-owned launcher art is shared with the native iOS/iPadOS home screen.
 cp "$ROOT/apple/app/dinosaur-jungle-v1.png" \
   "$APP/Contents/Resources/dinosaur-jungle-v1.png"
@@ -140,6 +144,27 @@ else
   fail "no ROM at $ROM_DEST. Copy your supported Dinosaur Planet prototype ROM there first (MD5 $EXPECTED_ROM_MD5); DinoPad never downloads game data."
 fi
 
+# Restored Adventure uses a privately generated data package plus ordinary
+# linked arm64 code. Keep that package beside the user's ROM, never in the app.
+[ -f "$RESTORATION_SOURCE" ] || \
+  fail "missing private restoration data; run scripts/generate-restoration.sh"
+mkdir -p "$(dirname "$RESTORATION_DEST")"
+RESTORATION_TEMP="$(mktemp "$SUPPORT/mods/.dinomod-restoration.XXXXXX")" || \
+  fail "could not create restoration staging file"
+cp "$RESTORATION_SOURCE" "$RESTORATION_TEMP" || {
+  rm -f "$RESTORATION_TEMP"
+  fail "could not stage private restoration data"
+}
+chmod 600 "$RESTORATION_TEMP" || {
+  rm -f "$RESTORATION_TEMP"
+  fail "could not protect private restoration data"
+}
+mv -f "$RESTORATION_TEMP" "$RESTORATION_DEST" || {
+  rm -f "$RESTORATION_TEMP"
+  fail "could not install private restoration data"
+}
+echo "Restoration data staged privately: $RESTORATION_DEST"
+
 # ---- Ad-hoc codesign for local launch ----
 echo "== codesigning (ad-hoc) =="
 codesign --force --deep --sign - "$APP" || fail "codesign failed"
@@ -157,5 +182,6 @@ echo "== macOS app safety audit =="
 echo
 echo "DinoPad.app built: $APP"
 echo "ROM (private, outside bundle): $ROM_DEST"
+echo "Restoration data (private, outside bundle): $RESTORATION_DEST"
 echo "Launch with: open $APP  (or: $APP/Contents/MacOS/DinoPad --skip-launcher --window-width 1024 --window-height 768)"
 echo "Bundle size: $(du -sh "$APP" | awk '{print $1}')"

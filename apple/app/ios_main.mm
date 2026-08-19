@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <pthread.h>
 #include <vector>
 
 #include <SDL.h>
@@ -24,6 +25,47 @@
 extern "C" int dinopad_recomp_main(int argc, char **argv);
 extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y);
 extern "C" void dinopad_set_physical_controller_connected(int connected);
+
+static void dinopad_apply_gameplay_window_geometry(void* opaqueWindow) {
+    @autoreleasepool {
+        UIWindow* window = (__bridge UIWindow*)opaqueWindow;
+        if (window == nil) return;
+
+        UIWindowScene* scene = window.windowScene;
+        CGRect targetBounds = scene != nil
+            ? scene.coordinateSpace.bounds : UIScreen.mainScreen.bounds;
+        if (!CGRectIsEmpty(targetBounds)) {
+            window.frame = targetBounds;
+        }
+
+        UIView* rootView = window.rootViewController.view;
+        if (rootView != nil) {
+            rootView.frame = window.bounds;
+            [rootView setNeedsLayout];
+            [rootView layoutIfNeeded];
+        }
+        [window layoutIfNeeded];
+
+        const CGRect windowBounds = window.bounds;
+        const CGRect viewBounds = rootView != nil ? rootView.bounds : CGRectZero;
+        std::fprintf(stderr,
+            "[dinopad-gfx] UIKit geometry window=%.0fx%.0f view=%.0fx%.0f scene=%.0fx%.0f\n",
+            windowBounds.size.width, windowBounds.size.height,
+            viewBounds.size.width, viewBounds.size.height,
+            targetBounds.size.width, targetBounds.size.height);
+        std::fflush(stderr);
+    }
+}
+
+extern "C" void dinopad_prepare_gameplay_window(void* windowPointer) {
+    if (windowPointer == nullptr) return;
+    if (pthread_main_np() != 0) {
+        dinopad_apply_gameplay_window_geometry(windowPointer);
+    } else {
+        dispatch_sync_f(dispatch_get_main_queue(), windowPointer,
+                        dinopad_apply_gameplay_window_geometry);
+    }
+}
 
 namespace {
 
@@ -185,6 +227,8 @@ void drainUIKitQueue() {
 - (void)setPhysicalControllerConnected:(BOOL)connected;
 - (void)presentUtilityMenu;
 - (void)dismissUtilityMenu;
+- (void)confirmResetLayoutForIdiom:(UIUserInterfaceIdiom)idiom;
+- (void)confirmQuitToHome;
 - (void)quitToHome;
 
 #if DINOPAD_ENABLE_TEST_HARNESS
@@ -201,6 +245,15 @@ void drainUIKitQueue() {
 - (void)moveSelectedForTestingToNormalizedPoint:(CGPoint)point;
 - (NSDictionary*)layoutSnapshotForTesting;
 #endif
+@end
+
+@interface DinoPadUtilityButton : UIButton
+@end
+
+@implementation DinoPadUtilityButton
+- (BOOL)canBecomeFocused {
+    return NO;
+}
 @end
 
 #if DINOPAD_ENABLE_TEST_HARNESS
@@ -275,7 +328,7 @@ void drainUIKitQueue() {
             }
         }
 
-        _utilityButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _utilityButton = [DinoPadUtilityButton buttonWithType:UIButtonTypeCustom];
         [_utilityButton setTitle:@"\u2022\u2022\u2022" forState:UIControlStateNormal];
         _utilityButton.titleLabel.font = [UIFont boldSystemFontOfSize:16.0];
         _utilityButton.backgroundColor = [UIColor colorWithWhite:0.02 alpha:0.68];
@@ -865,6 +918,9 @@ void drainUIKitQueue() {
 }
 
 - (void)presentUtilityMenu {
+    dinopad_diagnostics_breadcrumb("menu", "presented");
+    std::fprintf(stderr, "[dinopad-menu] utility menu presented\n");
+    std::fflush(stderr);
     [self clearInput];
     [self setModalControlsHidden:YES];
     UIViewController* presenter = [self topPresenter];
@@ -884,15 +940,19 @@ void drainUIKitQueue() {
                   preferredStyle:UIAlertControllerStyleActionSheet];
     [menu addAction:[UIAlertAction actionWithTitle:@"Resume"
         style:UIAlertActionStyleCancel handler:^(__unused UIAlertAction* action) {
+            dinopad_diagnostics_breadcrumb("menu", "resume_selected");
             [self setModalControlsHidden:NO];
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:touchTitle
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            dinopad_diagnostics_breadcrumb("menu", self->_controlsEnabled
+                ? "touch_controls_disabled" : "touch_controls_enabled");
             [self setControlsEnabled:!self->_controlsEnabled];
             [self setModalControlsHidden:NO];
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Settings & Status"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            dinopad_diagnostics_breadcrumb("menu", "settings_selected");
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
                 dinopad_present_settings((__bridge void*)presenter);
@@ -900,6 +960,7 @@ void drainUIKitQueue() {
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Share Diagnostics & Logs…"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            dinopad_diagnostics_breadcrumb("menu", "share_diagnostics_selected");
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
                 dinopad_present_diagnostics_share((__bridge void*)presenter, ^{
@@ -909,25 +970,27 @@ void drainUIKitQueue() {
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Customize Touch Layout"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            dinopad_diagnostics_breadcrumb("menu", "customize_touch_layout_selected");
             [self beginEditingLayout];
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Reset Phone Layout"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
-            [self resetLayoutForIdiom:UIUserInterfaceIdiomPhone];
-            [self setModalControlsHidden:NO];
+            dinopad_diagnostics_breadcrumb("menu", "reset_phone_layout_selected");
+            [self confirmResetLayoutForIdiom:UIUserInterfaceIdiomPhone];
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Reset Tablet Layout"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
-            [self resetLayoutForIdiom:UIUserInterfaceIdiomPad];
-            [self setModalControlsHidden:NO];
+            dinopad_diagnostics_breadcrumb("menu", "reset_tablet_layout_selected");
+            [self confirmResetLayoutForIdiom:UIUserInterfaceIdiomPad];
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Manage Game ROM"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            dinopad_diagnostics_breadcrumb("menu", "rom_manager_selected");
             dinopad_present_rom_manager((__bridge void*)presenter);
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Quit to DinoPad Home"
         style:UIAlertActionStyleDestructive handler:^(__unused UIAlertAction* action) {
-            [self quitToHome];
+            [self confirmQuitToHome];
         }]];
     UIPopoverPresentationController* popover = menu.popoverPresentationController;
     if (popover != nil) {
@@ -938,7 +1001,69 @@ void drainUIKitQueue() {
     [presenter presentViewController:menu animated:YES completion:nil];
 }
 
+- (void)confirmResetLayoutForIdiom:(UIUserInterfaceIdiom)idiom {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        UIViewController* presenter = [self topPresenter];
+        if (presenter == nil) {
+            [self setModalControlsHidden:NO];
+            return;
+        }
+
+        const BOOL isPhone = idiom == UIUserInterfaceIdiomPhone;
+        NSString* deviceName = isPhone ? @"Phone" : @"Tablet";
+        UIAlertController* confirmation = [UIAlertController
+            alertControllerWithTitle:[NSString stringWithFormat:@"Reset %@ Layout?", deviceName]
+                             message:[NSString stringWithFormat:
+                                 @"This replaces your saved %@ touch-control positions and sizes with the DinoPad defaults. This can’t be undone.",
+                                 deviceName.lowercaseString]
+                      preferredStyle:UIAlertControllerStyleAlert];
+        [confirmation addAction:[UIAlertAction actionWithTitle:@"Cancel"
+            style:UIAlertActionStyleCancel handler:^(__unused UIAlertAction* action) {
+                dinopad_diagnostics_breadcrumb("menu", isPhone
+                    ? "reset_phone_layout_cancelled" : "reset_tablet_layout_cancelled");
+                [self setModalControlsHidden:NO];
+            }]];
+        [confirmation addAction:[UIAlertAction actionWithTitle:@"Reset Layout"
+            style:UIAlertActionStyleDestructive handler:^(__unused UIAlertAction* action) {
+                [self resetLayoutForIdiom:idiom];
+                dinopad_diagnostics_breadcrumb("menu", isPhone
+                    ? "reset_phone_layout_confirmed" : "reset_tablet_layout_confirmed");
+                [self setModalControlsHidden:NO];
+            }]];
+        [presenter presentViewController:confirmation animated:YES completion:nil];
+    });
+}
+
+- (void)confirmQuitToHome {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        UIViewController* presenter = [self topPresenter];
+        if (presenter == nil) {
+            [self setModalControlsHidden:NO];
+            return;
+        }
+
+        UIAlertController* confirmation = [UIAlertController
+            alertControllerWithTitle:@"Return to DinoPad Home?"
+                             message:@"Unsaved in-game progress may be lost. Your existing save files and DinoPad settings will remain intact."
+                      preferredStyle:UIAlertControllerStyleAlert];
+        [confirmation addAction:[UIAlertAction actionWithTitle:@"Cancel"
+            style:UIAlertActionStyleCancel handler:^(__unused UIAlertAction* action) {
+                dinopad_diagnostics_breadcrumb("menu", "quit_to_home_cancelled");
+                [self setModalControlsHidden:NO];
+            }]];
+        [confirmation addAction:[UIAlertAction actionWithTitle:@"Return Home"
+            style:UIAlertActionStyleDestructive handler:^(__unused UIAlertAction* action) {
+                dinopad_diagnostics_breadcrumb("menu", "quit_to_home_confirmed");
+                [self quitToHome];
+            }]];
+        [presenter presentViewController:confirmation animated:YES completion:nil];
+    });
+}
+
 - (void)quitToHome {
+    dinopad_diagnostics_breadcrumb("menu", "quit_to_home_requested");
     [self clearInput];
     [self setModalControlsHidden:YES];
     g_quitToHome.store(true, std::memory_order_relaxed);
@@ -1087,6 +1212,9 @@ void drainUIKitQueue() {
             _stickOrigin = [self centerForControl:item];
             _stickKnob = _stickOrigin;
         } else {
+            if (item.mask == 0x1000) {
+                dinopad_diagnostics_breadcrumb("touch", "start_pressed");
+            }
             g_touchTaps.extend(item.mask, kTapHoldPolls);
         }
     }
@@ -2099,6 +2227,7 @@ extern "C" void dinopad_touch_attach(void* windowPointer) {
 }
 
 extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y) {
+    dinopad_diagnostics_gameplay_poll();
 #if DINOPAD_ENABLE_TEST_HARNESS
     g_gameInputPolls.fetch_add(1, std::memory_order_relaxed);
 #endif
@@ -2130,16 +2259,38 @@ extern "C" void dinopad_set_physical_controller_connected(int connected) {
     connected = 0;
 #endif
     BOOL isConnected = connected != 0;
-    g_controllerConnected.store(isConnected, std::memory_order_relaxed);
+    const bool changed = g_controllerConnected.exchange(
+        isConnected, std::memory_order_relaxed) != static_cast<bool>(isConnected);
+    if (changed) {
+        dinopad_diagnostics_breadcrumb("controller",
+            isConnected ? "physical_connected" : "physical_disconnected");
+    }
     dispatch_async(dispatch_get_main_queue(), ^{
         [g_touchOverlay setPhysicalControllerConnected:isConnected];
     });
+}
+
+extern "C" void dinopad_log_controller_button(int button, int pressed) {
+    const char* name = "other";
+    switch (button) {
+        case SDL_CONTROLLER_BUTTON_BACK: name = "back"; break;
+        case SDL_CONTROLLER_BUTTON_GUIDE: name = "guide"; break;
+        case SDL_CONTROLLER_BUTTON_START: name = "start"; break;
+        case SDL_CONTROLLER_BUTTON_A: name = "a"; break;
+        case SDL_CONTROLLER_BUTTON_B: name = "b"; break;
+        default: break;
+    }
+    char event[96];
+    std::snprintf(event, sizeof(event), "button_%s_%s_id_%d",
+        name, pressed ? "down" : "up", button);
+    dinopad_diagnostics_breadcrumb("controller", event);
 }
 
 extern "C" int SDL_main(int, char **) {
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
     SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "1");
     dinopad_start_diagnostics_log();
+    dinopad_diagnostics_breadcrumb("session", "shell_started");
 
     // Phase 5 (Goal 27a): verify the private supported ROM via UIKit before
     // entering the runtime. Missing/invalid ROM presents an in-app Files
@@ -2150,7 +2301,10 @@ extern "C" int SDL_main(int, char **) {
     }
 
     for (;;) {
+        dinopad_diagnostics_breadcrumb("home", "presenting");
         const int selectedProfile = dinopad_present_home();
+        dinopad_diagnostics_breadcrumb("home",
+            selectedProfile == 0 ? "restored_selected" : "prototype_selected");
         g_currentProfile.store(selectedProfile, std::memory_order_relaxed);
         g_quitToHome.store(false, std::memory_order_relaxed);
         g_settingsSaveRequested.store(false, std::memory_order_relaxed);
@@ -2171,24 +2325,38 @@ extern "C" int SDL_main(int, char **) {
             nullptr,
         };
 
+        dinopad_diagnostics_breadcrumb("runtime",
+            selectedProfile == 0 ? "begin_restored" : "begin_prototype");
+        dinopad_diagnostics_set_runtime_active(1);
         const int result = dinopad_recomp_main(4, arguments);
+        dinopad_diagnostics_set_runtime_active(0);
+        char resultEvent[64];
+        std::snprintf(resultEvent, sizeof(resultEvent), "recomp_main_returned_%d", result);
+        dinopad_diagnostics_breadcrumb("runtime", resultEvent);
         if (g_settingsSaveRequested.exchange(false, std::memory_order_acq_rel)) {
             dino::config::save_config();
         }
+        dinopad_diagnostics_breadcrumb("teardown", "audio_begin");
         dino::runtime::shutdown_audio();
+        dinopad_diagnostics_breadcrumb("teardown", "audio_complete");
         // RT64/Plume may have already queued UIKit window-attribute work from
         // its renderer thread. The renderer is joined now, so drain those
         // final blocks while the SDL window is still valid, then drain SDL's
         // own UIKit teardown before presenting the home again.
         drainUIKitQueue();
-        dino::runtime::destroy_window();
+        dinopad_diagnostics_breadcrumb("teardown", "graphics_begin");
+        dino::runtime::shutdown_gfx();
         drainUIKitQueue();
+        dinopad_diagnostics_breadcrumb("teardown", "graphics_complete");
 
         if (result != EXIT_SUCCESS ||
             !g_quitToHome.exchange(false, std::memory_order_relaxed)) {
+            dinopad_diagnostics_breadcrumb("runtime", result != EXIT_SUCCESS
+                ? "process_exit_runtime_failure" : "process_exit_without_home_request");
             dinopad_finish_diagnostics_log();
             return result;
         }
+        dinopad_diagnostics_breadcrumb("runtime", "returned_to_home_intentionally");
         std::fprintf(stderr, "[dinopad-home-test] Runtime returned to home\n");
         std::fflush(stderr);
     }

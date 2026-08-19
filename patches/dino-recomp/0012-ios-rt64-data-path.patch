@@ -1,0 +1,30 @@
+diff --git a/src/renderer/renderer.cpp b/src/renderer/renderer.cpp
+index 847bbe2..0dae35b 100644
+--- a/src/renderer/renderer.cpp
++++ b/src/renderer/renderer.cpp
+@@ -5,8 +5,14 @@
+ #include <memory>
+ #include <variant>
+ 
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
++
+ #include "ultramodern/config.hpp"
+ 
++#include "config/config.hpp"
++
+ #include "common/overloaded.h"
+ #include "debug_ui/debug_ui.hpp"
+ #include "debug_ui/backend.hpp"
+@@ -258,6 +264,10 @@ RT64Context::RT64Context(uint8_t* rdram, ultramodern::renderer::WindowHandle win
+     // Set up the RT64 application configuration fields.
+     RT64::ApplicationConfiguration appConfig;
+     appConfig.useConfigurationFile = false;
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++    appConfig.detectDataPath = false;
++    appConfig.dataPath = dino::config::get_data_folder_path() / "RT64";
++#endif
+ 
+     // Create the RT64 application.
+     app = std::make_unique<RT64::Application>(appCore, appConfig);

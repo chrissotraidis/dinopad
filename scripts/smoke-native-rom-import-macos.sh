@@ -4,7 +4,7 @@
 set -eu
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP="$ROOT/build-macos/DinoPad"
+APP="$ROOT/build-macos/DinoPad.app/Contents/MacOS/DinoPad"
 SOURCE_ROM="$HOME/Library/Application Support/DinoPad/dino.z64"
 EXPECTED_MD5="49f7bb346ade39d1915c22e090ffd748"
 EVIDENCE_DIR="${DINOPAD_IMPORT_EVIDENCE_DIR:-}"

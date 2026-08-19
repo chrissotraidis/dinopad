@@ -97,8 +97,8 @@ implementation lands.
 **Status:** Confirmed prototype behavior (2026-08-16, macOS).
 
 On the game's ENTER NAME screen, the on-screen keyboard cursor does **not**
-move with the N64 D-pad (keyboard IJKL). It responds to the analog stick
-(keyboard WASD). This is upstream game behavior in the December 2000
+move with the N64 D-pad (arrow keys in fresh DinoPad profiles). It responds to
+the analog stick (keyboard WASD). This is upstream game behavior in the December 2000
 prototype's name-entry code, not a DinoPad regression. The default keyboard
 mapping already provides WASD analog, so no DinoPad change is required for
 keyboard use; the touch/controller shell port must map the analog stick, which

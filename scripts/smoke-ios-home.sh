@@ -116,6 +116,7 @@ prototype_before="$(shasum -a 256 "$PROTOTYPE_DIR/profile-sentinel.txt" | awk '{
 
 export SIMCTL_CHILD_DINOPAD_HOME_AUTOMATION_SEQUENCE="restored,prototype"
 export SIMCTL_CHILD_DINOPAD_QUIT_TO_HOME_SMOKE=1
+export SIMCTL_CHILD_DINOPAD_HOME_CONTROLLER_SMOKE=1
 xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
   >"$EVIDENCE_DIR/profile-switch-runtime.log" 2>&1 &
 CONSOLE_PID=$!
@@ -136,9 +137,25 @@ for marker in \
   'Quit to home requested' \
   'Runtime returned to home' \
   'Prototype warning presented' \
-  'Prototype selected'; do
+  'Prototype selected' \
+  'Home menu presented' \
+  'Home menu actions verified' \
+  'Controller home navigation verified'; do
   grep -q "\[dinopad-home-test\] $marker" "$EVIDENCE_DIR/profile-switch-runtime.log" || {
     echo "ERROR: missing home marker: $marker" >&2; exit 1;
+  }
+done
+
+for flight_marker in \
+  'category=runtime event=begin_restored' \
+  'category=runtime event=active' \
+  'category=menu event=quit_to_home_requested' \
+  'category=runtime event=inactive' \
+  'category=runtime event=returned_to_home_intentionally' \
+  'category=runtime event=begin_prototype' \
+  'category=telemetry event=sample polls='; do
+  grep -q "\[dinopad-flight\].*$flight_marker" "$EVIDENCE_DIR/profile-switch-runtime.log" || {
+    echo "ERROR: missing flight-recorder marker: $flight_marker" >&2; exit 1;
   }
 done
 
@@ -165,6 +182,16 @@ fi
 [[ "$(grep -c '\[dinopad-touch\] overlay attached' "$EVIDENCE_DIR/profile-switch-runtime.log")" -ge 2 ]] || {
   echo "ERROR: second runtime touch overlay missing" >&2; exit 1;
 }
+[[ "$(grep -c '\[dinopad-gfx\] window created' "$EVIDENCE_DIR/profile-switch-runtime.log")" -ge 2 ]] || {
+  echo "ERROR: second runtime Metal window missing" >&2; exit 1;
+}
+[[ "$(grep '\[dinopad-gfx\] window created' "$EVIDENCE_DIR/profile-switch-runtime.log" | sort -u | wc -l | tr -d ' ')" -eq 1 ]] || {
+  echo "ERROR: Metal window dimensions changed after in-process restart" >&2; exit 1;
+}
+grep -q '\[dinopad-gfx\] SDL gameplay subsystems stopped' \
+  "$EVIDENCE_DIR/profile-switch-runtime.log" || {
+    echo "ERROR: first runtime did not release its SDL gameplay subsystems" >&2; exit 1;
+  }
 
 restored_after="$(shasum -a 256 "$RESTORED_DIR/profile-sentinel.txt" | awk '{print $1}')"
 prototype_after="$(shasum -a 256 "$PROTOTYPE_DIR/profile-sentinel.txt" | awk '{print $1}')"
@@ -175,6 +202,7 @@ xcrun simctl io "$UDID" screenshot "$EVIDENCE_DIR/prototype-runtime.png"
 stop_app
 unset SIMCTL_CHILD_DINOPAD_HOME_AUTOMATION_SEQUENCE
 unset SIMCTL_CHILD_DINOPAD_QUIT_TO_HOME_SMOKE
+unset SIMCTL_CHILD_DINOPAD_HOME_CONTROLLER_SMOKE
 
 crashes_after="$(find "$REPORTS" -type f -name 'DinoPad-*.ips' 2>/dev/null | wc -l | tr -d ' ')"
 [[ "$crashes_after" == "$crashes_before" ]] || { echo "ERROR: new DinoPad crash report detected" >&2; exit 1; }

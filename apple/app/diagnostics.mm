@@ -2,13 +2,19 @@
 
 #include <atomic>
 #include <cerrno>
+#include <chrono>
 #include <cstdio>
 #include <filesystem>
+#include <mutex>
 #include <string>
 #include <thread>
 
 #include <fcntl.h>
+#include <mach/mach.h>
+#include <os/proc.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
+#include <sys/sysctl.h>
 #include <unistd.h>
 
 #import <Foundation/Foundation.h>
@@ -17,6 +23,10 @@
 #import "diagnostics.h"
 #import "rom_setup.h"
 #import "test_harness.h"
+
+#ifdef MIN
+#undef MIN
+#endif
 
 #include "config/config.hpp"
 #include "ultramodern/ultramodern.hpp"
@@ -32,6 +42,191 @@ constexpr NSUInteger kMaximumReportBytes = 512u * 1024u;
 constexpr size_t kMaximumStoredLogBytes = 4u * 1024u * 1024u;
 constexpr size_t kMaximumStoredLineBytes = 64u * 1024u;
 std::atomic_bool g_diagnosticsStarted{false};
+std::atomic_bool g_appActive{true};
+std::atomic_bool g_runtimeActive{false};
+std::atomic_bool g_stallReported{false};
+std::atomic<uint64_t> g_flightSequence{0};
+std::atomic<uint64_t> g_gameplayPolls{0};
+std::atomic<uint64_t> g_lastGameplayProgressNanos{0};
+std::atomic<uint64_t> g_lastHeartbeatLogNanos{0};
+NSArray<id>* g_lifecycleObservers = nil;
+std::mutex g_processSampleMutex;
+double g_previousCPUSeconds = 0.0;
+uint64_t g_previousCPUSampleNanos = 0;
+
+constexpr uint64_t kNanosPerSecond = 1000000000ULL;
+#if DINOPAD_ENABLE_TEST_HARNESS
+constexpr uint64_t kHeartbeatLogIntervalNanos = 2ULL * kNanosPerSecond;
+#else
+constexpr uint64_t kHeartbeatLogIntervalNanos = 15ULL * kNanosPerSecond;
+#endif
+constexpr uint64_t kSuspectedStallNanos = 15ULL * kNanosPerSecond;
+
+uint64_t monotonicNanos() {
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+uint64_t processElapsedMilliseconds() {
+    static const uint64_t started = monotonicNanos();
+    return (monotonicNanos() - started) / 1000000ULL;
+}
+
+void logFlight(const char* category, const char* event) {
+    if (category == nullptr || event == nullptr) return;
+    const uint64_t sequence = g_flightSequence.fetch_add(1, std::memory_order_relaxed) + 1;
+    std::fprintf(stderr,
+        "[dinopad-flight] seq=%llu t_ms=%llu thread=%s category=%s event=%s\n",
+        static_cast<unsigned long long>(sequence),
+        static_cast<unsigned long long>(processElapsedMilliseconds()),
+        NSThread.isMainThread ? "main" : "background", category, event);
+    std::fflush(stderr);
+}
+
+const char* thermalStateName(NSProcessInfoThermalState state) {
+    switch (state) {
+        case NSProcessInfoThermalStateFair: return "fair";
+        case NSProcessInfoThermalStateSerious: return "serious";
+        case NSProcessInfoThermalStateCritical: return "critical";
+        default: return "nominal";
+    }
+}
+
+bool processUsage(double& cpuSeconds, double& residentMiB) {
+    struct rusage usage = {};
+    if (getrusage(RUSAGE_SELF, &usage) != 0) return false;
+    mach_task_basic_info_data_t info = {};
+    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+            reinterpret_cast<task_info_t>(&info), &count) != KERN_SUCCESS) {
+        return false;
+    }
+    cpuSeconds = static_cast<double>(usage.ru_utime.tv_sec) +
+        static_cast<double>(usage.ru_utime.tv_usec) / 1e6 +
+        static_cast<double>(usage.ru_stime.tv_sec) +
+        static_cast<double>(usage.ru_stime.tv_usec) / 1e6;
+    residentMiB = static_cast<double>(info.resident_size) / (1024.0 * 1024.0);
+    return true;
+}
+
+void logProcessSample(uint64_t now, uint64_t polls) {
+    double cpuSeconds = 0.0;
+    double residentMiB = 0.0;
+    if (!processUsage(cpuSeconds, residentMiB)) {
+        logFlight("telemetry", "process_sample_unavailable");
+        return;
+    }
+    double cpuPercent = -1.0;
+    {
+        std::lock_guard<std::mutex> lock(g_processSampleMutex);
+        if (g_previousCPUSampleNanos != 0 && now > g_previousCPUSampleNanos) {
+            cpuPercent = 100.0 * (cpuSeconds - g_previousCPUSeconds) /
+                (static_cast<double>(now - g_previousCPUSampleNanos) /
+                    static_cast<double>(kNanosPerSecond));
+        }
+        g_previousCPUSeconds = cpuSeconds;
+        g_previousCPUSampleNanos = now;
+    }
+    NSProcessInfo* info = NSProcessInfo.processInfo;
+    const double availableMiB = static_cast<double>(os_proc_available_memory()) /
+        (1024.0 * 1024.0);
+    char event[256];
+    std::snprintf(event, sizeof(event),
+        "sample polls=%llu cpu_pct=%.1f resident_mib=%.1f available_mib=%.1f thermal=%s low_power=%d",
+        static_cast<unsigned long long>(polls), cpuPercent, residentMiB, availableMiB,
+        thermalStateName(info.thermalState), info.isLowPowerModeEnabled ? 1 : 0);
+    logFlight("telemetry", event);
+}
+
+void logSessionMetadata() {
+    char hardware[128] = {};
+    size_t hardwareLength = sizeof(hardware);
+    if (sysctlbyname("hw.machine", hardware, &hardwareLength, nullptr, 0) != 0 ||
+        hardware[0] == '\0') {
+        std::snprintf(hardware, sizeof(hardware), "unknown");
+    }
+    NSBundle* bundle = NSBundle.mainBundle;
+    UIScreen* screen = UIScreen.mainScreen;
+    NSString* version = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"]
+        ?: @"unknown";
+    NSString* build = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"unknown";
+    NSString* os = NSProcessInfo.processInfo.operatingSystemVersionString;
+    char event[384];
+    std::snprintf(event, sizeof(event),
+        "metadata version=%s build=%s os=%s hardware=%s processors=%ld physical_memory_mib=%.1f screen_points=%.0fx%.0f native_scale=%.2f max_fps=%ld",
+        version.UTF8String, build.UTF8String, os.UTF8String, hardware,
+        static_cast<long>(NSProcessInfo.processInfo.activeProcessorCount),
+        static_cast<double>(NSProcessInfo.processInfo.physicalMemory) / (1024.0 * 1024.0),
+        screen.bounds.size.width, screen.bounds.size.height, screen.nativeScale,
+        static_cast<long>(screen.maximumFramesPerSecond));
+    logFlight("session", event);
+}
+
+void installLifecycleObservers() {
+    if (g_lifecycleObservers != nil) return;
+    NSNotificationCenter* center = NSNotificationCenter.defaultCenter;
+    NSMutableArray<id>* observers = [NSMutableArray array];
+    [observers addObject:[center addObserverForName:UIApplicationWillResignActiveNotification
+        object:nil queue:nil usingBlock:^(__unused NSNotification* note) {
+            g_appActive.store(false, std::memory_order_relaxed);
+            logFlight("lifecycle", "will_resign_active");
+        }]];
+    [observers addObject:[center addObserverForName:UIApplicationDidEnterBackgroundNotification
+        object:nil queue:nil usingBlock:^(__unused NSNotification* note) {
+            g_appActive.store(false, std::memory_order_relaxed);
+            logFlight("lifecycle", "did_enter_background");
+        }]];
+    [observers addObject:[center addObserverForName:UIApplicationWillEnterForegroundNotification
+        object:nil queue:nil usingBlock:^(__unused NSNotification* note) {
+            logFlight("lifecycle", "will_enter_foreground");
+        }]];
+    [observers addObject:[center addObserverForName:UIApplicationDidBecomeActiveNotification
+        object:nil queue:nil usingBlock:^(__unused NSNotification* note) {
+            g_appActive.store(true, std::memory_order_relaxed);
+            g_lastGameplayProgressNanos.store(monotonicNanos(), std::memory_order_relaxed);
+            logFlight("lifecycle", "did_become_active");
+        }]];
+    [observers addObject:[center addObserverForName:UIApplicationDidReceiveMemoryWarningNotification
+        object:nil queue:nil usingBlock:^(__unused NSNotification* note) {
+            double cpuSeconds = 0.0;
+            double residentMiB = 0.0;
+            processUsage(cpuSeconds, residentMiB);
+            char event[160];
+            std::snprintf(event, sizeof(event),
+                "warning_received resident_mib=%.1f available_mib=%.1f",
+                residentMiB, static_cast<double>(os_proc_available_memory()) /
+                    (1024.0 * 1024.0));
+            logFlight("memory", event);
+        }]];
+    [observers addObject:[center addObserverForName:UIApplicationUserDidTakeScreenshotNotification
+        object:nil queue:nil usingBlock:^(__unused NSNotification* note) {
+            logFlight("diagnostic", "user_screenshot_taken");
+        }]];
+    [observers addObject:[center addObserverForName:UIApplicationWillTerminateNotification
+        object:nil queue:nil usingBlock:^(__unused NSNotification* note) {
+            logFlight("lifecycle", "will_terminate");
+        }]];
+    g_lifecycleObservers = [observers copy];
+}
+
+void startRuntimeWatchdog() {
+    std::thread([] {
+        for (;;) {
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            if (!g_runtimeActive.load(std::memory_order_relaxed) ||
+                !g_appActive.load(std::memory_order_relaxed)) {
+                continue;
+            }
+            const uint64_t last = g_lastGameplayProgressNanos.load(std::memory_order_relaxed);
+            const bool stalled = last != 0 && monotonicNanos() - last >= kSuspectedStallNanos;
+            if (stalled && !g_stallReported.exchange(true, std::memory_order_relaxed)) {
+                logFlight("watchdog", "gameplay_progress_stalled_15s");
+            } else if (!stalled && g_stallReported.exchange(false, std::memory_order_relaxed)) {
+                logFlight("watchdog", "gameplay_progress_resumed");
+            }
+        }
+    }).detach();
+}
 
 NSURL* dataRootURL() {
     const std::string path = dino::config::get_data_folder_path().string();
@@ -439,6 +634,13 @@ extern "C" void dinopad_start_diagnostics_log(void) {
     }).detach();
 
     std::fprintf(stderr, "[DinoPad] private bounded sanitized diagnostics log started\n");
+    installLifecycleObservers();
+    g_appActive.store(UIApplication.sharedApplication.applicationState ==
+        UIApplicationStateActive, std::memory_order_relaxed);
+    logFlight("session", previousMayBeUnclean
+        ? "started_previous_session_unclean" : "started_previous_session_clean");
+    logSessionMetadata();
+    startRuntimeWatchdog();
 }
 
 extern "C" void dinopad_finish_diagnostics_log(void) {
@@ -446,6 +648,44 @@ extern "C" void dinopad_finish_diagnostics_log(void) {
     if (root == nil) return;
     std::fprintf(stderr, "[DinoPad] clean process exit reached\n");
     [NSFileManager.defaultManager removeItemAtURL:activeSessionMarkerURL(root) error:nil];
+}
+
+extern "C" void dinopad_diagnostics_breadcrumb(const char* category,
+                                                   const char* event) {
+    logFlight(category, event);
+}
+
+extern "C" void dinopad_diagnostics_set_runtime_active(int active) {
+    const bool isActive = active != 0;
+    g_runtimeActive.store(isActive, std::memory_order_relaxed);
+    g_stallReported.store(false, std::memory_order_relaxed);
+    g_gameplayPolls.store(0, std::memory_order_relaxed);
+    const uint64_t now = monotonicNanos();
+    g_lastGameplayProgressNanos.store(isActive ? now : 0, std::memory_order_relaxed);
+    g_lastHeartbeatLogNanos.store(isActive ? now : 0, std::memory_order_relaxed);
+    if (isActive) {
+        double cpuSeconds = 0.0;
+        double residentMiB = 0.0;
+        processUsage(cpuSeconds, residentMiB);
+        std::lock_guard<std::mutex> lock(g_processSampleMutex);
+        g_previousCPUSeconds = cpuSeconds;
+        g_previousCPUSampleNanos = now;
+    }
+    logFlight("runtime", isActive ? "active" : "inactive");
+}
+
+extern "C" void dinopad_diagnostics_gameplay_poll(void) {
+    if (!g_runtimeActive.load(std::memory_order_relaxed)) return;
+    const uint64_t now = monotonicNanos();
+    const uint64_t polls = g_gameplayPolls.fetch_add(1, std::memory_order_relaxed) + 1;
+    g_lastGameplayProgressNanos.store(now, std::memory_order_relaxed);
+    uint64_t lastLog = g_lastHeartbeatLogNanos.load(std::memory_order_relaxed);
+    if (now - lastLog < kHeartbeatLogIntervalNanos ||
+        !g_lastHeartbeatLogNanos.compare_exchange_strong(
+            lastLog, now, std::memory_order_relaxed)) {
+        return;
+    }
+    logProcessSample(now, polls);
 }
 
 extern "C" void dinopad_present_diagnostics_share(void* presenter_pointer,

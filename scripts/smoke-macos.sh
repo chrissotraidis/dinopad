@@ -25,9 +25,9 @@ TODAY="$(date +%Y-%m-%d)"
 EVID="$ROOT/docs/evidence/$TODAY/macos-smoke"
 mkdir -p "$EVID"
 LOG="$EVID/runtime.log"
-BIN="$ROOT/build-macos/DinoPad"
+BIN="$ROOT/build-macos/DinoPad.app/Contents/MacOS/DinoPad"
 ROM="$HOME/Library/Application Support/DinoPad/dino.z64"
-SAVE="$HOME/Library/Application Support/DinoPad/saves/dino.bin"
+SAVE="$HOME/Library/Application Support/DinoPad/Profiles/Restored/saves/dino.bin"
 EXPECTED_ROM_MD5="49f7bb346ade39d1915c22e090ffd748"
 EXPECTED_SAVE_SHA256="a62085a81e5a91658d58915623aa41b8e52f61a8cdbd4e35d2222e30663e5516"
 
@@ -54,7 +54,7 @@ capture() { scripts/capture-window.sh DinoPad "$EVID/$1.png"; }
 
 # ---- Preflight ---------------------------------------------------------------
 echo "=== preflight ==="
-if [ ! -x "$BIN" ]; then skip "missing build-macos/DinoPad; run cmake --build build-macos"; exit 0; fi
+if [ ! -x "$BIN" ]; then skip "missing packaged DinoPad executable; run scripts/build-macos-app.sh"; exit 0; fi
 if [ ! -f "$ROM" ]; then skip "private ROM not staged at $ROM"; exit 0; fi
 
 ROM_MD5="$(md5 -q "$ROM" 2>/dev/null || md5sum "$ROM" | awk '{print $1}')"
@@ -114,11 +114,11 @@ sendkey 2 2;   capture move_right   2>/dev/null || true   # D analog right
 sendkey 0 2;   capture move_left    2>/dev/null || true   # A analog left
 for i in 1 2 3 4 5; do sendkey 49 0.3; sleep 0.4; done    # A button
 capture action_a 2>/dev/null || true
-sendkey 12 1; sendkey 49 0.3; sleep 1                     # Z (target) + A
+sendkey 56 1; sendkey 49 0.3; sleep 1                     # Shift = Z (target) + A
 capture action_z 2>/dev/null || true
-sendkey 56 0.3; sleep 1                                   # Left Shift (B cancel)
+sendkey 7 0.3; sleep 1                                    # X = B (cancel)
 capture action_b 2>/dev/null || true
-sendkey 36 0.3; sleep 1                                   # Enter (Start)
+sendkey 53 0.3; sleep 1                                   # Escape = Start
 capture start_press 2>/dev/null || true
 
 # ---- Verification from the runtime log ---------------------------------------
@@ -165,7 +165,12 @@ fi
 
 # ---- Clean shutdown ----------------------------------------------------------
 echo "=== shutdown ==="
-kill -9 "$APP_PID" 2>/dev/null || true
+kill "$APP_PID" 2>/dev/null || true
+for _ in $(jot 50 1); do
+  if ! kill -0 "$APP_PID" 2>/dev/null; then break; fi
+  sleep 0.1
+done
+if kill -0 "$APP_PID" 2>/dev/null; then kill -9 "$APP_PID" 2>/dev/null || true; fi
 wait "$APP_PID" 2>/dev/null || true
 sleep 1
 if pgrep -x DinoPad >/dev/null 2>&1; then bad "DinoPad still running after kill"; else ok "DinoPad process gone"; fi

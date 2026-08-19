@@ -1,6 +1,6 @@
 # DinoPad testing and evidence
 
-Status: Active implementation contract (updated 2026-08-18).
+Status: Active implementation contract (updated 2026-08-19).
 
 ## Principles
 
@@ -40,9 +40,9 @@ system-only runtime dependencies, no bundle symlinks or private paths, matching
 development signature. It also rejects the removed DinoFont, Noto Emoji, logo,
 Krazoa art, and Sass tree; scans the executable and UI resources for stale
 references; and requires exact Lato attribution and SIL OFL 1.1 notice copies.
-The same gate validates all 2,227 current Ninja-tracked `ref/` source/header
-dependencies against 46 deepest-prefix component records, then verifies the
-indexed byte-exact package copy of 39 standalone and 7 mechanically assembled
+The same gate validates all 2,187 current Ninja-tracked `ref/` source/header
+dependencies against 45 deepest-prefix component records, then verifies the
+indexed byte-exact package copy of 39 standalone and 6 mechanically assembled
 inline-primary notices. Secondary and legal review remain explicitly pending
 and therefore do not close release readiness.
 The physical-iOS gate performs the equivalent check over 1,032 Xcode dependency
@@ -190,6 +190,23 @@ handoffs into their expected runtime profiles:
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
 ```
 
+The desktop-controls smoke starts from a disposable fresh profile and verifies
+the packaged app's WASD, A/B/Z/Start, C-button, D-pad, and L/R keyboard defaults
+through the actual N64 input log. It also proves Option+Return changes the
+largest game window from windowed to fullscreen geometry, records a bounded
+45-second warm RSS sample, and performs bounded guarded cleanup. Physical
+left/right mouse clicks remain a manual acceptance check because macOS filters
+synthetic mouse-button injection from the harness:
+
+This interactive smoke takes over the active Mac window, keyboard, and
+fullscreen Space for about two minutes. Run it only while the workstation is
+idle; the explicit opt-in prevents accidental disruption:
+
+```sh
+DINOPAD_ALLOW_UI_AUTOMATION=1 \
+  scripts/runtime-guard.sh macos scripts/smoke-desktop-controls-macos.sh
+```
+
 The native-import smoke drives the real AppKit file picker. It first selects a
 fingerprint-modified 64 MiB ROM and requires visible rejection with no staged
 copy, then selects a private v64 byte-swapped fixture and requires normalized
@@ -250,6 +267,7 @@ scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh
+DINOPAD_ALLOW_UI_AUTOMATION=1 scripts/runtime-guard.sh macos scripts/smoke-desktop-controls-macos.sh
 scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-home.sh
 scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios-restoration.sh

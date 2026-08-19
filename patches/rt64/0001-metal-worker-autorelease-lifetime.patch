@@ -177,7 +177,21 @@ index 5a331aa..d1317c0 100644
          WorkloadConfiguration workloadConfig;
          int64_t logicalTicks = 0;
          int64_t displayTicks = 0;
-@@ -1177,6 +1187,9 @@ namespace RT64 {
+@@ -902,6 +912,13 @@ namespace RT64 {
+             }
+ 
+             if (processCursor >= 0) {
++#if defined(__APPLE__)
++                // Metal-cpp command buffers and encoder wrappers are
++                // autoreleased. Drain them once this workload has finished
++                // instead of retaining one frame's wrappers for the entire
++                // lifetime of the render thread.
++                AppleAutoreleasePoolMarker workloadPool;
++#endif
+                 std::unique_lock<std::mutex> threadLock(threadMutex);
+                 Workload &workload = workloads[processCursor];
+                 ext.presentQueue->waitForPresentId(workload.presentId);
+@@ -1177,6 +1194,9 @@ namespace RT64 {
      }
      
      void WorkloadQueue::idleThreadLoop() {
@@ -187,7 +201,19 @@ index 5a331aa..d1317c0 100644
          // Beware traveler as you enter the zone of dirty driver hacks. Given N64 games are not exactly a demanding thing to render
          // nowadays for modern GPUs and due to how the plugin's cooperative multiqueue system works, it's sometimes just not possible
          // to keep the GPU busy at all times. It is often the case that the GPU might've already rendered all the frames it needed to
-@@ -1221,4 +1234,4 @@ namespace RT64 {
+@@ -1206,6 +1226,11 @@ namespace RT64 {
+             }
+ 
+             if (threadsRunning) {
++#if defined(__APPLE__)
++                // The idle path can submit work every millisecond. Keep its
++                // transient Metal wrappers bounded to a single submission.
++                AppleAutoreleasePoolMarker idleWorkPool;
++#endif
+                 if (workerMutex.try_lock()) {
+                     commandList->begin();
+                     commandList->setPipeline(idle.pipeline.get());
+@@ -1221,4 +1246,4 @@ namespace RT64 {
              }
          }
      }

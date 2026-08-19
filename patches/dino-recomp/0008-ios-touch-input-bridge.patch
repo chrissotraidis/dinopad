@@ -2,7 +2,7 @@ diff --git a/src/input/input.cpp b/src/input/input.cpp
 index b9ae5e3..e5bd025 100644
 --- a/src/input/input.cpp
 +++ b/src/input/input.cpp
-@@ -12,6 +12,13 @@
+@@ -12,6 +12,14 @@
  #include "ui/recomp_ui.h"
  
  #include "controls.hpp"
@@ -11,6 +11,7 @@ index b9ae5e3..e5bd025 100644
 +#include <TargetConditionals.h>
 +#if TARGET_OS_IPHONE
 +extern "C" void dinopad_set_physical_controller_connected(int connected);
++extern "C" void dinopad_log_controller_button(int button, int pressed);
 +#endif
 +#endif
  
@@ -37,3 +38,31 @@ index b9ae5e3..e5bd025 100644
          }
          break;
      case SDL_EventType::SDL_QUIT: {
+@@ -178,8 +193,11 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+         }
+         queue_if_enabled(event);
+         break;
+-    case SDL_EventType::SDL_CONTROLLERBUTTONDOWN:
+-        if (scanning_device != dino::input::InputDevice::COUNT) {
++    case SDL_EventType::SDL_CONTROLLERBUTTONDOWN:
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++        dinopad_log_controller_button(event->cbutton.button, 1);
++#endif
++        if (scanning_device != dino::input::InputDevice::COUNT) {
+             auto menuToggleBinding0 = dino::input::get_input_binding(dino::input::GameInput::TOGGLE_MENU, 0, dino::input::InputDevice::Controller);
+             auto menuToggleBinding1 = dino::input::get_input_binding(dino::input::GameInput::TOGGLE_MENU, 1, dino::input::InputDevice::Controller);
+             // note - magic number: 0 is InputType::None
+@@ -294,8 +312,11 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+     case SDL_EventType::SDL_DROPCOMPLETE:
+         recompui::drop_files(DropState.files_dropped);
+         break;
+-    case SDL_EventType::SDL_CONTROLLERBUTTONUP:
+-        // Always queue button up events to avoid missing them during binding.
++    case SDL_EventType::SDL_CONTROLLERBUTTONUP:
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++        dinopad_log_controller_button(event->cbutton.button, 0);
++#endif
++        // Always queue button up events to avoid missing them during binding.
+         recompui::queue_event(*event);
+         break;
+     default:

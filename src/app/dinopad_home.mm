@@ -224,12 +224,9 @@ NSTextField* macLabel(NSString* text, NSFont* font, NSColor* textColor) {
         ]];
     }
 
-    NSTextField* eyebrow = macLabel(@"DINOPAD PRESENTS",
-        macThemedFont(@"AvenirNextCondensed-DemiBold", 16.0, NSFontWeightBold),
-        macColor(0.72, 0.88, 0.52));
     NSTextField* title = macLabel(@"DinoPad",
         macThemedFont(@"Baskerville-Bold", 70.0, NSFontWeightHeavy), NSColor.whiteColor);
-    NSTextField* subtitle = macLabel(@"Two ways to explore a lost dinosaur world.",
+    NSTextField* subtitle = macLabel(@"Pick your adventure.",
         macThemedFont(@"Avenir Next", 21.0, NSFontWeightMedium),
         [NSColor colorWithWhite:1.0 alpha:0.86]);
     NSTextField* select = macLabel(@"SELECT A PATH",
@@ -254,12 +251,11 @@ NSTextField* macLabel(NSString* text, NSFont* font, NSColor* textColor) {
     replace.font = macThemedFont(@"AvenirNext-Medium", 15.0, NSFontWeightMedium);
 
     NSStackView* stack = [NSStackView stackViewWithViews:@[
-        eyebrow, title, subtitle, select, restored, prototype, replace,
+        title, subtitle, select, restored, prototype, replace,
     ]];
     stack.orientation = NSUserInterfaceLayoutOrientationVertical;
     stack.alignment = NSLayoutAttributeLeading;
     stack.spacing = 14.0;
-    [stack setCustomSpacing:8.0 afterView:eyebrow];
     [stack setCustomSpacing:14.0 afterView:title];
     [stack setCustomSpacing:34.0 afterView:subtitle];
     [stack setCustomSpacing:14.0 afterView:select];
@@ -295,6 +291,8 @@ NSTextField* macLabel(NSString* text, NSFont* font, NSColor* textColor) {
     button.image = [NSImage imageWithSystemSymbolName:symbol accessibilityDescription:nil];
     button.imagePosition = NSImageLeft;
     button.imageScaling = NSImageScaleProportionallyDown;
+    button.accessibilityLabel = title;
+    button.accessibilityHelp = subtitle;
     button.focusRingType = NSFocusRingTypeNone;
     button.alignment = NSTextAlignmentLeft;
     button.font = macThemedFont(@"AvenirNextCondensed-DemiBold", 22.0, NSFontWeightBold);

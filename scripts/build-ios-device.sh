@@ -58,7 +58,7 @@ for required in \
     "$ROOT/generated/restoration/dinomod_static_dispatch.c" \
     "$ROOT/generated/restoration/dinomod_restoration_data.nrm" \
     "$ROOT/build-macos/rt64/src/tools/file_to_c/file_to_c" \
-    "$ROOT/ref/dino-recomp/lib/rt64/build/bin/spirv_cross_msl"; do
+    "$ROOT/build/bin/spirv_cross_msl"; do
     if [[ ! -e "$required" ]]; then
         echo "ERROR: required generated/host artifact missing: $required" >&2
         exit 1
@@ -104,6 +104,17 @@ fi
 cmake --build "$BUILD_DIR" --config Release --target DinoPad -- "${build_args[@]}"
 
 [[ -x "$APP/DinoPad" ]] || { echo "ERROR: physical-device app was not produced" >&2; exit 1; }
+
+# Xcode can preserve signing residue in an incremental product directory when
+# switching from a personal-team build back to CODE_SIGNING_ALLOWED=NO. Strip
+# only the generated app output so the unsigned audit never inherits a prior
+# development signature or provisioning profile.
+if [[ -z "$TEAM" ]]; then
+    rm -rf "$APP/_CodeSignature"
+    rm -f "$APP/embedded.mobileprovision"
+    codesign --remove-signature "$APP" 2>/dev/null || true
+fi
+
 [[ "$(lipo -archs "$APP/DinoPad")" == "arm64" ]] || {
     echo "ERROR: physical-device executable is not arm64-only" >&2
     exit 1

@@ -27,6 +27,22 @@ complete N64 touch controls, settings and diagnostics, save isolation, and
 Apple-specific runtime hardening. It is not an emulator, does not use JIT
 compilation, and does not download or execute game or mod code at runtime.
 
+## Gameplay
+
+<p align="center">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/temple-exploration.png" width="32%" alt="Krystal exploring a temple in Restored Adventure on iPad">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/story-scene.png" width="32%" alt="A Restored Adventure story scene running on iPad">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/warp-crystal.png" width="32%" alt="Krystal collecting a Warp Crystal in Restored Adventure on iPad">
+</p>
+<p align="center">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/rooftop-encounter.png" width="48%" alt="A rooftop encounter in Restored Adventure on a physical iPad">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/snowhorn-encounter.png" width="48%" alt="Krystal meeting a SnowHorn in Restored Adventure on a physical iPad">
+</p>
+
+Captured from Restored Adventure running natively on a physical iPad with a
+locally supplied copy of the game. DinoPad does not include or distribute game
+data.
+
 ## Built on community work
 
 The shortest honest description of the project is:
@@ -101,7 +117,7 @@ those upstreams:
 - separate saves and settings for Restored and Prototype sessions;
 - native settings, ROM management, diagnostics sharing, quit-to-home, and
   restartable in-process play sessions;
-- reproducible dependency pins, a locked 26-file patch set, ROM-free package
+- reproducible dependency pins, a locked 28-file patch set, ROM-free package
   checks, smoke tests, and evidence-backed platform status.
 
 All maintained upstream changes live as reviewable patches under
@@ -137,18 +153,18 @@ of the game. They do not indicate ownership of the depicted game content.
 
 | Target | Verified development state |
 |---|---|
-| macOS arm64 | Native app bundle, RT64 Metal rendering, audio, keyboard input, ROM import, both modes, save persistence, and clean shutdown. |
+| macOS arm64 | Native app bundle, RT64 Metal rendering, audio, native launcher and ROM import, isolated modes/saves, controller support, desktop keyboard/mouse defaults, windowed/fullscreen switching, and clean shutdown. |
 | iPhone Simulator arm64 | Native launcher/importer, complete touch shell, Restored gameplay, save-preserving relaunch, and a bounded 600-second run. |
 | iPad Simulator arm64 | Tablet launcher, independent layout persistence, complete product matrix, save relaunch, and a bounded 600-second run. |
-| Physical iPhone/iPad | ROM-free arm64 device build and archive compile, but installation and runtime validation remain blocked by the lack of a connected test device and signing identity. |
+| Physical iPhone/iPad | Signed arm64 builds installed in place with private ROMs, saves, and settings preserved. Restored Adventure has been exercised on both form factors; physical-iPad controller play and reconnect are working. The full duration/audio/thermal/update matrix is still open. |
 
 These are engineering results, not a release announcement. See
 [Status](docs/STATUS.md), [UI parity](docs/UI_PARITY.md), and the
 [playtest matrix](docs/PLAYTEST_MATRIX.md) for the evidence behind each claim.
 
 > [!WARNING]
-> **There is no public DinoPad release.** Physical-device validation,
-> start-to-credits testing, licensing and notice review, DinoMod permission,
+> **There is no public DinoPad release.** Completion of the physical-device
+> matrix, start-to-credits testing, licensing and notice review, DinoMod permission,
 > and game-derived AOT redistribution rights remain open release gates.
 
 ## Requirements
@@ -165,6 +181,31 @@ DinoPad accepts `.z64`, `.v64`, and `.n64` byte orders. It normalizes the input
 locally, verifies the single supported prototype, and stores the accepted ROM
 only in private app storage. A different revision, modified image, or wrong
 size is rejected.
+
+## Controls
+
+Xbox-style controllers use the ordinary N64 layout: left stick moves, the
+south face button is A, the west face button is B, the triggers provide Z/R,
+the left bumper is L, the right stick provides the C buttons, and Menu is
+Start. iPhone and iPad additionally provide independent, editable touch
+layouts that disappear automatically while a controller is active.
+
+The default macOS keyboard and mouse layout is:
+
+| N64 input | macOS default |
+|---|---|
+| Analog stick | `W` `A` `S` `D` |
+| A / B | Left click or `Space` / right click or `X` |
+| Z | Left or right `Shift` |
+| C buttons | `Q` left, `E` right, `R` up, `F` down |
+| D-pad | Arrow keys |
+| L / R | `Z` / `C` |
+| Start | `Escape` or `` ` `` |
+| DinoPad settings menu | `Tab` |
+| Fullscreen | `F11` or `Option`+`Return` |
+
+Bindings remain editable in the in-game controls screen. Existing development
+profiles keep their saved bindings until **Reset Keyboard Bindings** is used.
 
 ## Building for local development
 
@@ -192,12 +233,11 @@ guide before treating any local artifact as testable.
 
 ## Known limitations
 
-- No physical iPhone or iPad runtime evidence exists yet.
 - A full Restored start-to-credits playthrough and chapter-boundary matrix are
   still open.
-- Real controller reconnect, rumble, Bluetooth audio, thermal behavior, memory
-  pressure, interruption handling, and update preservation need physical
-  hardware validation.
+- Controller reconnect is working on the tested physical iPad, but rumble,
+  Bluetooth audio, thermal behavior, memory pressure, interruption handling,
+  and the full update-preservation matrix still need broader hardware coverage.
 - The archival prototype is unfinished and can contain progression blockers.
 - Individual touch controls are not yet exposed as separate accessibility
   elements.

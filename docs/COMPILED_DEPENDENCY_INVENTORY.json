@@ -5,7 +5,7 @@
     "ios-device": {"build_dir":"build-ios-device/build","dependency_format":"xcode-depfiles"}
   },
   "target_exclusions": {
-    "macos": [],
+    "macos": ["plainargs"],
     "ios-device": ["freetype", "plainargs", "rmlui-containers", "sljit", "spirv-cross"]
   },
   "inline_notice_assemblies": [

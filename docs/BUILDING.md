@@ -1,7 +1,7 @@
 # Building DinoPad
 
-Status: macOS arm64, iPhone/iPad Simulator arm64, and unsigned physical iOS
-arm64 builds active (updated 2026-08-17).
+Status: macOS arm64, iPhone/iPad Simulator arm64, and signed/unsigned physical
+iOS arm64 development builds active (updated 2026-08-19).
 
 DinoPad does not distribute a ROM or ROM-derived playable output. All generation output is private and ignored.
 
@@ -46,10 +46,23 @@ The first clean generation is long. Use `DINOPAD_MAX_JOBS` (default `min(6, max(
 Once `generated/aot/<game>/lookup.cpp` exists, omit `--rom`:
 
 ```sh
+cmake --build build-macos --target DinoPad
 scripts/build-macos-app.sh
 scripts/build-ios-simulator.sh
 scripts/build-ios-device.sh
 ```
+
+If Xcode reports that the Metal compiler is unavailable while its optional
+Metal toolchain is installed, select that toolchain for the build, for example:
+
+```sh
+TOOLCHAINS=com.apple.dt.toolchain.Metal.32023.883 \
+  cmake --build build-macos --target DinoPad
+```
+
+`build-macos-app.sh` assembles and audits the already-built executable; it also
+stages the private ROM and generated restoration data under Application Support,
+outside the ROM-free app bundle.
 
 Scripts still verify/fetch pins and apply maintained patches; they refuse to continue when generated source is absent.
 
@@ -110,8 +123,8 @@ Restored Adventure is the default. The current engine boundary can also be
 selected explicitly while the native home screen is being ported:
 
 ```sh
-build-macos/DinoPad --profile restored --skip-launcher
-build-macos/DinoPad --profile prototype --skip-launcher
+build-macos/DinoPad.app/Contents/MacOS/DinoPad --profile restored --skip-launcher
+build-macos/DinoPad.app/Contents/MacOS/DinoPad --profile prototype --skip-launcher
 ```
 
 Unknown profile values fail before runtime initialization. ROM/package data is
@@ -221,12 +234,19 @@ Apple Development identity/provision is available; add
 `--allow-provisioning-updates` only when Xcode may contact the developer service.
 Signed apps are installed with `xcrun devicectl` or Xcode.
 
-The public deliverable is a separate unsigned, self-signable IPA produced by
-`scripts/package-ios.sh`, audited by `scripts/check-package-safety.sh`, and
-published only after every Phase 10 gate (source tag, ROM-free audit, no
-provisioning profile, checksums, notices). Installation instructions will live
-in `docs/INSTALL_IPA.md` at release time. The authoritative stop conditions and
-physical/package matrices are in
+The separate unsigned, self-signable IPA is produced from the audited app with:
+
+```sh
+scripts/package-ios.sh --candidate  # local/private candidate
+scripts/package-ios.sh --release    # fails closed until strict release gates pass
+```
+
+Both modes run `scripts/check-package-safety.sh` and
+`scripts/audit-ios-ipa.sh`; release mode also requires the strict rights
+inventory. Publication is allowed only after every Phase 10 gate (source tag,
+ROM-free audit, no provisioning profile, checksums, notices, and redistribution
+clearance). Installation instructions will live in `docs/INSTALL_IPA.md` at
+release time. The authoritative stop conditions and physical/package matrices are in
 [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md); its current P0 gates are red, so
 the build script's successful audit is not permission to package or publish.
 

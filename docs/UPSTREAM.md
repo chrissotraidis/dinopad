@@ -46,17 +46,19 @@ Ordered, numbered, replayable with `scripts/apply-patches.sh`:
 
 | Patch | File(s) | Why it exists | Upstream semantic preserved? |
 |---|---|---|---|
-| 0001-macos-sdl-metal-window.patch | src/runtime/gfx.cpp | Ports the PaperPad Apple Metal-window path: RT64 receives the native window + CAMetalLayer; iOS attaches DinoPad's touch overlay after SDL creates its UIKit window | Yes (Apple-only branch) |
+| 0001-macos-sdl-metal-window.patch | src/runtime/gfx.cpp, src/runtime/gfx.hpp | Ports the PaperPad Apple Metal-window path, applies the DinoPad product title, attaches the iOS touch overlay, and balances each gameplay session's SDL/Metal view ownership so an in-process restart gets a fresh correctly sized surface | Yes (Apple-only branch and iOS restart lifecycle fix) |
 | 0002-disable-imgui-debug-overlay-on-apple.patch | src/debug_ui/backend.cpp | The pinned imgui debug overlay has no Metal backend and dereferences a Vulkan device; disabling on Apple keeps the game loop alive. The RmlUi launcher registers its own UI | Yes (Apple-only) |
 | 0003-macos-app-folder-path.patch | src/config/config.cpp | Adds PaperPad-style Apple data root plus mode-scoped config roots and a disposable-root test override | Yes (Apple-only path; profile policy is DinoPad-specific) |
 | 0004-input-debug-log.patch | src/input/controls.cpp | Env-gated (`DINOPAD_LOG_INPUT=1`) input logging plus the iOS-only merge of DinoPad touch snapshots into the normal N64 poll result | Yes (logging off by default; touch branch iOS-only) |
 | 0005-audio-debug-log.patch | src/runtime/audio.cpp | Env-gated (`DINOPAD_LOG_AUDIO=1`, `DINOPAD_AUDIO_DUMP=<path>`) audio diagnostics; disabled by default | Yes (off by default) |
 | 0006-session-profiles.patch | main/config/mod registration | Adds Restored-default and explicit Prototype session selection; Prototype disables mod scanning/registration | DinoPad product policy |
 | 0007-ios-ui-platform-guards.patch | desktop RmlUi state/config/mod menu | Leaves the uninitialized desktop UI inert while UIKit owns the iOS shell; avoids desktop folder commands and null model access | Yes (iOS-only shell boundary) |
-| 0008-ios-touch-input-bridge.patch | src/input/input.cpp | Reports physical-controller add/remove state to the UIKit overlay; CoreSimulator's synthetic controller is filtered in the DinoPad-owned bridge | Yes (iOS-only UI/input handoff) |
+| 0008-ios-touch-input-bridge.patch | src/input/input.cpp | Reports physical-controller state to the UIKit overlay and sends bounded button transitions to DinoPad's private flight log; CoreSimulator's synthetic controller is filtered in the bridge | Yes (iOS-only UI/input handoff and diagnostics) |
 | 0009-ios-noop-choice-prompt.patch | src/ui/ui_prompt.cpp | Keeps the desktop RmlUi choice prompt inert while UIKit owns the iOS shell | Yes (iOS-only UI boundary) |
 | 0010-restartable-ios-window-audio.patch | renderer/runtime startup and audio/window teardown | Makes iOS renderer hooks idempotent and explicitly closes audio plus destroys the SDL window so a second runtime can start in-process | Yes (iOS lifecycle fix; desktop behavior preserved) |
 | 0011-rights-safe-launcher-assets.patch | desktop launcher RML/image loading and font registration | Replaces unproven logo/character bitmap use with text and uses the already-pinned OFL Lato family instead of DinoFont/Noto fallback | Product packaging policy; gameplay behavior preserved |
+| 0012-ios-rt64-data-path.patch | Dino recomp renderer setup | Routes RT64 data into DinoPad's writable Application Support root on iOS instead of desktop-style home-directory detection | Yes (iOS-only data-path override) |
+| 0013-macos-desktop-controls.patch | src/input/input.cpp | Adds fresh-profile macOS mouse buttons, WASD-adjacent C buttons, arrow D-pad, Shift Z, Escape/backtick Start, and desktop menu defaults while preserving controller mappings | Yes (desktop defaults only; bindings remain editable) |
 
 Additional patch: `patches/hlslpp/0001-scalar-labs.patch` (hlslpp scalar
 platform header fix required by the pinned RT64/hlslpp combination on Apple).
@@ -80,8 +82,8 @@ Nested upstream patches applied by checkout basename:
 | `patches/N64ModernRuntime/0007-static-extended-imports.patch` | librecomp static import binding | Lets a static code handle bind extended exports directly when runtime shim generation is disabled | Yes (opt-in static binding; dynamic/live handles unchanged) |
 | `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
-The twenty-six-file patch set is locked in `dependencies.lock.json` at SHA-256
-`2b66b9147f8b2cae2e96728a3841ef6e0a84e0c74c1a7ef83fe0d749c27233be`.
+The twenty-eight-file patch set is locked in `dependencies.lock.json` at SHA-256
+`2e16ca2d50845504d7343b0af1f4d9fc6c8785b7c59789a8117888a613e337e7`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested
@@ -92,6 +94,7 @@ Each patch is applied to the pinned checkout, then:
 2. `scripts/runtime-guard.sh macos scripts/smoke-macos.sh` (boot -> GAME
    SELECT -> save load -> playable scene -> input -> clean shutdown).
 3. `scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5`
+4. `DINOPAD_ALLOW_UI_AUTOMATION=1 scripts/runtime-guard.sh macos scripts/smoke-desktop-controls-macos.sh`
    (native close -> status 0 -> no new crash report).
 4. Targeted evidence sessions for behavior (title/audio, gameplay input, save
    persistence, app bundle).

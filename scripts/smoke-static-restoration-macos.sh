@@ -5,7 +5,7 @@
 set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP="$ROOT/build-macos/DinoPad"
+APP="$ROOT/build-macos/DinoPad.app/Contents/MacOS/DinoPad"
 MOD_DIR="$HOME/Library/Application Support/DinoPad/mods"
 OFFLINE_NRM="$MOD_DIR/dinomod_enhanced.offline.nrm"
 STATIC_NRM="$MOD_DIR/dinomod_enhanced.nrm"

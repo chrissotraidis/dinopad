@@ -4,7 +4,7 @@
 set -eu
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP="$ROOT/build-macos/DinoPad"
+APP="$ROOT/build-macos/DinoPad.app/Contents/MacOS/DinoPad"
 SOURCE_ROOT="$HOME/Library/Application Support/DinoPad"
 SOURCE_ROM="$SOURCE_ROOT/dino.z64"
 SOURCE_NRM="$SOURCE_ROOT/mods/dinomod_enhanced.offline.nrm"
@@ -40,7 +40,9 @@ stop_app() {
 wait_for_button() {
   local button="$1"
   for _ in $(jot 100 1); do
-    if osascript -e "tell application \"System Events\" to tell process \"DinoPad\" to exists button \"$button\" of window 1" 2>/dev/null | rg -q true; then
+    if osascript -e "tell application \"System Events\" to tell process \"DinoPad\" to if exists (first button of window 1 whose name starts with \"$button\") then return true" \
+      -e "tell application \"System Events\" to tell process \"DinoPad\" to if exists sheet 1 of window 1 then if exists (first button of sheet 1 of window 1 whose name starts with \"$button\") then return true" \
+      -e "return false" 2>/dev/null | rg -q true; then
       return 0
     fi
     sleep 0.1
@@ -50,7 +52,11 @@ wait_for_button() {
 }
 
 click_button() {
-  osascript -e "tell application \"System Events\" to tell process \"DinoPad\" to click button \"$1\" of window 1" >/dev/null
+  osascript -e "tell application \"System Events\" to tell process \"DinoPad\" to if exists (first button of window 1 whose name starts with \"$1\") then" \
+    -e "click (first button of window 1 whose name starts with \"$1\")" \
+    -e "else" \
+    -e "click (first button of sheet 1 of window 1 whose name starts with \"$1\")" \
+    -e "end if" >/dev/null
 }
 
 send_space() {

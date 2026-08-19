@@ -119,7 +119,7 @@ if (DINOPAD_IOS)
     set(RT64_BUILD_TOOLS OFF CACHE BOOL "RT64 command-line tools" FORCE)
     set(FILE_TO_C_PATH "${DINOPAD_ROOT}/build-macos/rt64/src/tools/file_to_c/file_to_c"
         CACHE FILEPATH "Native host file_to_c")
-    set(SPIRV_CROSS_MSL_PATH "${DINO_RECOMP}/lib/rt64/build/bin/spirv_cross_msl"
+    set(SPIRV_CROSS_MSL_PATH "${DINOPAD_ROOT}/build/bin/spirv_cross_msl"
         CACHE FILEPATH "Native host spirv_cross_msl")
 endif()
 add_compile_definitions(HLSL_CPU)
@@ -436,6 +436,11 @@ if (DINOPAD_IOS)
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(DinoPad PRIVATE "${DINOPAD_HOME_ART}")
 
+    set(DINOPAD_APP_ICON "${DINOPAD_ROOT}/apple/app/Assets.xcassets")
+    set_source_files_properties("${DINOPAD_APP_ICON}"
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(DinoPad PRIVATE "${DINOPAD_APP_ICON}")
+
     if (DINOPAD_ENABLE_STATIC_RESTORATION)
         set(DINOPAD_RESTORATION_DATA
             "${DINOPAD_RESTORATION}/dinomod_restoration_data.nrm")
@@ -473,6 +478,7 @@ if (DINOPAD_IOS)
         XCODE_ATTRIBUTE_INSTALL_PATH "/Applications"
         XCODE_ATTRIBUTE_CODE_SIGN_STYLE Automatic
         XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM}"
+        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
         XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.chrissotraidis.dinopad"
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
     target_link_libraries(DinoPad PRIVATE

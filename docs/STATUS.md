@@ -1,11 +1,38 @@
 # DinoPad Status
 
-Last updated: 2026-08-18T08:10:00Z
-Current commit: Goal 31n target-scoped iOS archive workflow complete (predecessor 771347a)
-Current phase: Phase 7 - Physical iPhone
-Active goal: Goal 31n outcome documented; Xcode Organizer report remains externally unavailable on this host
+Last updated: 2026-08-19
+Current snapshot: release-candidate source review completed 2026-08-19
+Current phase: cross-platform parity and public-release preparation
+Active goal: macOS launcher/input/fullscreen validation plus truthful physical-device status consolidation
 
 ## Green
+
+- 2026-08-19 current snapshot: signed development builds are installed on the
+  user's iPhone and iPad without clearing their app containers. Restored
+  Adventure has been exercised on both; the user reports stable extended iPad
+  play, working Xbox-controller input and reconnect, and provided current
+  physical-iPad gameplay screenshots. These observations do not close the
+  formal duration/audio/thermal/update or start-to-credits gates.
+- macOS parity refresh (2026-08-19): the packaged native launcher now says
+  `DinoPad` / `Pick your adventure`, exposes accessible mode buttons, and passes
+  missing-ROM setup plus warned Prototype and primary Restored handoffs. Fresh
+  desktop defaults cover WASD, keyboard N64 buttons, adjacent C buttons, arrow
+  D-pad, and fullscreen. Left/right mouse mappings are implemented; physical
+  click acceptance remains manual. Evidence:
+  `docs/evidence/2026-08-19/macos-desktop-controls/`.
+- The supplied macOS crash report is resolved at the harness boundary: the
+  failing PID was the bare executable launched without packaged styling assets
+  and aborted in `recompui::init_styling`. All macOS smokes now launch
+  `DinoPad.app/Contents/MacOS/DinoPad`; the packaged native-home smoke passes
+  both profile handoffs without that abort.
+- Unsigned IPA candidate (2026-08-19): the fresh physical-iOS app and extracted
+  candidate payload pass the arm64/iOS 15, test-harness, privacy, notice,
+  restoration, ROM/private-data, runtime-dependency, and unsigned-state audits.
+  Two deterministic packaging runs produced SHA-256
+  `9be9b85dc255f9c383ea1f47f555bfa8132e96ef7e3f92bd500f882a6e04abee`.
+  The candidate is local/private; strict release mode still fails closed on the
+  five documented rights/notices gates. Evidence:
+  `docs/evidence/2026-08-19/ipa-candidate/`.
 
 - Repository skeleton exists (initial commit 998505b).
 - docs/IMPLEMENTATION_PLAN.md, docs/DINOPAD_GOAL_LOOP.md, and docs/STATUS.md at canonical paths.
@@ -26,7 +53,9 @@ Active goal: Goal 31n outcome documented; Xcode Organizer report remains externa
 - DinoPad macOS executable links and renders the first Metal frame: the game boots to the GAME SELECT screen on arm64 macOS (2026-08-15).
 - Boot blockers resolved: weak-symbol link order (patches before base) and imgui debug overlay disabled on Apple (no Metal backend).
 - Patch series extended to 0004 (env-gated input logging) and 0005 (env-gated audio device/PCM logging); repo safety audit clean with the new patches.
-- Input verified end-to-end on macOS: Space = N64 A, WASD = analog, IJKL = D-pad, Enter = Start all reach the recompiled game (logged via [dinopad-in]).
+- Input verified end-to-end on macOS: WASD analog; Space A; X B; Shift Z;
+  Q/E/R/F C buttons; arrow-key D-pad; Z/C L/R; and Escape/backtick Start all
+  reach the recompiled game (logged via `[dinopad-in]`).
 - macOS title/game flow verified (2026-08-16): N64 logo -> Rareware splash -> GAME SELECT -> ENTER NAME (save created, name "AAAAA") -> PLAY THIS GAME? -> YES -> opening cinematic with subtitles renders through RT64 Metal.
 - Stable audio loop verified on macOS (2026-08-16): SDL device opens at 48000 Hz/2ch; continuous float32 stereo PCM captured (95 s session, 36 MB, RMS ~0.09, peak ~0.51, mean spectral entropy 5.5); no audio errors.
 - Controllable gameplay verified on macOS (2026-08-16): the playable tutorial scene ("Krystal! Try shooting the cannon!") responds to input end-to-end. All input types delivered to the recompiled game during gameplay (analog WASD x/y ±0.66, A=0x8000, Z=0x2000 in the [dinopad-in] log); held W displaces the on-screen character and S returns it (NCC tracking: t1 750,1050 -> W -> t2 648,954 -> S -> t3 414,1032 -> idle -> t4 768,1038); A-presses fire the tutorial cannon (orange energy pixels 1,132 -> 112,846, ~100x). Evidence: docs/evidence/2026-08-16/macos-gameplay/.
@@ -69,8 +98,8 @@ Active goal: Goal 31n outcome documented; Xcode Organizer report remains externa
 - Goal 31m Xcode archive/privacy-report preflight is locally green but does not close the final privacy gate (2026-08-18): an unsigned `iphoneos` archive was prepared for Organizer, but this host's Xcode 26.6 first-launch chooser requires an 8.52 GiB iOS platform download (plus an optional 2 GiB predictive model) before Organizer can open. It was not installed. Therefore no aggregate Xcode privacy report or transitive-SDK conclusion is claimed. Evidence: docs/evidence/2026-08-18/ios-archive-privacy-preflight/.
 - Goal 31n target-scoped iOS archive workflow is green (2026-08-18): CMake now makes only the `DinoPad` application target installable for Xcode archives (`SKIP_INSTALL=NO`, `INSTALL_PATH=/Applications`), so a standard unsigned archive contains exactly one 56 MiB `Products/Applications/DinoPad.app` rather than a 4 KiB shell or static-library byproducts. That archived app passes the device safety, 41-component compiler inventory, and compiled-notice checks; the standard unsigned device build remains green when its script overrides `SKIP_INSTALL=YES` and removes only a stale archive-generated output symlink. This is a reproducible Organizer input, not a distribution artifact or final privacy report. Evidence: docs/evidence/2026-08-18/ios-archive-privacy-preflight/.
 - Graceful RT64 Metal shutdown green on macOS (2026-08-16): the supplied crash report identified `objc_release` during `RT64 Present` thread autorelease cleanup while `PresentQueue` was being destroyed. Replayable RT64/Plume patches stop workers before resources, scope worker autoreleases, and balance Metal ownership. `scripts/smoke-graceful-shutdown-macos.sh` passed 5/5 native window closes with status 0, no remaining process, and no new crash report. Evidence: docs/evidence/2026-08-16/macos-graceful-shutdown/.
-- docs/UPSTREAM.md written and current (2026-08-18): pinned sources table, 26-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
-- scripts/build-macos-app.sh added and green (2026-08-16): assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM at ~/Library/Application Support/DinoPad/dino.z64 with MD5 verification, and asserts the bundle is ROM-free. Bundle launches to GAME SELECT with all assets resolving through the bundle; evidence: docs/evidence/2026-08-16/macos-app-bundle/.
+- docs/UPSTREAM.md written and current (2026-08-19): pinned sources table, 28-file macOS/iOS patch inventory and checksum, test method, upstream update procedure, known upstream issues, compatibility matrix.
+- scripts/build-macos-app.sh is green: assembles build-macos/DinoPad.app (executable, assets, Info.plist, recompcontrollerdb.txt), ad-hoc codesigns it, stages the private ROM and generated restoration data outside the bundle under Application Support, and asserts the bundle is ROM-free. The packaged app now underpins every macOS smoke.
 - SDL gamecontroller -> N64 input path verified hardware-free (2026-08-16): tools/controller_virtual_smoke.cpp drives a virtual SDL controller through the exact calls the game makes (open, GetButton/GetAxis, poll update) and confirms the default N64 mappings (A=0x8000, B=0x4000, Start=0x1000, D-pad, analog, Z trigger) - 11/11 PASS. Evidence: docs/evidence/2026-08-16/macos-controller/.
 - scripts/smoke-macos.sh added and green (2026-08-16): bounded automated input-replay smoke of boot -> GAME SELECT -> save load -> playable scene -> input (A/B/Z/Start/WASD) -> clean shutdown. First run FAILED because B was never exercised; B added to the replay, rerun PASS 22/22 (commit def59ac). Evidence: docs/evidence/2026-08-16/macos-smoke/.
 - Flashram save persistence verified on macOS (2026-08-16): the AAAAA save (created 02:30 by the game's own name-entry flow) survived two full launches in one guarded session with SHA-256 unchanged (a62085a8...5516 for dino.bin and dino.bin.bak at all three checkpoints); GAME SELECT lists it after a clean relaunch; loading it after relaunch reaches the playable tutorial scene again. Evidence: docs/evidence/2026-08-16/macos-save-persistence/.
@@ -94,7 +123,7 @@ Active goal: Goal 31n outcome documented; Xcode Organizer report remains externa
 ## Last successful commands
 
 ```sh
-./scripts/apply-patches.sh                           # PASS: all 26 maintained patches applied; replay check PASS
+./scripts/apply-patches.sh                           # PASS: all 28 maintained patches applied; replay check PASS
 ./scripts/check-repo-safety.sh                       # PASS: clean (private paths, patches covered)
 cmake --build build-macos --parallel 4 --target DinoPad   # PASS: incremental, arm64 executable
 DINOPAD_MAX_JOBS=4 scripts/generate-restoration.sh       # PASS: C + macOS offline AOT artifacts
@@ -102,6 +131,7 @@ scripts/runtime-guard.sh macos scripts/smoke-static-restoration-macos.sh  # PASS
 scripts/runtime-guard.sh macos scripts/smoke-static-prototype-macos.sh    # PASS: same binary, base fallback, Game Select
 scripts/runtime-guard.sh macos scripts/smoke-profiles-macos.sh            # PASS: explicit profiles + config/save isolation
 scripts/runtime-guard.sh macos scripts/smoke-native-home-macos.sh         # PASS: native setup/home + both profile handoffs
+DINOPAD_ALLOW_UI_AUTOMATION=1 scripts/runtime-guard.sh macos scripts/smoke-desktop-controls-macos.sh  # interactive; run only while workstation is idle
 scripts/runtime-guard.sh macos scripts/smoke-native-rom-import-macos.sh   # PASS: invalid rejection + v64 normalization/import
 scripts/runtime-guard.sh macos scripts/smoke-macos.sh   # PASS: 22/22 automated smoke checks
 scripts/runtime-guard.sh macos scripts/smoke-graceful-shutdown-macos.sh 5  # PASS: 5/5, no new crash report
@@ -167,23 +197,23 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: f
 
 ## Risks
 
-- Physical-device installation and runtime remain blocked: no CoreDevice device
-  and no valid Apple Development identity were available on the current recheck.
-- DinoMod redistribution clearance unresolved (release gate only).
-- Physical-device Phase 7 is externally blocked: CoreDevice knows no device and
-  the keychain has no valid code-signing identity. The unsigned `iphoneos`
-  compile is green; resume signing/install when both prerequisites are present.
-- RT64 Metal/iOS now renders on Simulator, but lifecycle, orientation on physical
-  hardware, longer stability, and device behavior need dedicated verification.
+- DinoMod redistribution clearance remains unresolved (release gate only).
+- Physical installation is no longer blocked, but the formal iPhone/iPad
+  duration, audio-route, interruption, thermal, memory-pressure, update-in-place,
+  and sanitized crash-review evidence remains incomplete.
+- Physical Mac mouse clicks and a real Mac-connected controller have not yet
+  completed acceptance; keyboard defaults and the SDL controller path have
+  automated proof.
 - Name-entry navigation quirks (analog-only, +3 jump) must be handled by the touch/controller shell and automated smoke input.
 - Automated macOS input requires the DinoPad window to be frontmost; sendkey.sh handles it, but native input injection (or SDL-internal injection) is the durable fix for smoke automation.
 - Physical-device runs must repeat the embedded-only restoration policy and gameplay proof.
 
 ## Next three candidate goals
 
-1. Build, sign, install, and validate the complete product/runtime matrix on a physical iPhone.
-2. Repeat the physical-device matrix on iPad.
-3. Complete progression/stability certification and release packaging.
+1. Complete and record the remaining physical iPhone/iPad release matrix.
+2. Complete a Restored start-to-credits playthrough and chapter fixtures.
+3. Resolve the root-license, DinoMod-permission, compiled-AOT-rights, final
+   notices, and privacy-report gates before any public release.
 
 ## Selected next goal
 

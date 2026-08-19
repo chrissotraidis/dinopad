@@ -1,0 +1,4 @@
+RESULT: PARTIAL
+Observed across bounded packaged-app runs: fresh keyboard mappings reached the N64 input log; Option+Return changed 960x752 windowed geometry to 1728x1084 fullscreen; RSS remained 385104-385120 KiB over 45 warm seconds; DinoPad window title rendered correctly.
+Not completed: one uninterrupted final rerun after the title-only rebuild. UI automation was stopped at the user's request because it disrupted active computer use.
+Manual gates: physical left/right mouse clicks and a Mac-connected physical controller.

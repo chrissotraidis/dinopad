@@ -19,36 +19,61 @@ index a5f30a3..b21cef1 100644
          library->release();
          if (debugName) {
              debugName->release();
-@@ -2238,8 +2235,6 @@ namespace plume {
+@@ -2238,8 +2235,10 @@ namespace plume {
      }
  
      MetalCommandList::~MetalCommandList() {
 -        mtl->release();
--
++        if (mtl != nullptr) {
++            mtl->release();
++        }
+ 
          for (auto& fenceSet : fences) {
              for (auto* fence : fenceSet) {
                  fence->release();
-@@ -2283,7 +2278,6 @@ namespace plume {
+@@ -2253,6 +2252,9 @@ namespace plume {
+         assert(mtl == nullptr);
++        NS::AutoreleasePool *releasePool = NS::AutoreleasePool::alloc()->init();
+         startedEncoding = false;
+         mtl = queue->mtl->commandBufferWithUnretainedReferences();
++        mtl->retain();
+         mtl->setLabel(MTLSTR("RT64 Command List"));
++        releasePool->release();
  
-     void MetalCommandList::commit() {
-         mtl->commit();
--        mtl->release();
-         mtl = nullptr;
-     }
- 
-@@ -3550,6 +3544,7 @@ namespace plume {
+         // Reset fence waits and updates for new command list.
+@@ -3550,6 +3552,9 @@ namespace plume {
  
          if (activeBlitEncoder == nullptr) {
++            NS::AutoreleasePool *releasePool = NS::AutoreleasePool::alloc()->init();
              activeBlitEncoder = mtl->blitCommandEncoder(device->sharedBlitDescriptor);
 +            activeBlitEncoder->retain();
              activeBlitEncoder->setLabel(MTLSTR("Copy Blit Encoder"));
++            releasePool->release();
  
              startedEncoding = true;
-@@ -3576,6 +3571,7 @@ namespace plume {
+@@ -3576,6 +3581,9 @@ namespace plume {
  
          if (activeResolveComputeEncoder == nullptr) {
++            NS::AutoreleasePool *releasePool = NS::AutoreleasePool::alloc()->init();
              activeResolveComputeEncoder = mtl->computeCommandEncoder(MTL::DispatchTypeConcurrent);
 +            activeResolveComputeEncoder->retain();
              activeResolveComputeEncoder->setLabel(MTLSTR("Resolve Texture Encoder"));
              activeResolveComputeEncoder->setComputePipelineState(device->resolveTexturePipelineState);
++            releasePool->release();
  
+@@ -3684,6 +3692,7 @@ namespace plume {
+     void MetalCommandQueue::executeCommandLists(const RenderCommandList **commandLists, const uint32_t commandListCount, RenderCommandSemaphore **waitSemaphores, const uint32_t waitSemaphoreCount, RenderCommandSemaphore **signalSemaphores, const uint32_t signalSemaphoreCount, RenderCommandFence *signalFence) {
+         assert(commandLists != nullptr);
+         assert(commandListCount > 0);
++        NS::AutoreleasePool *releasePool = NS::AutoreleasePool::alloc()->init();
+ 
+         // Create a new command buffer to encode the wait semaphores into
+         MTL::CommandBuffer* cmdBuffer = mtl->commandBufferWithUnretainedReferences();
+@@ -3725,6 +3734,7 @@ namespace plume {
+ 
+         MetalCommandList *mutableCommandList = const_cast<MetalCommandList*>(interfaceCommandList);
+         mutableCommandList->commit();
++        releasePool->release();
+     }
+ 
+     void MetalCommandQueue::waitForCommandFence(RenderCommandFence *fence) {
