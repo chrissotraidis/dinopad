@@ -221,6 +221,27 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 #endif
 }
 
+#if !DINOPAD_ENABLE_STATIC_RESTORATION
+- (void)presentRestoredBuildGuide {
+    UIAlertController* guide = [UIAlertController
+        alertControllerWithTitle:@"Restored Adventure requires a private build"
+                         message:@"The public IPA cannot be upgraded in place with a mod file. On iPhone and iPad, DinoMod Enhanced must be compiled into a separately signed DinoPad build. Obtain DinoMod Enhanced v0.9.3 from its official project and follow the Restored Adventure self-build guide in the DinoPad README."
+                  preferredStyle:UIAlertControllerStyleAlert];
+    [guide addAction:[UIAlertAction actionWithTitle:@"Open Build Guide"
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            NSURL* url = [NSURL URLWithString:
+                @"https://github.com/chrissotraidis/dinopad#restored-adventure-private-self-build"];
+            if (url != nil) {
+                [UIApplication.sharedApplication openURL:url options:@{}
+                                      completionHandler:nil];
+            }
+        }]];
+    [guide addAction:[UIAlertAction actionWithTitle:@"Not Now"
+        style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:guide animated:YES completion:nil];
+}
+#endif
+
 - (void)presentHomeMenu {
     if (self.presentedViewController != nil) return;
     dinopad_diagnostics_breadcrumb("home_menu", "presented");
@@ -245,12 +266,25 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
                 dinopad_present_rom_manager((__bridge void*)self);
             });
         }]];
+#if !DINOPAD_ENABLE_STATIC_RESTORATION
+    [menu addAction:[UIAlertAction actionWithTitle:@"How to Build Restored Adventure…"
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                [self presentRestoredBuildGuide];
+            });
+        }]];
+#endif
     [menu addAction:[UIAlertAction actionWithTitle:@"Cancel"
         style:UIAlertActionStyleCancel handler:nil]];
 #if DINOPAD_ENABLE_TEST_HARNESS
     NSArray<NSString*>* titles = [menu.actions valueForKey:@"title"];
     if ([titles containsObject:@"Share Diagnostics & Logs…"] &&
-        [titles containsObject:@"Manage Game ROM"]) {
+        [titles containsObject:@"Manage Game ROM"]
+#if !DINOPAD_ENABLE_STATIC_RESTORATION
+        && [titles containsObject:@"How to Build Restored Adventure…"]
+#endif
+        ) {
         logHome("Home menu actions verified");
     }
 #endif
@@ -365,7 +399,7 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 #if DINOPAD_ENABLE_STATIC_RESTORATION
                               @"Pick your adventure."
 #else
-                              @"Explore the original adventure."
+                              @"Prototype Mode only."
 #endif
                               font:themedFont(@"AvenirNext-Medium", tablet ? 21.0 : 17.0,
                                               UIFontWeightMedium)
@@ -402,7 +436,7 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
         NO, !tablet);
 #else
         @"Start Dinosaur Planet",
-        @"The original December 2000 prototype",
+        @"DinoMod Enhanced is not included",
         @"play.fill",
         YES, !tablet);
 #endif
@@ -594,7 +628,7 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 #if DINOPAD_ENABLE_STATIC_RESTORATION
                          message:@"This mode disables DinoPad’s restoration fixes. The surviving December 2000 prototype is incomplete, contains unfinished content, and may become progression-blocked. Prototype saves and settings remain separate from Restored Adventure."
 #else
-                         message:@"The surviving December 2000 prototype is incomplete, contains unfinished content, and may become progression-blocked."
+                         message:@"This public build contains Prototype Mode only. DinoMod Enhanced and Restored Adventure are not included. The surviving December 2000 prototype is incomplete, contains unfinished content, and may become progression-blocked."
 #endif
                   preferredStyle:UIAlertControllerStyleAlert];
     [warning addAction:[UIAlertAction actionWithTitle:@"Continue to Prototype Mode"

@@ -90,7 +90,7 @@ diff --git a/ultramodern/src/events.cpp b/ultramodern/src/events.cpp
 index 1333133..218e9cd 100644
 --- a/ultramodern/src/events.cpp
 +++ b/ultramodern/src/events.cpp
-@@ -574,6 +574,37 @@ void ultramodern::send_si_message() {
+@@ -574,6 +574,39 @@ void ultramodern::send_si_message() {
  void ultramodern::init_events(RDRAM_ARG ultramodern::renderer::WindowHandle window_handle) {
      moodycamel::LightweightSemaphore gfx_thread_ready;
      moodycamel::LightweightSemaphore task_thread_ready;
@@ -99,6 +99,8 @@ index 1333133..218e9cd 100644
 +    // teardown/restart boundary.
 +    ultramodern::reset_external_messages();
 +    total_vis = 0;
++    display_refresh_rate.store(60);
++    resolution_scale.store(1.0f);
 +    renderer_setup_result.store(ultramodern::renderer::SetupResult::Success);
 +    renderer_chosen_api.store(ultramodern::renderer::GraphicsApi::Auto);
 +

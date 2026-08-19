@@ -7,6 +7,13 @@
 > A native Apple application for the December 2000 *Dinosaur Planet*
 > prototype, built directly on the work of the recompilation community.
 
+> [!WARNING]
+> **Public DinoPad IPAs, including 0.1.0 and 0.1.1, contain Prototype Mode only.** They do not
+> contain DinoMod Enhanced or Restored Adventure because DinoMod redistribution
+> permission has not been granted. Screenshots of Restored Adventure on this
+> page document private development work; they are not features of the public
+> downloads.
+
 > [!IMPORTANT]
 > **DinoPad is an Apple-platform integration of
 > [Dinosaur Planet: Recompiled](https://github.com/DinosaurPlanetRecomp/dino-recomp),
@@ -25,8 +32,9 @@
 ![Game data: user supplied](https://img.shields.io/badge/game%20data-user--supplied%20ROM-d97706)
 
 DinoPad turns the existing *Dinosaur Planet* static-recompilation stack into a
-native Apple app for Apple Silicon Mac, iPhone, and iPad. It provides a
-ROM-import flow, two clearly separated play modes, a UIKit/AppKit home screen,
+native Apple app for Apple Silicon Mac, iPhone, and iPad. Private development
+builds provide two clearly separated play modes; public IPAs provide
+Prototype Mode only. DinoPad includes a ROM-import flow, a UIKit/AppKit home screen,
 complete N64 touch controls, settings and diagnostics, save isolation, and
 Apple-specific runtime hardening. It is not an emulator, does not use JIT
 compilation, and does not download or execute game or mod code at runtime.
@@ -109,8 +117,8 @@ DinoPad's maintained work in this repository is the integration layer around
 those upstreams:
 
 - native AppKit/UIKit setup, ROM import, replacement, and private storage;
-- a dinosaur-themed launcher with **Restored Adventure** and warned
-  **Prototype Mode** choices;
+- a dinosaur-themed development launcher with **Restored Adventure** and warned
+  **Prototype Mode** choices, plus a Prototype-only public configuration;
 - complete N64 touch input, controller handoff, editable phone/tablet layouts,
   and a persistent in-game menu;
 - Metal-window, iOS renderer, mobile sampler, cross-compilation, thread,
@@ -130,14 +138,15 @@ history.
 
 ## Current experience
 
-One app presents two isolated ways to explore the prototype:
+The private Restored build presents two isolated ways to explore the prototype:
 
 - **Restored Adventure** is the recommended path. It uses the pinned DinoMod
   Enhanced restoration through statically linked, no-write dispatch.
 - **Prototype Mode** is the archival path. It preserves the original incomplete
   experience and requires an explicit warning before launch.
 
-Both modes keep separate saves and settings. On iPhone and iPad, DinoPad opens
+Public IPAs expose only Prototype Mode. In a private Restored build,
+both modes keep separate saves and settings. On iPhone and iPad, DinoPad opens
 with a native launcher and Files-based ROM importer, then provides touch
 controls, controller handoff, a persistent `•••` menu, layout editing,
 settings, ROM management, diagnostics, and quit-to-home. The macOS app uses the
@@ -157,26 +166,119 @@ These are engineering results beyond the narrower public base build. See
 [playtest matrix](docs/PLAYTEST_MATRIX.md) for the evidence behind each claim.
 
 > [!NOTE]
-> **[DinoPad 0.1.0](https://github.com/chrissotraidis/dinopad/releases/tag/v0.1.0)
+> **[DinoPad 0.1.1](https://github.com/chrissotraidis/dinopad/releases/tag/v0.1.1)
 > publishes the audited DinoMod-free base IPA.** It contains Prototype Mode
 > only, is unsigned, and must be re-signed before installation. Publishing
 > Restored Adventure still requires a redistribution grant from DinoMod's
 > rightsholders.
 
-## Requirements
+## Playing the public 0.1.1 IPA
+
+The release download is named **`DinoPad-0.1.1-prototype-only-unsigned.ipa`**.
+It is ROM-free and unsigned: it cannot be installed by tapping the file. Before
+installation, use your own Apple signing method to sign the IPA, then install
+the signed result on an iPhone or iPad running iOS/iPadOS 15 or later. DinoPad
+does not provide certificates, provisioning profiles, or a signing service.
+
+After installation:
+
+1. Put your supported *Dinosaur Planet* dump in Files, iCloud Drive, or another
+   location visible to the Apple file picker.
+2. Launch DinoPad and select the dump when prompted. The expected original file
+   is commonly named **`rom`** with no extension. Do **not** select
+   **`rom_crack.z64`**.
+3. DinoPad verifies and privately imports the file. A renamed, modified, or
+   wrong-revision image is rejected.
+4. From DinoPad Home, choose **Start Dinosaur Planet**, acknowledge the archival
+   warning, and play. The public app has no Restored Adventure selector.
+
+The imported ROM, saves, settings, and touch layouts remain in DinoPad's private
+app container. Updating the same bundle in place is intended to preserve that
+container; deleting the app deletes its local data, so back up anything
+important before removing it.
+
+### Restored Adventure: private self-build
+
+The public IPA cannot be converted to Restored Adventure by importing an
+`.nrm` file. DinoPad's iOS/iPadOS port uses ahead-of-time native code and does
+not permit JIT or runtime executable mod loading. DinoMod Enhanced must
+therefore be compiled into a separate app and signed by the person building it.
+
+Users who obtain DinoMod Enhanced **v0.9.3** from its
+[official project](https://github.com/EoinODoodles/dinomod-enhanced-recompiled)
+may create a private Restored build from source:
+
+```sh
+git clone https://github.com/chrissotraidis/dinopad.git
+cd dinopad
+
+# macOS host prerequisites
+brew install cmake ninja xdelta
+scripts/bootstrap.sh
+scripts/build-tools.sh
+
+# DinoMod's private asset-generation environment
+python3 -m venv .goal-loop/dinomod-venv
+.goal-loop/dinomod-venv/bin/pip install \
+  -r ref/dinomod-enhanced-recompiled/requirements.txt
+
+# Use the exact original big-endian dump described below.
+mkdir -p ref/DINO
+cp /absolute/path/to/your/original/rom ref/DINO/rom
+scripts/generate-base.sh --rom ref/DINO/rom
+scripts/generate-restoration.sh
+
+# Build native host shader tools, then the private Restored device app.
+cmake -S . -B build-macos -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build-macos --target DinoPad
+scripts/build-ios-device.sh --distribution restored \
+  --team YOUR10CHARTEAMID --allow-provisioning-updates
+```
+
+The signed app is produced at
+`build-ios-device/Release-iphoneos/DinoPad.app` and can be installed with Xcode
+or `xcrun devicectl`. An unsigned private candidate can instead be built without
+`--team` and packaged with
+`scripts/package-ios.sh --candidate --distribution restored`; it still must be
+signed before installation. Generated DinoMod code/data and a Restored IPA are
+for the user's private build only and must not be redistributed without
+DinoMod permission. Installing the private build over the same DinoPad bundle
+is intended to preserve the existing app container, including Prototype saves
+and settings; do not delete the installed app first.
+
+### Required game dump (exact build)
+
+DinoPad supports only the original, unmodified **December 1, 2000** prototype
+build. The supported dump identifies itself as `DINO PLANET`, game code
+`NDPE`, revision 0, and is exactly 64 MiB (67,108,864 bytes).
+
+The original big-endian dump used by the upstream project is conventionally
+named **`rom`** with no filename extension. Some reference sets place a
+modified **`rom_crack.z64`** beside it; **do not select `rom_crack.z64`**.
+DinoPad requires the original `rom` data and deliberately rejects that patched
+emulator/flash-cart image.
+
+To verify a copy without sharing it, calculate the MD5 of the original
+big-endian file. The supported fingerprint is:
+
+```text
+49f7bb346ade39d1915c22e090ffd748
+```
+
+DinoPad also accepts `.z64`, `.v64`, and `.n64` byte orders whose normalized
+data matches that fingerprint; the filename itself is not trusted. DinoPad
+normalizes and validates the selected file locally, then stores the accepted
+copy only in private app storage. This project does not provide or link to
+game-data downloads.
+
+## Developer build requirements
 
 - Apple Silicon Mac running macOS 11 or later
 - Xcode with macOS and iOS Simulator SDKs
 - CMake 3.20+, Ninja, Git, Python 3, and `make`
 - a MIPS-capable Clang toolchain for private generation
 - at least 20 GiB of available disk space
-- a legally obtained, unmodified 64 MiB December 2000 *Dinosaur Planet*
-  prototype ROM
-
-DinoPad accepts `.z64`, `.v64`, and `.n64` byte orders. It normalizes the input
-locally, verifies the single supported prototype, and stores the accepted ROM
-only in private app storage. A different revision, modified image, or wrong
-size is rejected.
+- the supported game dump described above
 
 ## Controls
 
@@ -185,6 +287,8 @@ south face button is A, the west face button is B, the triggers provide Z/R,
 the left bumper is L, the right stick provides the C buttons, and Menu is
 Start. iPhone and iPad additionally provide independent, editable touch
 layouts that disappear automatically while a controller is active.
+On touch screens, holding Z for half a second locks targeting until the next Z
+tap; **Settings & Status > Hold Z to Lock Targeting** can disable that behavior.
 
 The default macOS keyboard and mouse layout is:
 
@@ -291,7 +395,7 @@ data and passes the repository's compliance gate.
 
 ### Can I download an app or IPA?
 
-Yes. The [DinoPad 0.1.0 release](https://github.com/chrissotraidis/dinopad/releases/tag/v0.1.0)
+Yes. The [latest DinoPad release](https://github.com/chrissotraidis/dinopad/releases/latest)
 contains the ROM-free unsigned base IPA and its matching source archive. The
 IPA must be re-signed before installation and contains Prototype Mode only.
 The feature-complete Restored development build is not a public artifact while

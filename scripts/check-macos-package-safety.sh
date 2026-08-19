@@ -7,6 +7,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="${1:-$ROOT/build-macos/DinoPad.app}"
 EXE="$APP/Contents/MacOS/DinoPad"
 PLIST="$APP/Contents/Info.plist"
+EXPECTED_VERSION="$(sed -n 's/^set(DINOPAD_VERSION "\([0-9][0-9.]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
+EXPECTED_BUILD_NUMBER="$(sed -n 's/^set(DINOPAD_BUILD_NUMBER "\([1-9][0-9]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
 
 fail() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -20,9 +22,9 @@ plutil -lint "$PLIST" >/dev/null || fail "invalid Info.plist"
 [ "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$PLIST")" = \
   "11.0" ] || fail "unexpected minimum macOS version"
 [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$PLIST")" = \
-  "0.1.0" ] || fail "unexpected app version"
+  "$EXPECTED_VERSION" ] || fail "unexpected app version"
 [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$PLIST")" = \
-  "1" ] || fail "unexpected build number"
+  "$EXPECTED_BUILD_NUMBER" ] || fail "unexpected build number"
 
 file "$EXE" | grep -q 'Mach-O 64-bit executable arm64' || \
   fail "executable is not arm64 Mach-O"

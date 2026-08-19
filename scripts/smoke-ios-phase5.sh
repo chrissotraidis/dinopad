@@ -133,7 +133,7 @@ xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
   >"$SECOND_LOG" 2>&1 &
 CONSOLE_PID=$!
 wait_for_marker "$SECOND_LOG" \
-  'ALL 7 INPUT/LIFECYCLE TEST SUITES PASSED' 240 \
+  'ALL 8 INPUT/LIFECYCLE TEST SUITES PASSED' 240 \
   "relaunch input/lifecycle matrix did not complete"
 wait_for_marker "$SECOND_LOG" \
   '\[dinopad-restoration-test\] Late-session input replay completed' 1000 \

@@ -91,8 +91,8 @@ and permission status.
 
 ## Release packages
 
-DinoPad 0.1.0 publishes the audited DinoMod-free base IPA and matching source
-archive. For that release and every later artifact, the project must:
+DinoPad's public releases publish an audited DinoMod-free base IPA and matching
+source archive. For every release artifact, the project must:
 
 1. build from the exact tagged GPL-3.0-only source snapshot;
 2. publish the matching source archive, build scripts, patches, pins, license,

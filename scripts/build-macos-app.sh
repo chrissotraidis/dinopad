@@ -25,8 +25,8 @@ ROM_DEST="$SUPPORT/dino.z64"
 RESTORATION_SOURCE="$ROOT/generated/restoration/dinomod_restoration_data.nrm"
 RESTORATION_DEST="$SUPPORT/mods/dinomod_enhanced.offline.nrm"
 EXPECTED_ROM_MD5="49f7bb346ade39d1915c22e090ffd748"
-VERSION="0.1.0"
-BUILD_NUMBER="1"
+VERSION="$(sed -n 's/^set(DINOPAD_VERSION "\([0-9][0-9.]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
+BUILD_NUMBER="$(sed -n 's/^set(DINOPAD_BUILD_NUMBER "\([1-9][0-9]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
 ROM_SOURCE=""
 
 fail() { echo "ERROR: $*" >&2; exit 1; }

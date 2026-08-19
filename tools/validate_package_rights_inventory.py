@@ -119,7 +119,6 @@ def validate_base_artifact(app: pathlib.Path) -> None:
     ).stdout
     markers = (
         "dinomod_enhanced",
-        "Restored Adventure",
         "Static restoration dispatch enabled",
         "Bundled static restoration",
         "Bundled restoration data registered",
@@ -127,6 +126,15 @@ def validate_base_artifact(app: pathlib.Path) -> None:
     present = [marker for marker in markers if marker in strings]
     if present:
         fail(f"base artifact contains DinoMod integration markers: {present}")
+    disclosures = (
+        "Prototype Mode only.",
+        "DinoMod Enhanced is not included",
+        "Restored Adventure requires a private build",
+        "github.com/chrissotraidis/dinopad#restored-adventure-private-self-build",
+    )
+    missing = [marker for marker in disclosures if marker not in strings]
+    if missing:
+        fail(f"base artifact is missing public-build guidance: {missing}")
 
 
 def validate(
