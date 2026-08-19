@@ -1,12 +1,19 @@
 # DinoPad Status
 
 Last updated: 2026-08-19
-Current snapshot: DinoPad 0.1.0 base release published 2026-08-19
-Current phase: public base release and continued Restored development
+Current snapshot: DinoPad 0.1.1 Prototype-only release and continued Restored development
+Current phase: public setup refresh and Restored development
 Active goal: DinoMod permission for Restored distribution
 
 ## Green
 
+- DinoPad 0.1.1 setup and lifecycle refresh (2026-08-19): the public app
+  identifies itself as Prototype Mode only, states that DinoMod Enhanced is not
+  included, links directly to the private Restored self-build guide, and names
+  the exact supported original ROM. The physical iPad received the matching
+  Restored development code through an in-place update; its ROM, both profile
+  saves, controls/graphics/audio settings, and preference plist were
+  byte-identical before and after installation and launch.
 - 2026-08-19 current snapshot: signed development builds are installed on the
   user's iPhone and iPad without clearing their app containers. Restored
   Adventure has been exercised on both; the user reports stable extended iPad

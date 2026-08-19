@@ -130,10 +130,14 @@ fi
 echo "Verifying input test suite results from runtime log..."
 
 # Check suite completion
-grep -q "\[dinopad-touch-test\] ALL 7 INPUT/LIFECYCLE TEST SUITES PASSED" "$LOG" || {
+grep -q "\[dinopad-touch-test\] ALL 8 INPUT/LIFECYCLE TEST SUITES PASSED" "$LOG" || {
   echo "ERROR: input/lifecycle test suite did not report full completion in $LOG" >&2
   exit 1
 }
+if grep -q "\[dinopad-touch-test\] FAIL:" "$LOG"; then
+  echo "ERROR: input/lifecycle test suite reported a failed assertion in $LOG" >&2
+  exit 1
+fi
 
 # Check digital buttons
 for btn in a b z start d_up d_down d_left d_right l r c_up c_down c_left c_right; do
@@ -195,11 +199,21 @@ grep -q "\[dinopad-touch-test\] PASS: controller disconnected state restored tou
   exit 1
 }
 
+# Check optional hold-to-lock targeting behavior and its disable switch.
+grep -q "\[dinopad-touch-test\] PASS: held Z locked after release and next tap unlocked it" "$LOG" || {
+  echo "ERROR: Z targeting lock toggle verification missing in $LOG" >&2
+  exit 1
+}
+grep -q "\[dinopad-touch-test\] PASS: disabled Z hold did not latch" "$LOG" || {
+  echo "ERROR: disabled Z targeting lock verification missing in $LOG" >&2
+  exit 1
+}
+
 # Check actual game-loop N64 poll logging
 grep -q "\[dinopad-in\]" "$LOG" || {
   echo "ERROR: [dinopad-in] game-loop poll entries missing in $LOG" >&2
   exit 1
 }
 
-printf 'IOS INPUT/LIFECYCLE RESULT: PASS (arm64 app; ROM-free bundle; live %ss; all 14 digital masks; 4 analog directions; multi-touch; menu lifecycle; app lifecycle; controller handoff; screenshot; no crash)
+printf 'IOS INPUT/LIFECYCLE RESULT: PASS (arm64 app; ROM-free bundle; live %ss; all 14 digital masks; 4 analog directions; multi-touch; menu lifecycle; app lifecycle; controller handoff; Z targeting lock; screenshot; no crash)
 ' "$DURATION"   | tee "$EVIDENCE_DIR/result.txt"

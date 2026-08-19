@@ -217,6 +217,7 @@ void drainUIKitQueue() {
 @interface DinoPadTouchOverlayView : UIView
 - (void)publishInput;
 - (void)clearInput;
+- (void)setZHoldToLockEnabled:(BOOL)enabled;
 - (void)beginEditingLayout;
 - (void)finishEditingLayoutSaving:(BOOL)save;
 - (void)resetLayout;
@@ -294,6 +295,9 @@ void drainUIKitQueue() {
     BOOL _controlsEnabled;
     BOOL _controllerConnected;
     BOOL _modalControlsHidden;
+    BOOL _zHoldToLockEnabled;
+    BOOL _zLatched;
+    NSUInteger _zHoldGeneration;
     CGFloat _globalOpacity;
     UIButton* _utilityButton;
 }
@@ -314,6 +318,7 @@ void drainUIKitQueue() {
 #endif
         _selected = 9;
         _controlsEnabled = YES;
+        _zHoldToLockEnabled = YES;
         _globalOpacity = 0.70;
 
         NSDictionary* saved = [NSUserDefaults.standardUserDefaults
@@ -326,6 +331,9 @@ void drainUIKitQueue() {
             if (std::isfinite(opacity)) {
                 _globalOpacity = MAX(0.20, MIN(1.0, opacity));
             }
+        }
+        if ([saved[@"zHoldToLock"] isKindOfClass:NSNumber.class]) {
+            _zHoldToLockEnabled = [saved[@"zHoldToLock"] boolValue];
         }
 
         _utilityButton = [DinoPadUtilityButton buttonWithType:UIButtonTypeCustom];
@@ -596,7 +604,8 @@ void drainUIKitQueue() {
         UIBezierPath* path = [self isShoulder:control]
             ? [UIBezierPath bezierPathWithRoundedRect:frame cornerRadius:radius]
             : [UIBezierPath bezierPathWithOvalInRect:frame];
-        BOOL pressed = NO;
+        const BOOL zLocked = _zLatched && std::strcmp(control.key, "z") == 0;
+        BOOL pressed = zLocked;
         for (NSNumber* role in _touchRoles.objectEnumerator) {
             if (role.integerValue == index) { pressed = YES; break; }
         }
@@ -610,7 +619,9 @@ void drainUIKitQueue() {
         CGFloat alpha = _editing
             ? (control.visible ? 0.82 : 0.26)
             : MIN(1.0, control.opacity * (_globalOpacity / 0.70));
-        UIColor* accent = [self accentForControl:control];
+        UIColor* accent = zLocked
+            ? [UIColor colorWithRed:0.96 green:0.48 blue:0.08 alpha:1.0]
+            : [self accentForControl:control];
         UIColor* fill = accent != nil
             ? [accent colorWithAlphaComponent:pressed ? MIN(0.95, alpha + 0.25) : alpha]
             : [UIColor colorWithWhite:pressed ? 0.34 : 0.04
@@ -897,7 +908,20 @@ void drainUIKitQueue() {
     _utilityButton.alpha = MAX(0.55, _globalOpacity);
     if (!enabled) [self clearInput];
     [NSUserDefaults.standardUserDefaults setObject:@{
-        @"enabled": @(_controlsEnabled), @"opacity": @(_globalOpacity)
+        @"enabled": @(_controlsEnabled),
+        @"opacity": @(_globalOpacity),
+        @"zHoldToLock": @(_zHoldToLockEnabled),
+    } forKey:@"dinopad.touch.settings.v1"];
+    [self setNeedsDisplay];
+}
+
+- (void)setZHoldToLockEnabled:(BOOL)enabled {
+    _zHoldToLockEnabled = enabled;
+    if (!enabled) [self clearInput];
+    [NSUserDefaults.standardUserDefaults setObject:@{
+        @"enabled": @(_controlsEnabled),
+        @"opacity": @(_globalOpacity),
+        @"zHoldToLock": @(_zHoldToLockEnabled),
     } forKey:@"dinopad.touch.settings.v1"];
     [self setNeedsDisplay];
 }
@@ -1126,6 +1150,8 @@ void drainUIKitQueue() {
     }
 #endif
 
+    if (_zLatched) buttons |= 0x2000;
+
     if (hasStickTouch) {
         const TouchControl& stick = _controls[0];
         CGFloat radius = [self radiusForControl:stick];
@@ -1169,6 +1195,8 @@ void drainUIKitQueue() {
 }
 
 - (void)clearInput {
+    ++_zHoldGeneration;
+    _zLatched = NO;
     [_touchRoles removeAllObjects];
     [_touchOffsets removeAllObjects];
 #if DINOPAD_ENABLE_TEST_HARNESS
@@ -1185,6 +1213,55 @@ void drainUIKitQueue() {
     g_touchFlickY.store(0, std::memory_order_relaxed);
     g_touchFlickPolls.store(0, std::memory_order_relaxed);
     [self setNeedsDisplay];
+}
+
+- (BOOL)isControlHeld:(NSInteger)control {
+    for (NSNumber* role in _touchRoles.objectEnumerator) {
+        if (role.integerValue == control) return YES;
+    }
+#if DINOPAD_ENABLE_TEST_HARNESS
+    for (NSNumber* role in _simulatedTouchRoles.allValues) {
+        if (role.integerValue == control) return YES;
+    }
+#endif
+    return NO;
+}
+
+- (void)beginZHoldForControl:(NSInteger)control {
+    if (!_zHoldToLockEnabled || _editing || _zLatched) return;
+    const NSUInteger generation = ++_zHoldGeneration;
+    __weak DinoPadTouchOverlayView* weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        DinoPadTouchOverlayView* strongSelf = weakSelf;
+        if (strongSelf == nil || strongSelf->_zHoldGeneration != generation ||
+            !strongSelf->_zHoldToLockEnabled || strongSelf->_editing ||
+            strongSelf->_controllerConnected || strongSelf->_modalControlsHidden ||
+            ![strongSelf isControlHeld:control]) {
+            return;
+        }
+        strongSelf->_zLatched = YES;
+        g_touchTaps.clear(0x2000);
+        dinopad_diagnostics_breadcrumb("touch", "z_target_lock_enabled");
+        std::fprintf(stderr, "[dinopad-touch] Z targeting locked\n");
+        std::fflush(stderr);
+        [strongSelf publishInput];
+    });
+}
+
+- (BOOL)unlockZIfNeededForControl:(NSInteger)control {
+    if (_editing || !_zLatched || control < 0 ||
+        control >= static_cast<NSInteger>(kControlCount) ||
+        _controls[control].mask != 0x2000) {
+        return NO;
+    }
+    ++_zHoldGeneration;
+    _zLatched = NO;
+    g_touchTaps.clear(0x2000);
+    dinopad_diagnostics_breadcrumb("touch", "z_target_lock_released");
+    std::fprintf(stderr, "[dinopad-touch] Z targeting released\n");
+    std::fflush(stderr);
+    return YES;
 }
 
 - (void)setPhysicalControllerConnected:(BOOL)connected {
@@ -1204,6 +1281,7 @@ void drainUIKitQueue() {
             control = 0;
         }
         if (control == NSNotFound) continue;
+        if ([self unlockZIfNeededForControl:control]) continue;
         [_touchRoles setObject:@(control) forKey:touch];
         _selected = control;
         const TouchControl& item = _controls[control];
@@ -1220,6 +1298,7 @@ void drainUIKitQueue() {
                 dinopad_diagnostics_breadcrumb("touch", "start_pressed");
             }
             g_touchTaps.extend(item.mask, kTapHoldPolls);
+            if (item.mask == 0x2000) [self beginZHoldForControl:control];
         }
     }
     if (!_editing) [self publishInput];
@@ -1251,6 +1330,7 @@ void drainUIKitQueue() {
         CGPoint point = [touch locationInView:self];
         if (!CGRectContainsPoint(CGRectInset([self frameForControl:_controls[role]], -8.0, -8.0), point)) {
             [_touchRoles removeObjectForKey:touch];
+            if (_controls[role].mask == 0x2000) ++_zHoldGeneration;
         }
     }
     [self publishInput];
@@ -1258,6 +1338,10 @@ void drainUIKitQueue() {
 
 - (void)finishTouches:(NSSet<UITouch*>*)touches {
     for (UITouch* touch in touches) {
+        NSNumber* role = [_touchRoles objectForKey:touch];
+        if (role != nil && _controls[role.integerValue].mask == 0x2000) {
+            ++_zHoldGeneration;
+        }
         [_touchRoles removeObjectForKey:touch];
         [_touchOffsets removeObjectForKey:touch];
     }
@@ -1283,6 +1367,10 @@ void drainUIKitQueue() {
         control = 0;
     }
     if (control == NSNotFound) return;
+    if ([self unlockZIfNeededForControl:control]) {
+        [self publishInput];
+        return;
+    }
     _simulatedTouchRoles[@(touchID)] = @(control);
     _simulatedTouchPoints[@(touchID)] = [NSValue valueWithCGPoint:point];
     const TouchControl& item = _controls[control];
@@ -1291,6 +1379,7 @@ void drainUIKitQueue() {
         _stickKnob = _stickOrigin;
     } else {
         g_touchTaps.extend(item.mask, kTapHoldPolls);
+        if (item.mask == 0x2000) [self beginZHoldForControl:control];
     }
     [self publishInput];
 }
@@ -1304,12 +1393,17 @@ void drainUIKitQueue() {
         if (!CGRectContainsPoint(CGRectInset([self frameForControl:_controls[role]], -8.0, -8.0), point)) {
             [_simulatedTouchRoles removeObjectForKey:@(touchID)];
             [_simulatedTouchPoints removeObjectForKey:@(touchID)];
+            if (_controls[role].mask == 0x2000) ++_zHoldGeneration;
         }
     }
     [self publishInput];
 }
 
 - (void)endSimulatedTouchWithID:(NSInteger)touchID {
+    NSNumber* role = _simulatedTouchRoles[@(touchID)];
+    if (role != nil && _controls[role.integerValue].mask == 0x2000) {
+        ++_zHoldGeneration;
+    }
     [_simulatedTouchRoles removeObjectForKey:@(touchID)];
     [_simulatedTouchPoints removeObjectForKey:@(touchID)];
     [self publishInput];
@@ -1546,6 +1640,7 @@ void drainUIKitQueue() {
     int _buttonSubStep;
     int _suite;
     int _suiteSubStep;
+    BOOL _originalZHoldToLock;
 }
 
 + (void)runWithOverlay:(DinoPadTouchOverlayView*)overlay {
@@ -1561,6 +1656,11 @@ void drainUIKitQueue() {
         _buttonSubStep = 0;
         _suite = 1;
         _suiteSubStep = 0;
+        NSDictionary* touchSettings = [NSUserDefaults.standardUserDefaults
+            dictionaryForKey:@"dinopad.touch.settings.v1"];
+        id zSetting = touchSettings[@"zHoldToLock"];
+        _originalZHoldToLock = ![zSetting isKindOfClass:NSNumber.class] ||
+            [zSetting boolValue];
         _buttons = {
             {"a", 0x8000},
             {"b", 0x4000},
@@ -1918,14 +2018,71 @@ void drainUIKitQueue() {
         fprintf(stderr, "[dinopad-touch-test] PASS: controller disconnected state restored touch controls\n");
         fflush(stderr);
         _suite = 7;
+        _suiteSubStep = 0;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ [self nextStep]; });
         return;
     }
 
-    // Suite 7: Completion
+    // Suite 7: Hold Z to lock, tap to release, and disabled behavior.
     if (_suite == 7) {
-        fprintf(stderr, "[dinopad-touch-test] ALL 7 INPUT/LIFECYCLE TEST SUITES PASSED (14 digital masks, 4 analog directions, multi-touch, menu lifecycle, app lifecycle, controller handoff)\n");
+        const NSInteger zIndex = [_overlay controlIndexForKey:"z"];
+        const CGPoint zCenter = [_overlay centerForControlIndex:zIndex];
+        if (_suiteSubStep == 0) {
+            [_overlay setModalControlsHidden:NO];
+            [_overlay setZHoldToLockEnabled:YES];
+            [_overlay beginSimulatedTouchWithID:91 atPoint:zCenter];
+            _suiteSubStep = 1;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.56 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+        if (_suiteSubStep == 1) {
+            [_overlay endSimulatedTouchWithID:91];
+            g_touchTaps.clearAll();
+            uint16_t held = 0; float x = 0, y = 0;
+            dinopad_touch_snapshot(&held, &x, &y);
+
+            [_overlay beginSimulatedTouchWithID:92 atPoint:zCenter];
+            uint16_t released = 0;
+            dinopad_touch_snapshot(&released, &x, &y);
+            [_overlay endSimulatedTouchWithID:92];
+
+            if ((held & 0x2000) != 0 && (released & 0x2000) == 0) {
+                fprintf(stderr, "[dinopad-touch-test] PASS: held Z locked after release and next tap unlocked it\n");
+            } else {
+                fprintf(stderr, "[dinopad-touch-test] FAIL: Z lock toggle held=0x%04X released=0x%04X\n",
+                        held, released);
+            }
+            fflush(stderr);
+
+            [_overlay setZHoldToLockEnabled:NO];
+            [_overlay beginSimulatedTouchWithID:93 atPoint:zCenter];
+            _suiteSubStep = 2;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.56 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ [self nextStep]; });
+            return;
+        }
+
+        [_overlay endSimulatedTouchWithID:93];
+        g_touchTaps.clearAll();
+        uint16_t disabled = 0; float x = 0, y = 0;
+        dinopad_touch_snapshot(&disabled, &x, &y);
+        fprintf(stderr, (disabled & 0x2000) == 0
+            ? "[dinopad-touch-test] PASS: disabled Z hold did not latch\n"
+            : "[dinopad-touch-test] FAIL: disabled Z hold remained latched\n");
+        [_overlay setZHoldToLockEnabled:_originalZHoldToLock];
+        [_overlay clearInput];
+        fflush(stderr);
+        _suite = 8;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.04 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ [self nextStep]; });
+        return;
+    }
+
+    // Suite 8: Completion
+    if (_suite == 8) {
+        fprintf(stderr, "[dinopad-touch-test] ALL 8 INPUT/LIFECYCLE TEST SUITES PASSED (14 digital masks, 4 analog directions, multi-touch, menu lifecycle, app lifecycle, controller handoff, Z targeting lock)\n");
         fflush(stderr);
     }
 }
@@ -2023,6 +2180,40 @@ void drainUIKitQueue() {
 
 static __weak DinoPadTouchOverlayView* g_touchOverlay = nil;
 
+static void dinopad_apply_gameplay_teardown(void* opaqueWindow) {
+    @autoreleasepool {
+        UIWindow* window = (__bridge UIWindow*)opaqueWindow;
+        if (window == nil) return;
+
+        // Hide the SDL window before SDL_Metal_DestroyView swaps the root
+        // controller back to its generic view. Performing that visible swap
+        // repeatedly leaves UIKit appearance transitions unbalanced and can
+        // carry a stale presentation transform into the next gameplay window.
+        window.hidden = YES;
+        drainUIKitQueue();
+        DinoPadTouchOverlayView* overlay = g_touchOverlay;
+        if (overlay != nil && overlay.window == window) {
+            [overlay clearInput];
+            [overlay removeFromSuperview];
+            g_touchOverlay = nil;
+        }
+        [window endEditing:YES];
+        [window layoutIfNeeded];
+        std::fprintf(stderr, "[dinopad-gfx] UIKit gameplay window hidden for teardown\n");
+        std::fflush(stderr);
+    }
+}
+
+extern "C" void dinopad_prepare_gameplay_teardown(void* windowPointer) {
+    if (windowPointer == nullptr) return;
+    if (pthread_main_np() != 0) {
+        dinopad_apply_gameplay_teardown(windowPointer);
+    } else {
+        dispatch_sync_f(dispatch_get_main_queue(), windowPointer,
+                        dinopad_apply_gameplay_teardown);
+    }
+}
+
 extern "C" int dinopad_shell_touch_enabled(void) {
     NSDictionary* settings = [NSUserDefaults.standardUserDefaults
         dictionaryForKey:@"dinopad.touch.settings.v1"];
@@ -2040,8 +2231,19 @@ extern "C" double dinopad_shell_touch_opacity(void) {
     return std::clamp(opacity, 0.20, 1.0);
 }
 
+extern "C" int dinopad_shell_z_hold_to_lock_enabled(void) {
+    NSDictionary* settings = [NSUserDefaults.standardUserDefaults
+        dictionaryForKey:@"dinopad.touch.settings.v1"];
+    id enabled = settings[@"zHoldToLock"];
+    return ![enabled isKindOfClass:NSNumber.class] || [enabled boolValue];
+}
+
 extern "C" void dinopad_shell_set_touch(int enabled, double opacity) {
     [g_touchOverlay setControlsEnabled:enabled != 0 opacity:opacity];
+}
+
+extern "C" void dinopad_shell_set_z_hold_to_lock_enabled(int enabled) {
+    [g_touchOverlay setZHoldToLockEnabled:enabled != 0];
 }
 
 extern "C" void dinopad_shell_set_modal_hidden(int hidden) {

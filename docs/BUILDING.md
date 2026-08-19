@@ -247,7 +247,7 @@ scripts/package-ios.sh --release --distribution base
 
 Both modes run `scripts/check-package-safety.sh` and
 `scripts/audit-ios-ipa.sh`. Release mode also requires the profile-aware strict
-compliance gate and an exact `v0.1.0` tag, then creates the matching tracked
+compliance gate and the exact tag matching `DINOPAD_VERSION`, then creates the matching tracked
 source archive with `scripts/package-release-source.sh`. The base profile passes
 because its binary audit proves DinoMod is absent. Restored release mode remains
 red until a compatible DinoMod redistribution grant is recorded. See

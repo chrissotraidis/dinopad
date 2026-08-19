@@ -10,7 +10,8 @@ dispatch generator renames; it does not alter the stable Restored build tree.
 ## Artifact record
 
 - App: DinoPad 0.1.0 (build 1), arm64, iOS/iPadOS 15.0+
-- IPA: `DinoPad-0.1.0-base-unsigned.ipa`
+- Original audited IPA: `DinoPad-0.1.0-base-unsigned.ipa`
+- Public-facing successor name: `DinoPad-0.1.1-prototype-only-unsigned.ipa`
 - IPA size: 13,426,461 bytes
 - IPA entries: 51, all under `Payload/DinoPad.app/`
 - Executable SHA-256:
@@ -33,3 +34,20 @@ This exact base IPA was not installed and no device container was modified.
 The `v0.1.0` release therefore describes package/build evidence, not hands-on
 physical acceptance of the Prototype-only artifact. It publishes the exact
 matching source archive beside the IPA.
+
+## Prototype-only disclosure refresh
+
+A refreshed 0.1.1 build-2 candidate was generated after adding explicit disclosure
+and setup guidance inside the app. DinoPad Home says `Prototype Mode only`,
+states that DinoMod Enhanced is not included, and links to the README's private
+Restored self-build instructions. The strengthened binary audit requires all
+three disclosures and still proves that DinoMod code/data is absent.
+
+- Candidate: `DinoPad-0.1.1-build.2-prototype-only-unsigned-candidate.ipa`
+- Executable SHA-256:
+  `5a142df20b9238d298cbd7f40e8dc927133bde9e1c914ed02e7bf83dd453e5fb`
+- Candidate IPA SHA-256:
+  `549891a732b2dbec54d8606577a22648ce8b67c419c05bc82feeed466b4e6c78`
+
+This refreshed file is a local candidate, not a claim that the existing hosted
+release asset has already been replaced.

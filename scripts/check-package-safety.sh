@@ -66,9 +66,15 @@ plist_value() {
     /usr/libexec/PlistBuddy -c "Print :$1" "$INFO"
 }
 
+EXPECTED_VERSION="$(sed -n 's/^set(DINOPAD_VERSION "\([0-9][0-9.]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
+EXPECTED_BUILD_NUMBER="$(sed -n 's/^set(DINOPAD_BUILD_NUMBER "\([1-9][0-9]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
+
 EXECUTABLE_NAME="$(plist_value CFBundleExecutable)"
 EXECUTABLE="$APP/$EXECUTABLE_NAME"
 [[ -x "$EXECUTABLE" ]] || fail "bundle executable is missing"
+EXECUTABLE_STRINGS="$(mktemp /tmp/dinopad-package-strings.XXXXXX)"
+trap 'rm -f "$EXECUTABLE_STRINGS"' EXIT
+strings -a "$EXECUTABLE" > "$EXECUTABLE_STRINGS"
 [[ "$(lipo -archs "$EXECUTABLE")" == arm64 ]] || fail "executable is not arm64-only"
 vtool -show-build "$EXECUTABLE" | grep -Eq 'platform +IOS$' ||
     fail "executable is not a physical iOS product"
@@ -77,9 +83,10 @@ vtool -show-build "$EXECUTABLE" | grep -Eq 'minos +15\.0$' ||
 
 [[ "$(plist_value CFBundleIdentifier)" == com.chrissotraidis.dinopad ]] ||
     fail "unexpected bundle identifier"
-[[ "$(plist_value CFBundleShortVersionString)" == 0.1.0 ]] ||
+[[ "$(plist_value CFBundleShortVersionString)" == "$EXPECTED_VERSION" ]] ||
     fail "unexpected app version"
-[[ "$(plist_value CFBundleVersion)" == 1 ]] || fail "unexpected build number"
+[[ "$(plist_value CFBundleVersion)" == "$EXPECTED_BUILD_NUMBER" ]] ||
+    fail "unexpected build number"
 [[ "$(plist_value MinimumOSVersion)" == 15.0 ]] ||
     fail "unexpected Info.plist minimum OS"
 [[ "$(plist_value ITSAppUsesNonExemptEncryption)" == false ]] ||
@@ -150,20 +157,22 @@ UNEXPECTED_RUNTIME="$(otool -L "$EXECUTABLE" | awk 'NR > 1 { print $1 }' |
 [[ -z "$UNEXPECTED_RUNTIME" ]] ||
     fail "executable has an unbundled runtime dependency: $UNEXPECTED_RUNTIME"
 
-if strings -a "$EXECUTABLE" | rg -q \
-    '/Users/|/Volumes/|/private/var/folders/|github_pat_|gh[pousr]_|AKIA[0-9A-Z]{16}'; then
+if rg -q \
+    '/Users/|/Volumes/|/private/var/folders/|github_pat_|gh[pousr]_|AKIA[0-9A-Z]{16}' \
+    "$EXECUTABLE_STRINGS"; then
     fail "executable contains a personal build path or likely credential"
 fi
-if strings -a "$EXECUTABLE" | rg -q \
-    'DINOPAD_(RUN|SHOW|HOME|QUIT_TO_HOME|LAYOUT_SMOKE|SETTINGS_SMOKE|ROM_IMPORT_)'; then
+if rg -q 'DINOPAD_(RUN|SHOW|HOME|QUIT_TO_HOME|LAYOUT_SMOKE|SETTINGS_SMOKE|ROM_IMPORT_)' \
+    "$EXECUTABLE_STRINGS"; then
     fail "physical executable contains a Simulator automation environment key"
 fi
-if strings -a "$EXECUTABLE" | rg -q \
-    'beginSimulatedTouchWithID|moveSimulatedTouchWithID|endSimulatedTouchWithID|ForTesting|runAutomationPhase'; then
+if rg -q \
+    'beginSimulatedTouchWithID|moveSimulatedTouchWithID|endSimulatedTouchWithID|ForTesting|runAutomationPhase' \
+    "$EXECUTABLE_STRINGS"; then
     fail "physical executable contains a test-only selector"
 fi
-if strings -a "$EXECUTABLE" | rg -q \
-    'diagnostic-owner|11111111-2222-3333-4444-555555555555|/tmp/dinopad-private'; then
+if rg -q 'diagnostic-owner|11111111-2222-3333-4444-555555555555|/tmp/dinopad-private' \
+    "$EXECUTABLE_STRINGS"; then
     fail "physical executable contains an adversarial test fixture"
 fi
 
@@ -185,10 +194,20 @@ if [[ "$DISTRIBUTION" == restored ]]; then
         fail "restoration data checksum does not match its audit"
 else
     [[ ! -e "$RESTORATION" ]] || fail "base build contains DinoMod restoration data"
-    if strings -a "$EXECUTABLE" | rg -q \
-        'dinomod_enhanced|Restored Adventure|Static restoration dispatch enabled|Bundled static restoration|Bundled restoration data registered'; then
+    if rg -q \
+        'dinomod_enhanced|Static restoration dispatch enabled|Bundled static restoration|Bundled restoration data registered' \
+        "$EXECUTABLE_STRINGS"; then
         fail "base executable contains DinoMod restoration integration"
     fi
+    rg -Fq 'Prototype Mode only.' "$EXECUTABLE_STRINGS" ||
+        fail "base executable does not identify itself as Prototype Mode only"
+    rg -Fq 'DinoMod Enhanced is not included' "$EXECUTABLE_STRINGS" ||
+        fail "base executable does not disclose that DinoMod Enhanced is absent"
+    rg -Fq 'Restored Adventure requires a private build' "$EXECUTABLE_STRINGS" ||
+        fail "base executable does not expose the Restored private-build guide"
+    rg -Fq 'github.com/chrissotraidis/dinopad#restored-adventure-private-self-build' \
+        "$EXECUTABLE_STRINGS" ||
+        fail "base executable does not link to the Restored private-build guide"
 fi
 
 echo "DinoPad device-app safety audit passed: $APP"

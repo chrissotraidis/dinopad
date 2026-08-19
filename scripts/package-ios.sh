@@ -71,9 +71,17 @@ BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.p
 
 if [[ -z "$OUTPUT" ]]; then
     if [[ "$MODE" == candidate ]]; then
-        OUTPUT="$ROOT/artifacts/DinoPad-$VERSION-build.$BUILD_NUMBER-$DISTRIBUTION-unsigned-candidate.ipa"
+        if [[ "$DISTRIBUTION" == base ]]; then
+            OUTPUT="$ROOT/artifacts/DinoPad-$VERSION-build.$BUILD_NUMBER-prototype-only-unsigned-candidate.ipa"
+        else
+            OUTPUT="$ROOT/artifacts/DinoPad-$VERSION-build.$BUILD_NUMBER-$DISTRIBUTION-unsigned-candidate.ipa"
+        fi
     else
-        OUTPUT="$ROOT/artifacts/DinoPad-$VERSION-$DISTRIBUTION-unsigned.ipa"
+        if [[ "$DISTRIBUTION" == base ]]; then
+            OUTPUT="$ROOT/artifacts/DinoPad-$VERSION-prototype-only-unsigned.ipa"
+        else
+            OUTPUT="$ROOT/artifacts/DinoPad-$VERSION-$DISTRIBUTION-unsigned.ipa"
+        fi
     fi
 fi
 [[ "$OUTPUT" = /* ]] || OUTPUT="$ROOT/$OUTPUT"

@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(DinoPad LANGUAGES C CXX)
 
-set(DINOPAD_VERSION "0.1.0")
-set(DINOPAD_BUILD_NUMBER "1")
+set(DINOPAD_VERSION "0.1.1")
+set(DINOPAD_BUILD_NUMBER "2")
 
 option(DINOPAD_ENABLE_TEST_HARNESS
     "Compile environment-driven iOS Simulator automation" OFF)

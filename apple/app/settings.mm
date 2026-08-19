@@ -19,6 +19,8 @@
 extern "C" int dinopad_shell_touch_enabled(void);
 extern "C" double dinopad_shell_touch_opacity(void);
 extern "C" void dinopad_shell_set_touch(int enabled, double opacity);
+extern "C" int dinopad_shell_z_hold_to_lock_enabled(void);
+extern "C" void dinopad_shell_set_z_hold_to_lock_enabled(int enabled);
 extern "C" void dinopad_shell_set_modal_hidden(int hidden);
 extern "C" void dinopad_shell_begin_layout_editor(void);
 extern "C" void dinopad_shell_reset_current_layout(void);
@@ -143,6 +145,7 @@ void settingsTestLog(NSString* message) {
     UILabel* _controllerStatus;
     UILabel* _rendererStatus;
     UISwitch* _touchSwitch;
+    UISwitch* _zHoldToLockSwitch;
     UISlider* _touchOpacity;
     UILabel* _touchOpacityValue;
     UISlider* _volume;
@@ -257,6 +260,16 @@ void settingsTestLog(NSString* message) {
            forControlEvents:UIControlEventValueChanged];
     [touchRow addArrangedSubview:_touchSwitch];
     [stack addArrangedSubview:touchRow];
+    UIStackView* zHoldRow = [[UIStackView alloc] init];
+    zHoldRow.axis = UILayoutConstraintAxisHorizontal;
+    zHoldRow.alignment = UIStackViewAlignmentCenter;
+    [zHoldRow addArrangedSubview:[self label:@"Hold Z to Lock Targeting"]];
+    _zHoldToLockSwitch = [[UISwitch alloc] init];
+    _zHoldToLockSwitch.accessibilityLabel = @"Hold Z to Lock Targeting";
+    [_zHoldToLockSwitch addTarget:self action:@selector(zHoldToLockChanged:)
+                  forControlEvents:UIControlEventValueChanged];
+    [zHoldRow addArrangedSubview:_zHoldToLockSwitch];
+    [stack addArrangedSubview:zHoldRow];
     _touchOpacityValue = [self valueLabel];
     [stack addArrangedSubview:[self valueRow:@"Touch Opacity" value:_touchOpacityValue]];
     _touchOpacity = [[UISlider alloc] init];
@@ -370,6 +383,7 @@ void settingsTestLog(NSString* message) {
 
 - (void)refreshValues {
     _touchSwitch.on = dinopad_shell_touch_enabled() != 0;
+    _zHoldToLockSwitch.on = dinopad_shell_z_hold_to_lock_enabled() != 0;
     _touchOpacity.value = static_cast<float>(dinopad_shell_touch_opacity() * 100.0);
     _volume.value = static_cast<float>(std::clamp(dino::config::get_main_volume(), 0, 100));
     _resolution.selectedSegmentIndex = resolutionMode();
@@ -408,6 +422,10 @@ void settingsTestLog(NSString* message) {
 - (void)touchOpacityChanged:(UISlider*)sender {
     dinopad_shell_set_touch(_touchSwitch.isOn, sender.value / 100.0);
     [self refreshStatus];
+}
+
+- (void)zHoldToLockChanged:(UISwitch*)sender {
+    dinopad_shell_set_z_hold_to_lock_enabled(sender.isOn);
 }
 
 - (void)volumeChanged:(UISlider*)sender {
@@ -490,6 +508,7 @@ void settingsTestLog(NSString* message) {
 
     if ([phase isEqualToString:@"verify"]) {
         const bool persisted = dinopad_shell_touch_enabled() != 0 &&
+            dinopad_shell_z_hold_to_lock_enabled() == 0 &&
             std::abs(dinopad_shell_touch_opacity() - 0.43) < 0.005 &&
             dino::config::get_main_volume() == 37 && resolutionMode() == 2 &&
             aspectMode() == 1 && frameRateMode() == 1 && hudMode() == 2;
@@ -500,6 +519,8 @@ void settingsTestLog(NSString* message) {
         settingsTestLog(@"RELAUNCH VALUES VERIFIED");
 
         _touchSwitch.on = YES;
+        _zHoldToLockSwitch.on = YES;
+        [self zHoldToLockChanged:_zHoldToLockSwitch];
         _touchOpacity.value = 70.0F;
         [self touchOpacityChanged:_touchOpacity];
         _volume.value = 100.0F;
@@ -513,6 +534,7 @@ void settingsTestLog(NSString* message) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
             const bool resetSaved = configFilesExist() &&
+                dinopad_shell_z_hold_to_lock_enabled() != 0 &&
                 dino::config::get_main_volume() == 100 && resolutionMode() == 0 &&
                 aspectMode() == 1 && frameRateMode() == 0 && hudMode() == 1;
             [self dismissViewControllerAnimated:YES completion:^{
@@ -538,6 +560,8 @@ void settingsTestLog(NSString* message) {
     settingsTestLog(@"invalid native values clamped safely");
 
     _touchSwitch.on = YES;
+    _zHoldToLockSwitch.on = NO;
+    [self zHoldToLockChanged:_zHoldToLockSwitch];
     _touchOpacity.value = 43.0F;
     [self touchOpacityChanged:_touchOpacity];
     _volume.value = 37.0F;
@@ -552,6 +576,7 @@ void settingsTestLog(NSString* message) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
         const bool live = configFilesExist() && dinopad_shell_touch_enabled() != 0 &&
+            dinopad_shell_z_hold_to_lock_enabled() == 0 &&
             std::abs(dinopad_shell_touch_opacity() - 0.43) < 0.005 &&
             dino::config::get_main_volume() == 37 && resolutionMode() == 2 &&
             aspectMode() == 1 && frameRateMode() == 1 && hudMode() == 2;
