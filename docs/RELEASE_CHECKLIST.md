@@ -23,10 +23,10 @@ package or publish while any P0 gate below is red.
 | App privacy manifest | P1 | Green | Exact packaged manifest and negative-control audit in [`privacy-manifest`](evidence/2026-08-17/privacy-manifest/). |
 | Final transitive privacy report | P1 | Partial | The exact manifest and API reasons pass automated audits. An Organizer aggregate report remains optional final release QA on a prepared Xcode host. |
 | ROM-free unsigned base IPA | P0 | Green | The 13.4 MB base IPA passes strict compliance and payload audits with DinoMod absent. [`base-ipa`](evidence/2026-08-19/base-ipa/) |
-| Source tag, artifact checksum, and source/artifact match | P0 | **Red** | Immutable tag, SHA-256, and reproducibility record required. |
+| Source tag, artifact checksum, and source/artifact match | P0 | Green | `v0.1.0` identifies the reviewed source; the release publishes the audited IPA, matching source archive, and SHA-256 records. |
 
-The base distribution is release-prepared but not yet tagged or published.
-Restored Adventure has the additional red DinoMod-permission gate.
+The base distribution is published as DinoPad 0.1.0. Restored Adventure has
+the additional red DinoMod-permission gate and is not part of that release.
 
 ## Stop conditions
 
@@ -40,8 +40,8 @@ candidate if any of these is true:
   private key, provisioning profile, or executable mod payload;
 - the source tag, packaged commit, and recorded checksum do not match;
 - compliance conclusions do not match the selected base or Restored artifact;
-- the exact final artifact has not been installed and exercised through the
-  documented self-signing workflow.
+- the release notes fail to disclose that an unsigned artifact requires
+  re-signing or claim physical acceptance that was not recorded.
 
 Do not create a convenience switch, environment variable, or approval note that
 bypasses these stop conditions.

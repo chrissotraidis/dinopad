@@ -1,9 +1,9 @@
 # DinoPad Status
 
 Last updated: 2026-08-19
-Current snapshot: release-candidate source review completed 2026-08-19
-Current phase: cross-platform parity and public-release preparation
-Active goal: tag and publication decision for the audited base IPA; DinoMod permission for Restored distribution
+Current snapshot: DinoPad 0.1.0 base release published 2026-08-19
+Current phase: public base release and continued Restored development
+Active goal: DinoMod permission for Restored distribution
 
 ## Green
 
@@ -40,7 +40,7 @@ Active goal: tag and publication decision for the audited base IPA; DinoMod perm
   with static restoration disabled. Its 13.4 MB unsigned IPA passes architecture,
   privacy, notice, private-data, payload, and strict base-compliance audits;
   no DinoMod resource or integration marker is present. SHA-256:
-  `eb3b8e174b4a54815594c896f7d0c504aeef5ab526e9a527504b4cf445812019`.
+  `3f1b1d83052c2ed3b52b89ebb5f8befb7ed7894c1caba6babccd7636a66ac517`.
   The strict Restored gate fails only on DinoMod permission. Evidence:
   `docs/evidence/2026-08-19/base-ipa/`.
 

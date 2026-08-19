@@ -10,7 +10,7 @@ dispatch generator renames; it does not alter the stable Restored build tree.
 ## Artifact record
 
 - App: DinoPad 0.1.0 (build 1), arm64, iOS/iPadOS 15.0+
-- IPA: `DinoPad-0.1.0-build.1-base-unsigned-candidate.ipa`
+- IPA: `DinoPad-0.1.0-base-unsigned.ipa`
 - IPA size: 13,426,461 bytes
 - IPA entries: 51, all under `Payload/DinoPad.app/`
 - Executable SHA-256:
@@ -29,6 +29,7 @@ markers. The strict Restored gate remains separately red because the official
 DinoMod 0.9.3 GitHub and Thunderstore packages publish no redistribution
 license.
 
-This IPA was not installed and no device container was modified. A final public
-release still requires a clean `v0.1.0` tag so the release workflow can produce
-the exact matching source archive beside it.
+This exact base IPA was not installed and no device container was modified.
+The `v0.1.0` release therefore describes package/build evidence, not hands-on
+physical acceptance of the Prototype-only artifact. It publishes the exact
+matching source archive beside the IPA.

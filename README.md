@@ -1,5 +1,9 @@
 # DinoPad
 
+<p align="center">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/temple-exploration.png" width="100%" alt="Krystal exploring a temple in Restored Adventure on a physical iPad">
+</p>
+
 > A native Apple application for the December 2000 *Dinosaur Planet*
 > prototype, built directly on the work of the recompilation community.
 
@@ -19,10 +23,6 @@
 ![Renderer: RT64 Metal](https://img.shields.io/badge/renderer-RT64%20Metal-555555)
 ![Status: development](https://img.shields.io/badge/status-development-b91c1c)
 ![Game data: user supplied](https://img.shields.io/badge/game%20data-user--supplied%20ROM-d97706)
-
-<p align="center">
-  <img src="docs/evidence/2026-08-19/ipad-gameplay/temple-exploration.png" width="100%" alt="Krystal exploring a temple in Restored Adventure on a physical iPad">
-</p>
 
 DinoPad turns the existing *Dinosaur Planet* static-recompilation stack into a
 native Apple app for Apple Silicon Mac, iPhone, and iPad. It provides a
@@ -152,14 +152,16 @@ same mode policy with a native launcher plus keyboard and controller support.
 | iPad Simulator arm64 | Tablet launcher, independent layout persistence, complete product matrix, save relaunch, and a bounded 600-second run. |
 | Physical iPhone/iPad | Signed arm64 builds installed in place with private ROMs, saves, and settings preserved. Restored Adventure has been exercised on both form factors; physical-iPad controller play and reconnect are working. The full duration/audio/thermal/update matrix is still open. |
 
-These are engineering results, not a release announcement. See
+These are engineering results beyond the narrower public base build. See
 [Status](docs/STATUS.md), [UI parity](docs/UI_PARITY.md), and the
 [playtest matrix](docs/PLAYTEST_MATRIX.md) for the evidence behind each claim.
 
-> [!WARNING]
-> **There is no published DinoPad release yet.** The DinoMod-free base IPA now
-> passes the automated release-compliance gate. Publishing Restored Adventure
-> still requires a redistribution grant from DinoMod's rightsholders.
+> [!NOTE]
+> **[DinoPad 0.1.0](https://github.com/chrissotraidis/dinopad/releases/tag/v0.1.0)
+> publishes the audited DinoMod-free base IPA.** It contains Prototype Mode
+> only, is unsigned, and must be re-signed before installation. Publishing
+> Restored Adventure still requires a redistribution grant from DinoMod's
+> rightsholders.
 
 ## Requirements
 
@@ -289,10 +291,11 @@ data and passes the repository's compliance gate.
 
 ### Can I download an app or IPA?
 
-Not yet. A ROM-free unsigned base IPA has been built and audited, but it has not
-been published or installed as a public release. It must be re-signed before
-installation. The feature-complete Restored development build is not a public
-artifact while DinoMod permission remains open.
+Yes. The [DinoPad 0.1.0 release](https://github.com/chrissotraidis/dinopad/releases/tag/v0.1.0)
+contains the ROM-free unsigned base IPA and its matching source archive. The
+IPA must be re-signed before installation and contains Prototype Mode only.
+The feature-complete Restored development build is not a public artifact while
+DinoMod permission remains open.
 
 ## Repository guide
 
