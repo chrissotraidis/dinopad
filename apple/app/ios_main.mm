@@ -930,8 +930,12 @@ void drainUIKitQueue() {
     }
 
     NSString* controllerStatus = _controllerConnected ? @"Connected" : @"Not Connected";
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     NSString* profileTitle = g_currentProfile.load(std::memory_order_relaxed) == 0
         ? @"Restored Adventure" : @"Prototype Mode";
+#else
+    NSString* profileTitle = @"Prototype Mode";
+#endif
     NSString* touchTitle = _controlsEnabled ? @"Disable Touch Controls" : @"Enable Touch Controls";
     UIAlertController* menu = [UIAlertController
         alertControllerWithTitle:@"DinoPad"

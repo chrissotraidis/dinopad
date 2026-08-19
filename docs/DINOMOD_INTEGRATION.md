@@ -1,6 +1,6 @@
 # DinoMod Enhanced Integration
 
-Last updated: 2026-08-16
+Last updated: 2026-08-19
 Source of truth: docs/IMPLEMENTATION_PLAN.md section 7.
 Compatibility pair: Dino Recompiled **v0.3.0** + DinoMod Enhanced **v0.9.3**.
 
@@ -16,12 +16,12 @@ Compatibility pair: Dino Recompiled **v0.3.0** + DinoMod Enhanced **v0.9.3**.
 | Emitted C compiles on arm64 + ABI harness | DONE (2026-08-16: 0 warnings; 13/13 harness checks) |
 | One import bound + one mod function executed | DONE (2026-08-16: recomp_get_config_u32 bound; mod_func_16 = kiosk_icons_gold_silver_keys ran; 0 failures) |
 | Replacements/hooks/events bound into game runtime | DONE on macOS (static no-write dispatch: 294 replacements, 42 hooks / 35 slots; release gate still required) |
-| **Maintainer permission / license** | **BLOCKED** - release gate; no public Restored binary/source integration without it |
+| **Maintainer permission / license** | **BLOCKED for public Restored binaries.** The official GitHub and Thunderstore 0.9.3 packages contain no license. DinoPad-owned generic bridge/build source may be published without bundling DinoMod source or output. |
 
 ## 2. Hard policy gate (from the plan)
 
-Before a public Restored Adventure binary or source integration is
-distributed, DinoPad must obtain explicit maintainer permission or a
+Before a public Restored Adventure binary containing converted DinoMod code or
+data is distributed, DinoPad must obtain explicit maintainer permission or a
 published license compatible with DinoPad's intended redistribution, and
 clarify whether DinoPad may build DinoMod from source, include converted
 native code, include its manifest/config, include or generate its asset
@@ -35,6 +35,9 @@ Until cleared:
   generated changes, no bundled source/package in a public release).
 - All bridge work lives in DinoPad-owned files.
 - Restored release status is marked BLOCKED.
+- The separate base distribution restores the original generated game symbols,
+  compiles with static restoration disabled, and is audited to contain no
+  DinoMod resource or integration marker.
 
 This gate does not stop the base Apple port; it only gates Restored
 distribution.

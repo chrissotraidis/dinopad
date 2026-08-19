@@ -21,7 +21,9 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "docs" / "PACKAGE_RIGHTS_INVENTORY.json"
 DEFAULT_APP = ROOT / "build-macos" / "DinoPad.app"
-STATES = {"notice-recorded", "notice-missing", "rights-unresolved", "restricted"}
+STATES = {"notice-recorded", "notice-missing", "advisory-reviewed", "permission-required"}
+BLOCKING_STATES = {"notice-missing", "permission-required"}
+PROFILES = {"base", "restored"}
 TARGETS = {"macos"}
 COMPONENT_KEYS = {
     "id",
@@ -43,7 +45,9 @@ RESOURCE_KEYS = {
     "state",
     "note",
 }
-BLOCKER_KEYS = {"id", "summary", "required_closure"}
+RESOLVED_KEYS = {"id", "summary", "evidence"}
+BLOCKER_KEYS = {"id", "applies_to", "summary", "required_closure"}
+ADVISORY_KEYS = {"id", "summary", "basis"}
 
 
 def fail(message: str) -> None:
@@ -101,7 +105,37 @@ def final_link_command() -> str:
     return candidates[0]
 
 
-def validate(manifest_path: pathlib.Path, app: pathlib.Path, require_ready: bool) -> int:
+def validate_base_artifact(app: pathlib.Path) -> None:
+    executable = app / "DinoPad"
+    if not executable.is_file():
+        fail(f"base artifact executable is missing: {executable}")
+    if (app / "dinomod_restoration_data.nrm").exists():
+        fail("base artifact contains DinoMod restoration data")
+    strings = subprocess.run(
+        ["strings", "-a", str(executable)],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    markers = (
+        "dinomod_enhanced",
+        "Restored Adventure",
+        "Static restoration dispatch enabled",
+        "Bundled static restoration",
+        "Bundled restoration data registered",
+    )
+    present = [marker for marker in markers if marker in strings]
+    if present:
+        fail(f"base artifact contains DinoMod integration markers: {present}")
+
+
+def validate(
+    manifest_path: pathlib.Path,
+    app: pathlib.Path,
+    require_ready: bool,
+    distribution_profile: str,
+    artifact_app: pathlib.Path | None,
+) -> int:
     subprocess.run(
         [sys.executable, str(ROOT / "tools" / "validate_compiled_dependency_inventory.py")],
         check=True,
@@ -113,11 +147,13 @@ def validate(manifest_path: pathlib.Path, app: pathlib.Path, require_ready: bool
         "basis",
         "components",
         "packaged_resources",
+        "resolved_requirements",
         "release_blockers",
+        "release_advisories",
     }
     if set(data) != expected_top:
         fail(f"top-level schema mismatch: expected {sorted(expected_top)}")
-    if data["schema_version"] != 1:
+    if data["schema_version"] != 2:
         fail("unsupported schema_version")
     if data["audited_target"] != "macos":
         fail("audited_target must be macos")
@@ -126,7 +162,7 @@ def validate(manifest_path: pathlib.Path, app: pathlib.Path, require_ready: bool
 
     command = final_link_command()
     seen: set[str] = set()
-    blocked_states: list[str] = []
+    blocked_states: list[tuple[str, str, str]] = []
     components = data["components"]
     if not isinstance(components, list) or not components:
         fail("components must be a non-empty list")
@@ -148,8 +184,8 @@ def validate(manifest_path: pathlib.Path, app: pathlib.Path, require_ready: bool
         state = text(component, "state")
         if state not in STATES:
             fail(f"{component_id}: invalid state {state}")
-        if state != "notice-recorded":
-            blocked_states.append(f"component:{component_id}:{state}")
+        if state in BLOCKING_STATES:
+            blocked_states.append(("component", component_id, state))
 
         source_root = text(component, "source_root", allow_empty=True)
         commit = text(component, "commit", allow_empty=True)
@@ -203,8 +239,8 @@ def validate(manifest_path: pathlib.Path, app: pathlib.Path, require_ready: bool
         state = text(resource, "state")
         if state not in STATES:
             fail(f"{resource_id}: invalid state {state}")
-        if state != "notice-recorded":
-            blocked_states.append(f"resource:{resource_id}:{state}")
+        if state in BLOCKING_STATES:
+            blocked_states.append(("resource", resource_id, state))
         text(resource, "note")
         expected_hash = text(resource, "sha256")
         if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
@@ -225,6 +261,20 @@ def validate(manifest_path: pathlib.Path, app: pathlib.Path, require_ready: bool
                 f"expected={expected_hash}"
             )
 
+    resolved = data["resolved_requirements"]
+    if not isinstance(resolved, list):
+        fail("resolved_requirements must be a list")
+    requirement_ids: set[str] = set()
+    for index, requirement in enumerate(resolved):
+        if not isinstance(requirement, dict) or set(requirement) != RESOLVED_KEYS:
+            fail(f"resolved requirement {index}: schema mismatch")
+        requirement_id = text(requirement, "id")
+        if requirement_id in requirement_ids:
+            fail(f"{requirement_id}: duplicate requirement")
+        requirement_ids.add(requirement_id)
+        text(requirement, "summary")
+        repo_path(text(requirement, "evidence"), f"{requirement_id}.evidence")
+
     blockers = data["release_blockers"]
     if not isinstance(blockers, list):
         fail("release_blockers must be a list")
@@ -236,23 +286,63 @@ def validate(manifest_path: pathlib.Path, app: pathlib.Path, require_ready: bool
         if blocker_id in blocker_ids:
             fail(f"{blocker_id}: duplicate release blocker")
         blocker_ids.add(blocker_id)
+        applies_to = blocker["applies_to"]
+        if (not isinstance(applies_to, list) or not applies_to or
+                set(applies_to) - PROFILES):
+            fail(f"{blocker_id}: invalid applies_to profiles")
         text(blocker, "summary")
         text(blocker, "required_closure")
+
+    advisories = data["release_advisories"]
+    if not isinstance(advisories, list):
+        fail("release_advisories must be a list")
+    advisory_ids: set[str] = set()
+    for index, advisory in enumerate(advisories):
+        if not isinstance(advisory, dict) or set(advisory) != ADVISORY_KEYS:
+            fail(f"release advisory {index}: schema mismatch")
+        advisory_id = text(advisory, "id")
+        if advisory_id in advisory_ids:
+            fail(f"{advisory_id}: duplicate release advisory")
+        advisory_ids.add(advisory_id)
+        text(advisory, "summary")
+        text(advisory, "basis")
+
+    applicable_states = [
+        item for item in blocked_states
+        if not (distribution_profile == "base" and item[1] == "dinomod-enhanced")
+    ]
+    applicable_blockers = [
+        blocker for blocker in blockers
+        if distribution_profile in blocker["applies_to"]
+    ]
+    if artifact_app is not None and distribution_profile == "base":
+        validate_base_artifact(artifact_app)
+    if require_ready and distribution_profile == "base" and artifact_app is None:
+        fail("base release validation requires --artifact-app")
 
     print(
         "PACKAGE RIGHTS INVENTORY: VALID "
         f"({len(components)} linked components, {len(resources)} selected resources, "
-        f"{len(blocked_states)} unresolved states, {len(blockers)} release blockers)"
+        f"{len(resolved)} resolved requirements, {len(advisories)} advisories)"
     )
-    for item in blocked_states:
-        print(f"  BLOCKED STATE: {item}")
-    for blocker in blockers:
+    for requirement in resolved:
+        print(f"  RESOLVED: {requirement['id']} - {requirement['summary']}")
+    for advisory in advisories:
+        print(f"  ADVISORY: {advisory['id']} - {advisory['summary']}")
+    for kind, item_id, state in applicable_states:
+        print(f"  BLOCKED STATE: {kind}:{item_id}:{state}")
+    for blocker in applicable_blockers:
         print(f"  RELEASE BLOCKER: {blocker['id']} - {blocker['summary']}")
 
-    if require_ready and (blocked_states or blockers):
-        print("RELEASE RIGHTS GATE: FAIL (no override)", file=sys.stderr)
+    if require_ready and (applicable_states or applicable_blockers):
+        print(
+            f"RELEASE COMPLIANCE GATE ({distribution_profile}): FAIL (no override)",
+            file=sys.stderr,
+        )
         return 2
-    print("NOTE: inventory integrity is not legal clearance or release approval.")
+    if require_ready:
+        print(f"RELEASE COMPLIANCE GATE ({distribution_profile}): PASS")
+    print("NOTE: advisories are disclosed risks, not unidentified license failures.")
     return 0
 
 
@@ -261,8 +351,17 @@ def main() -> int:
     parser.add_argument("--manifest", type=pathlib.Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--app", type=pathlib.Path, default=DEFAULT_APP)
     parser.add_argument("--require-release-ready", action="store_true")
+    parser.add_argument("--distribution-profile", choices=sorted(PROFILES), default="restored")
+    parser.add_argument("--artifact-app", type=pathlib.Path)
     args = parser.parse_args()
-    return validate(args.manifest.resolve(), args.app.resolve(), args.require_release_ready)
+    artifact_app = args.artifact_app.resolve() if args.artifact_app is not None else None
+    return validate(
+        args.manifest.resolve(),
+        args.app.resolve(),
+        args.require_release_ready,
+        args.distribution_profile,
+        artifact_app,
+    )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 #include "runtime/mods.hpp"
 
 #include <cstdint>
+#include <cstdlib>
 #include <cstdio>
 #include <fstream>
 #include <iterator>
@@ -10,7 +11,9 @@
 #include <TargetConditionals.h>
 #endif
 
+#if DINOPAD_ENABLE_STATIC_RESTORATION
 #include "dinopad/restoration.hpp"
+#endif
 #include "librecomp/mods.hpp"
 #include "renderer/renderer.hpp"
 #include "runtime/support.hpp"
@@ -32,7 +35,7 @@ void reorder_texture_pack(recomp::mods::ModContext&) {
     dino::renderer::trigger_texture_pack_update();
 }
 
-#if defined(__APPLE__) && TARGET_OS_IPHONE
+#if DINOPAD_ENABLE_STATIC_RESTORATION && defined(__APPLE__) && TARGET_OS_IPHONE
 std::vector<uint8_t>& restoration_data() {
     static std::vector<uint8_t> bytes;
     if (!bytes.empty()) {
@@ -82,11 +85,15 @@ void register_mods(bool restoration_enabled) {
         "rtz", std::vector{texture_pack_content_type_id}, false);
 
     if (restoration_enabled) {
+#if DINOPAD_ENABLE_STATIC_RESTORATION
         dinopad::restoration::register_static_code();
 #if defined(__APPLE__) && TARGET_OS_IPHONE
         const auto& data = restoration_data();
         recomp::mods::register_embedded_mod(
             "dinomod_enhanced", std::span<const uint8_t>{data});
+#endif
+#else
+        std::abort();
 #endif
     }
 }

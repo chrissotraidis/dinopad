@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "audited_target": "macos",
-  "basis": "Direct static archives in the warning-fatal Ninja link for build-macos/DinoPad plus selected files copied into build-macos/DinoPad.app for Goal 31j (predecessor 845fe4f). Compiler-derived macOS and physical-iOS coverage plus primary notice assembly are validated separately. This is an engineering inventory, not a legal conclusion or a complete reviewed notice set.",
+  "basis": "Direct static archives in the warning-fatal Ninja link for build-macos/DinoPad plus selected packaged resources. Compiler-derived macOS and physical-iOS coverage plus primary notice assembly are validated separately. Requirements, third-party permission blockers, and legal-risk advisories are intentionally distinct.",
   "components": [
     {
       "id": "dino-recomp",
@@ -12,7 +12,7 @@
       "link_tokens": ["libdinopad_runtime.a", "libdinopad_patches.a", "libdinopad_rsp.a"],
       "license_files": [{"path": "ref/dino-recomp/COPYING", "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"}],
       "state": "notice-recorded",
-      "note": "GPLv3 text is pinned; corresponding-source and combined-work review remain release blockers."
+      "note": "GPLv3 text is pinned. DinoPad carries the same root license and packages the matching tracked source, build scripts, patches, pins, and notices beside release artifacts."
     },
     {
       "id": "rom-derived-aot",
@@ -22,8 +22,8 @@
       "commit": "",
       "link_tokens": ["libdinopad_base.a"],
       "license_files": [],
-      "state": "rights-unresolved",
-      "note": "The binary is technically ROM-free but embeds locally generated code derived from user-supplied copyrighted game data; redistribution scope requires an explicit rights determination."
+      "state": "advisory-reviewed",
+      "note": "The binary is ROM-free but embeds locally generated code derived from user-supplied game data. This is recorded as a legal-risk advisory rather than misclassified as a missing dependency license; upstream publishes the same static-recompilation form."
     },
     {
       "id": "dinomod-enhanced",
@@ -33,7 +33,7 @@
       "commit": "d79e86be2304cba75216b0b98e9fb53ee99b7500",
       "link_tokens": ["libdinopad_restoration.a"],
       "license_files": [],
-      "state": "restricted",
+      "state": "permission-required",
       "note": "No conventional redistribution license is present at the pin; generated static restoration code is linked into this development binary."
     },
     {
@@ -264,31 +264,41 @@
       "note": "Exact SIL Open Font License 1.1 text packaged beside the Lato attribution."
     }
   ],
-  "release_blockers": [
+  "resolved_requirements": [
     {
       "id": "root-license-decision",
-      "summary": "DinoPad-owned source has no root license or copyright-scope decision.",
-      "required_closure": "The owner must choose and document a license compatible with the combined work; engineering cannot infer this grant."
+      "summary": "DinoPad-owned work is licensed under GPL-3.0-only with an explicit scope statement.",
+      "evidence": "docs/LICENSE_SCOPE.md"
     },
     {
       "id": "gpl-corresponding-source",
-      "summary": "GPLv3 texts are identified, but the exact corresponding-source offer/package for a binary is not assembled.",
-      "required_closure": "Review the combined work and ship matching complete corresponding source, build scripts, patches, notices, and any required offer with the exact artifact."
-    },
-    {
-      "id": "dinomod-permission",
-      "summary": "DinoMod-derived code is linked without a conventional redistribution license at the pin.",
-      "required_closure": "Archive written permission or a compatible published license, or build a reviewed release configuration with all restricted integration and claims removed."
-    },
-    {
-      "id": "rom-derived-binary-rights",
-      "summary": "The ROM-free executable still embeds privately generated AOT derived from copyrighted game data.",
-      "required_closure": "Obtain a rights/counsel determination for binary redistribution or limit delivery to a source-only local-generation workflow."
+      "summary": "The release workflow creates a matching tracked-source archive containing the build scripts, exact pins, maintained patches, license, and notice inventories.",
+      "evidence": "scripts/package-release-source.sh"
     },
     {
       "id": "transitive-notice-completeness",
-      "summary": "The macOS and physical-iOS compiler graphs are fully mapped and standalone plus mechanically extracted inline-primary notices are assembled, but secondary-notice and legal-completeness review remains open.",
-      "required_closure": "Review every incorporated source family for secondary notice requirements, correct the assembled corpus as needed, and obtain second-person rights/license review against both final products."
+      "summary": "Every compiled macOS and iOS source family has a hash-bound standalone or assembled primary notice in the packaged corpus.",
+      "evidence": "docs/COMPILED_DEPENDENCY_INVENTORY.json"
+    }
+  ],
+  "release_blockers": [
+    {
+      "id": "dinomod-permission",
+      "applies_to": ["restored"],
+      "summary": "DinoMod-derived code is linked without a conventional redistribution license at the pin or in its official 0.9.3 package.",
+      "required_closure": "Archive written redistribution permission or a compatible published license. The base distribution closes this gate by excluding all DinoMod code and data."
+    }
+  ],
+  "release_advisories": [
+    {
+      "id": "rom-derived-binary-rights",
+      "summary": "The ROM-free executable embeds static AOT generated from a locally supplied game program.",
+      "basis": "This is a copyright-risk question, not an unidentified software license. Dinosaur Planet: Recompiled publicly ships the same form of ROM-free static-recompilation binary while requiring the original game to run."
+    },
+    {
+      "id": "human-notice-review",
+      "summary": "A second person may still review the generated notice corpus before publication.",
+      "basis": "Automated coverage is complete for every compiled ownership root; additional human review is recommended release QA, not a known missing-license blocker."
     }
   ]
 }

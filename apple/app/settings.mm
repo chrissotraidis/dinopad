@@ -88,8 +88,12 @@ void applyGraphics(NSInteger resolution, NSInteger aspect,
 }
 
 NSString* profileDisplayName() {
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     return dino::config::get_session_profile() == dino::config::SessionProfile::Restored
         ? @"Restored Adventure" : @"Prototype Mode";
+#else
+    return @"Prototype Mode";
+#endif
 }
 
 NSString* saveStatus() {
@@ -132,7 +136,9 @@ void settingsTestLog(NSString* message) {
 
 @implementation DinoPadSettingsViewController {
     UILabel* _profileStatus;
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     UILabel* _restorationStatus;
+#endif
     UILabel* _saveStatus;
     UILabel* _controllerStatus;
     UILabel* _rendererStatus;
@@ -230,10 +236,14 @@ void settingsTestLog(NSString* message) {
 
     [stack addArrangedSubview:[self section:@"Game"]];
     _profileStatus = [self valueLabel];
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     _restorationStatus = [self valueLabel];
+#endif
     _saveStatus = [self valueLabel];
     [stack addArrangedSubview:[self valueRow:@"Mode" value:_profileStatus]];
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     [stack addArrangedSubview:[self valueRow:@"Restoration" value:_restorationStatus]];
+#endif
     [stack addArrangedSubview:[self valueRow:@"Save / Recovery" value:_saveStatus]];
 
     [stack addArrangedSubview:[self section:@"Controls"]];
@@ -371,10 +381,12 @@ void settingsTestLog(NSString* message) {
 
 - (void)refreshStatus {
     _profileStatus.text = profileDisplayName();
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     _restorationStatus.text = dino::config::get_session_profile() ==
         dino::config::SessionProfile::Restored
         ? @"Bundled static restoration active; writable mods disabled."
         : @"Disabled for archival Prototype Mode.";
+#endif
     _saveStatus.text = saveStatus();
     _controllerStatus.text = dinopad_shell_controller_connected()
         ? @"Connected; gameplay touch hidden" : @"Not connected; gameplay touch available";

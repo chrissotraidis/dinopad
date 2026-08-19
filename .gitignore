@@ -45,6 +45,7 @@ tmp/**/*
 
 # Packages (release binaries live in GitHub Releases, not Git)
 *.ipa
+/artifacts/
 
 # VCS data
 .git/

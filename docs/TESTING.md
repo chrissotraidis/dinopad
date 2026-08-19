@@ -43,8 +43,8 @@ references; and requires exact Lato attribution and SIL OFL 1.1 notice copies.
 The same gate validates all 2,187 current Ninja-tracked `ref/` source/header
 dependencies against 45 deepest-prefix component records, then verifies the
 indexed byte-exact package copy of 39 standalone and 6 mechanically assembled
-inline-primary notices. Secondary and legal review remain explicitly pending
-and therefore do not close release readiness.
+inline-primary notices. Additional human review is recommended release QA, not
+evidence of an uncovered license.
 The physical-iOS gate performs the equivalent check over 1,032 Xcode dependency
 files: 2,578 unique paths, 41 active roots, 35 standalone plus 6 mechanically
 assembled inline-primary notices, and zero uncovered paths.

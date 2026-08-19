@@ -39,10 +39,10 @@ bounded diagnostics, and measured PaperPad parity. It is not a release-ready
 iPhone/iPad product: Phases 7-10 (physical devices, progression/stability, and
 release) remain open.
 
-The repository now has an evidence-backed root README and an explicit
-`docs/RIGHTS_AND_LICENSES.md` boundary. They advertise no download: the missing
-root license/complete third-party notice set and DinoMod permission are recorded
-release blockers alongside physical-device and progression work.
+The repository now has an evidence-backed root README, a GPL-3.0-only root
+license with explicit scope, and a profile-aware compliance boundary. The
+audited base IPA excludes DinoMod and passes; Restored distribution alone still
+requires DinoMod permission.
 The first package-specific rights inventory now validates exact pins,
 license-text hashes, direct macOS link inputs, and selected resource hashes. It
 also records that raw-ROM absence does not settle redistribution rights for the
@@ -50,13 +50,13 @@ compiled private AOT. The package now removes the unproven DinoFont, Noto Emoji,
 logo, and character-art files, uses the pinned Lato family, and carries exact
 Lato attribution plus SIL OFL 1.1 text. This closes those selected-resource
 findings without claiming a complete transitive notice audit.
-Both Apple compiler graphs are now separately fail-closed. macOS maps 2,227
-pinned source/header dependencies to 46 ownership roots and packages 39 exact
+Both Apple compiler graphs are now separately fail-closed. macOS maps 2,187
+pinned source/header dependencies to 45 ownership roots and packages 39 exact
 standalone licenses; physical iOS maps 2,578 dependencies to 41 roots and
 packages 35. Both have zero uncovered paths. The seven union inline-primary
-roots now have mechanically assembled, hash-bound notices too, so every 46/41
-root has a package entry. Secondary-notice and second-person completeness review
-remain explicitly pending.
+roots now have mechanically assembled, hash-bound notices too, so every 45/41
+root has a package entry. Additional human review is recommended QA rather than
+a known missing-license blocker.
 
 ## Completed foundation
 
@@ -194,7 +194,8 @@ contracts are green.
 - Keep [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) current; it now separates
   green engineering audits from red distribution prerequisites and forbids
   packaging while any P0 gate is red.
-- Produce and audit a ROM-free unsigned IPA only after those prerequisites pass.
+- The DinoMod-free base IPA is produced and audited; publish only from the exact
+  tagged commit with its matching source archive.
 - Complete GPL source/notice obligations, attribution, non-affiliation language,
   README, installation guide, release checklist, tag, and checksums.
 - Obtain explicit DinoMod integration/redistribution permission. This is a real

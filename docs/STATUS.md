@@ -3,7 +3,7 @@
 Last updated: 2026-08-19
 Current snapshot: release-candidate source review completed 2026-08-19
 Current phase: cross-platform parity and public-release preparation
-Active goal: macOS launcher/input/fullscreen validation plus truthful physical-device status consolidation
+Active goal: tag and publication decision for the audited base IPA; DinoMod permission for Restored distribution
 
 ## Green
 
@@ -30,9 +30,24 @@ Active goal: macOS launcher/input/fullscreen validation plus truthful physical-d
   restoration, ROM/private-data, runtime-dependency, and unsigned-state audits.
   Two deterministic packaging runs produced SHA-256
   `9be9b85dc255f9c383ea1f47f555bfa8132e96ef7e3f92bd500f882a6e04abee`.
-  The candidate is local/private; strict release mode still fails closed on the
-  five documented rights/notices gates. Evidence:
+  The feature-complete candidate is local/private; its Restored profile remains
+  gated by DinoMod redistribution permission. Evidence:
   `docs/evidence/2026-08-19/ipa-candidate/`.
+- Base IPA compliance split (2026-08-19): DinoPad-owned work is now
+  GPL-3.0-only, the matching-source archive workflow is tracked, and automated
+  primary-notice coverage is complete. A separate `build-ios-base` configuration
+  restores 330 original base-AOT definitions in an isolated copy and compiles
+  with static restoration disabled. Its 13.4 MB unsigned IPA passes architecture,
+  privacy, notice, private-data, payload, and strict base-compliance audits;
+  no DinoMod resource or integration marker is present. SHA-256:
+  `eb3b8e174b4a54815594c896f7d0c504aeef5ab526e9a527504b4cf445812019`.
+  The strict Restored gate fails only on DinoMod permission. Evidence:
+  `docs/evidence/2026-08-19/base-ipa/`.
+
+The dated engineering log below is retained for provenance. Its earlier
+"missing root license," "five blockers," device-unavailable, and notice-review
+statements describe their original snapshots and are superseded by the current
+2026-08-19 entries above.
 
 - Repository skeleton exists (initial commit 998505b).
 - docs/IMPLEMENTATION_PLAN.md, docs/DINOPAD_GOAL_LOOP.md, and docs/STATUS.md at canonical paths.
@@ -197,7 +212,8 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: f
 
 ## Risks
 
-- DinoMod redistribution clearance remains unresolved (release gate only).
+- DinoMod redistribution clearance remains unresolved for Restored releases;
+  it does not apply to the audited base artifact.
 - Physical installation is no longer blocked, but the formal iPhone/iPad
   duration, audio-route, interruption, thermal, memory-pressure, update-in-place,
   and sanitized crash-review evidence remains incomplete.
@@ -212,8 +228,8 @@ scripts/runtime-guard.sh iphone-simulator <UDID> scripts/smoke-ios.sh  # PASS: f
 
 1. Complete and record the remaining physical iPhone/iPad release matrix.
 2. Complete a Restored start-to-credits playthrough and chapter fixtures.
-3. Resolve the root-license, DinoMod-permission, compiled-AOT-rights, final
-   notices, and privacy-report gates before any public release.
+3. Request DinoMod redistribution permission before publishing Restored
+   Adventure; the base distribution has no DinoMod dependency.
 
 ## Selected next goal
 

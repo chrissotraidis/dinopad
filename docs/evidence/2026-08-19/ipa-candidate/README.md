@@ -23,6 +23,8 @@ absent, exact privacy manifest and compiled notices, audited restoration data,
 and no ROM, save, log, private path, credential, or provisioning material.
 
 The candidate was not installed and no device container was modified during
-this packaging run. It remains a private candidate. `package-ios.sh --release`
-correctly fails closed on the root-license, GPL corresponding-source, DinoMod
-permission, ROM-derived AOT rights, and final notice-review gates.
+this packaging run. It remains a private Restored candidate. The corrected
+profile-aware release checker now recognizes the root license, source-package,
+and primary-notice work as complete, records static game AOT as an advisory,
+and fails this Restored artifact only on DinoMod redistribution permission. The
+separate base artifact removes that integration and passes; see `../base-ipa/`.

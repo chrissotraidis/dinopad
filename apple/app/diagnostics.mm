@@ -419,8 +419,10 @@ NSString* boundedDiagnosticReport(NSURL* root) {
     NSBundle* bundle = NSBundle.mainBundle;
     UIScreen* screen = UIScreen.mainScreen;
     CGRect bounds = screen.bounds;
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     const bool restored = dino::config::get_session_profile() ==
         dino::config::SessionProfile::Restored;
+#endif
 
     NSMutableString* report = [NSMutableString string];
     [report appendString:@"DinoPad diagnostics\n"];
@@ -437,10 +439,14 @@ NSString* boundedDiagnosticReport(NSURL* root) {
             ? @"tablet" : @"phone"];
     [report appendFormat:@"Screen: %.0fx%.0f points @ %.2fx\n",
         bounds.size.width, bounds.size.height, screen.nativeScale];
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     [report appendFormat:@"Profile: %@\n", restored ? @"Restored Adventure" : @"Prototype Mode"];
     [report appendFormat:@"Restoration: %@\n", restored
         ? @"bundled static data active; writable mods disabled"
         : @"disabled for archival Prototype Mode"];
+#else
+    [report appendString:@"Profile: Prototype Mode\n"];
+#endif
     [report appendFormat:@"ROM validation: %@\n",
         dinopad_rom_validation_status() ? @"exact supported prototype verified" : @"not verified"];
     [report appendFormat:@"Save / recovery: %@\n", saveRecoveryStatus()];

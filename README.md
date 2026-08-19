@@ -20,6 +20,10 @@
 ![Status: development](https://img.shields.io/badge/status-development-b91c1c)
 ![Game data: user supplied](https://img.shields.io/badge/game%20data-user--supplied%20ROM-d97706)
 
+<p align="center">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/temple-exploration.png" width="100%" alt="Krystal exploring a temple in Restored Adventure on a physical iPad">
+</p>
+
 DinoPad turns the existing *Dinosaur Planet* static-recompilation stack into a
 native Apple app for Apple Silicon Mac, iPhone, and iPad. It provides a
 ROM-import flow, two clearly separated play modes, a UIKit/AppKit home screen,
@@ -30,9 +34,8 @@ compilation, and does not download or execute game or mod code at runtime.
 ## Gameplay
 
 <p align="center">
-  <img src="docs/evidence/2026-08-19/ipad-gameplay/temple-exploration.png" width="32%" alt="Krystal exploring a temple in Restored Adventure on iPad">
-  <img src="docs/evidence/2026-08-19/ipad-gameplay/story-scene.png" width="32%" alt="A Restored Adventure story scene running on iPad">
-  <img src="docs/evidence/2026-08-19/ipad-gameplay/warp-crystal.png" width="32%" alt="Krystal collecting a Warp Crystal in Restored Adventure on iPad">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/story-scene.png" width="48%" alt="A Restored Adventure story scene running on a physical iPad">
+  <img src="docs/evidence/2026-08-19/ipad-gameplay/warp-crystal.png" width="48%" alt="Krystal collecting a Warp Crystal in Restored Adventure on a physical iPad">
 </p>
 <p align="center">
   <img src="docs/evidence/2026-08-19/ipad-gameplay/rooftop-encounter.png" width="48%" alt="A rooftop encounter in Restored Adventure on a physical iPad">
@@ -140,15 +143,6 @@ controls, controller handoff, a persistent `•••` menu, layout editing,
 settings, ROM management, diagnostics, and quit-to-home. The macOS app uses the
 same mode policy with a native launcher plus keyboard and controller support.
 
-<p align="center">
-  <img src="docs/evidence/2026-08-17/ipad-simulator-phase6/home.png" width="31%" alt="DinoPad native home screen on iPad">
-  <img src="docs/evidence/2026-08-17/ipad-simulator-phase6/restored-gameplay.png" width="31%" alt="Restored Adventure running with N64 touch controls on iPad">
-  <img src="docs/evidence/2026-08-17/ipad-simulator-phase6/menu.png" width="31%" alt="DinoPad native in-game menu on iPad">
-</p>
-
-Screenshots are compatibility evidence captured from a locally supplied copy
-of the game. They do not indicate ownership of the depicted game content.
-
 ## Project status
 
 | Target | Verified development state |
@@ -163,9 +157,9 @@ These are engineering results, not a release announcement. See
 [playtest matrix](docs/PLAYTEST_MATRIX.md) for the evidence behind each claim.
 
 > [!WARNING]
-> **There is no public DinoPad release.** Completion of the physical-device
-> matrix, start-to-credits testing, licensing and notice review, DinoMod permission,
-> and game-derived AOT redistribution rights remain open release gates.
+> **There is no published DinoPad release yet.** The DinoMod-free base IPA now
+> passes the automated release-compliance gate. Publishing Restored Adventure
+> still requires a redistribution grant from DinoMod's rightsholders.
 
 ## Requirements
 
@@ -241,8 +235,9 @@ guide before treating any local artifact as testable.
 - The archival prototype is unfinished and can contain progression blockers.
 - Individual touch controls are not yet exposed as separate accessibility
   elements.
-- No public binary, IPA, source release, or redistribution package is
-  authorized.
+- The public-package configuration currently contains the original Prototype
+  experience only. Restored Adventure remains development-only until DinoMod
+  publishes compatible terms or grants redistribution permission.
 
 Read [Known issues](docs/KNOWN_ISSUES.md) and
 [technical debt](docs/TECHNICAL_DEBT.md) for the full evidence-linked record.
@@ -288,14 +283,16 @@ downloaded, or shared by DinoPad.
 ### Is Restored Adventure a public DinoMod release?
 
 No. Its static integration is development evidence only. DinoPad cannot
-publish a Restored build while DinoMod permission and the other rights, notice,
-and package gates remain unresolved.
+publish a Restored build until DinoMod's rightsholders provide a compatible
+redistribution grant. The separate base build excludes all DinoMod code and
+data and passes the repository's compliance gate.
 
 ### Can I download an app or IPA?
 
-Not currently. There is no supported public binary. Source-only local
-development remains subject to this repository's rights boundary and every
-upstream license.
+Not yet. A ROM-free unsigned base IPA has been built and audited, but it has not
+been published or installed as a public release. It must be re-signed before
+installation. The feature-complete Restored development build is not a public
+artifact while DinoMod permission remains open.
 
 ## Repository guide
 
@@ -318,18 +315,17 @@ PaperPad, or any of their contributors. Game names, assets, characters,
 copyrights, and trademarks belong to their respective owners.
 
 > [!CAUTION]
-> **This repository does not currently have one blanket license or a completed
-> release-rights determination.** Do not assume that visible source is a grant
-> to redistribute the combined project. Each upstream retains its own terms;
-> DinoMod permission, GPL combined-work obligations, the DinoPad-owned license
-> decision, assembled notices, and rights for locally generated game AOT are
-> unresolved release gates.
+> **DinoPad-owned work is GPL-3.0-only, but that grant does not relicense game
+> material or third-party projects.** Each upstream retains its own terms.
+> DinoMod publishes no redistribution license, so only the build that excludes
+> all DinoMod code and data currently passes the public-package compliance gate.
 
 The tracked repository contains no ROM, save, extracted game asset, generated
 playable game source, private fixture, signing identity, or redistributable
 Restored package. A ROM-free executable may still contain locally generated
-code derived from user-supplied game data; “ROM-free” is a package fact, not a
-legal conclusion.
+code derived from user-supplied game data. That disclosed copyright-risk
+question is tracked as an advisory rather than misrepresented as an
+unidentified software license.
 
 Before sharing source or a build, read:
 
@@ -339,8 +335,10 @@ Before sharing source or a build, read:
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Package-rights inventory](docs/PACKAGE_RIGHTS_INVENTORY.json)
 
-The release gate deliberately fails closed while any required item remains
-unresolved.
+The release gate distinguishes resolved compliance requirements, non-blocking
+advisories, and profile-specific permission blockers. It passes for the audited
+base build and fails closed for Restored Adventure while DinoMod permission is
+absent.
 
 ## Detailed acknowledgements
 

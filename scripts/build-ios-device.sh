@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Build DinoPad for physical iPhone/iPad. The default output is unsigned;
-# pass --team only when a personal Apple Development team is available.
+# Build DinoPad for physical iPhone/iPad. The default Restored development
+# build preserves the current product. --distribution base creates a separate
+# public-package input with all DinoMod code and data excluded.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_DIR="$ROOT/build-ios-device"
-APP="$BUILD_DIR/Release-iphoneos/DinoPad.app"
 TEAM=""
 ALLOW_PROVISIONING=0
+DISTRIBUTION="restored"
 
 usage() {
-    echo "usage: scripts/build-ios-device.sh [--team TEAM_ID] [--allow-provisioning-updates]" >&2
+    echo "usage: scripts/build-ios-device.sh [--distribution restored|base] [--team TEAM_ID] [--allow-provisioning-updates]" >&2
 }
 
 while [[ $# -gt 0 ]]; do
@@ -18,6 +18,11 @@ while [[ $# -gt 0 ]]; do
         --team)
             [[ $# -ge 2 ]] || { usage; exit 2; }
             TEAM="$2"
+            shift 2
+            ;;
+        --distribution)
+            [[ $# -ge 2 && ("$2" == restored || "$2" == base) ]] || { usage; exit 2; }
+            DISTRIBUTION="$2"
             shift 2
             ;;
         --allow-provisioning-updates)
@@ -34,6 +39,18 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ "$DISTRIBUTION" == base ]]; then
+    BUILD_DIR="$ROOT/build-ios-base"
+    STATIC_RESTORATION=OFF
+    "$ROOT/scripts/prepare-base-aot.sh"
+    AOT_DIR="$ROOT/generated/aot-base"
+else
+    BUILD_DIR="$ROOT/build-ios-device"
+    STATIC_RESTORATION=ON
+    AOT_DIR="$ROOT/generated/aot"
+fi
+APP="$BUILD_DIR/Release-iphoneos/DinoPad.app"
 
 if [[ -n "$TEAM" && ! "$TEAM" =~ ^[A-Z0-9]{10}$ ]]; then
     echo "ERROR: --team must be a 10-character Apple Development team ID" >&2
@@ -53,12 +70,18 @@ command -v vtool >/dev/null || { echo "ERROR: vtool is required" >&2; exit 1; }
 python3 "$ROOT/tools/package_compiled_dependency_notices.py" \
     --target ios-device --destination "$ROOT/generated/notices-ios-device"
 
-for required in \
-    "$ROOT/generated/aot/RecompiledFuncs/funcs.h" \
-    "$ROOT/generated/restoration/dinomod_static_dispatch.c" \
-    "$ROOT/generated/restoration/dinomod_restoration_data.nrm" \
-    "$ROOT/build-macos/rt64/src/tools/file_to_c/file_to_c" \
-    "$ROOT/build/bin/spirv_cross_msl"; do
+required_files=(
+    "$ROOT/generated/aot/RecompiledFuncs/funcs.h"
+    "$ROOT/build-macos/rt64/src/tools/file_to_c/file_to_c"
+    "$ROOT/build/bin/spirv_cross_msl"
+)
+if [[ "$DISTRIBUTION" == restored ]]; then
+    required_files+=(
+        "$ROOT/generated/restoration/dinomod_static_dispatch.c"
+        "$ROOT/generated/restoration/dinomod_restoration_data.nrm"
+    )
+fi
+for required in "${required_files[@]}"; do
     if [[ ! -e "$required" ]]; then
         echo "ERROR: required generated/host artifact missing: $required" >&2
         exit 1
@@ -71,6 +94,8 @@ configure_args=(
     -DCMAKE_OSX_SYSROOT=iphoneos
     -DCMAKE_OSX_ARCHITECTURES=arm64
     -DDINOPAD_ENABLE_TEST_HARNESS=OFF
+    -DDINOPAD_ENABLE_STATIC_RESTORATION="$STATIC_RESTORATION"
+    -DDINOPAD_AOT="$AOT_DIR"
 )
 # DinoPad itself is installable so `xcodebuild archive` emits a usable app for
 # Organizer. Ordinary builds must remain non-install installs so CMake writes
@@ -134,13 +159,13 @@ if [[ -n "$TEAM" ]]; then
         echo "ERROR: signed device app has no embedded provisioning profile" >&2
         exit 1
     }
-    echo "DinoPad signed iOS device app ready: $APP"
-    "$ROOT/scripts/check-package-safety.sh" --allow-signing "$APP"
+    echo "DinoPad signed iOS $DISTRIBUTION app ready: $APP"
+    "$ROOT/scripts/check-package-safety.sh" --distribution "$DISTRIBUTION" --allow-signing "$APP"
 else
     [[ ! -e "$APP/_CodeSignature" && ! -e "$APP/embedded.mobileprovision" ]] || {
         echo "ERROR: unsigned device app unexpectedly contains signing state" >&2
         exit 1
     }
-    echo "DinoPad unsigned iOS device app ready: $APP"
-    "$ROOT/scripts/check-package-safety.sh" "$APP"
+    echo "DinoPad unsigned iOS $DISTRIBUTION app ready: $APP"
+    "$ROOT/scripts/check-package-safety.sh" --distribution "$DISTRIBUTION" "$APP"
 fi

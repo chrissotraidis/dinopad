@@ -6,9 +6,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/build-ios-device/Release-iphoneos/DinoPad.app"
 ALLOW_SIGNING=0
+DISTRIBUTION="restored"
 
 usage() {
-    echo "usage: scripts/check-package-safety.sh [--allow-signing] [DinoPad.app]" >&2
+    echo "usage: scripts/check-package-safety.sh [--distribution restored|base] [--allow-signing] [DinoPad.app]" >&2
 }
 
 while [[ $# -gt 0 ]]; do
@@ -16,6 +17,11 @@ while [[ $# -gt 0 ]]; do
         --allow-signing)
             ALLOW_SIGNING=1
             shift
+            ;;
+        --distribution)
+            [[ $# -ge 2 && ("$2" == restored || "$2" == base) ]] || { usage; exit 2; }
+            DISTRIBUTION="$2"
+            shift 2
             ;;
         -h|--help)
             usage
@@ -162,27 +168,40 @@ if strings -a "$EXECUTABLE" | rg -q \
 fi
 
 RESTORATION="$APP/dinomod_restoration_data.nrm"
-GENERATED_RESTORATION="$ROOT/generated/restoration/dinomod_restoration_data.nrm"
-RESTORATION_AUDIT="$ROOT/generated/restoration/dinomod_restoration_data.audit.json"
-[[ -f "$RESTORATION" && -f "$GENERATED_RESTORATION" && -f "$RESTORATION_AUDIT" ]] ||
-    fail "audited restoration data inputs are missing"
-cmp -s "$RESTORATION" "$GENERATED_RESTORATION" ||
-    fail "bundled restoration data differs from the generated audit input"
-[[ "$(unzip -Z1 "$RESTORATION")" == $'mod.json\nmod_syms.bin\nmod_binary.bin' ]] ||
-    fail "restoration data contains unexpected members"
-EXPECTED_RESTORATION_SHA="$(python3 -c \
-    'import json,sys; print(json.load(open(sys.argv[1]))["package_sha256"])' \
-    "$RESTORATION_AUDIT")"
-ACTUAL_RESTORATION_SHA="$(shasum -a 256 "$RESTORATION" | awk '{print $1}')"
-[[ "$ACTUAL_RESTORATION_SHA" == "$EXPECTED_RESTORATION_SHA" ]] ||
-    fail "restoration data checksum does not match its audit"
+if [[ "$DISTRIBUTION" == restored ]]; then
+    GENERATED_RESTORATION="$ROOT/generated/restoration/dinomod_restoration_data.nrm"
+    RESTORATION_AUDIT="$ROOT/generated/restoration/dinomod_restoration_data.audit.json"
+    [[ -f "$RESTORATION" && -f "$GENERATED_RESTORATION" && -f "$RESTORATION_AUDIT" ]] ||
+        fail "audited restoration data inputs are missing"
+    cmp -s "$RESTORATION" "$GENERATED_RESTORATION" ||
+        fail "bundled restoration data differs from the generated audit input"
+    [[ "$(unzip -Z1 "$RESTORATION")" == $'mod.json\nmod_syms.bin\nmod_binary.bin' ]] ||
+        fail "restoration data contains unexpected members"
+    EXPECTED_RESTORATION_SHA="$(python3 -c \
+        'import json,sys; print(json.load(open(sys.argv[1]))["package_sha256"])' \
+        "$RESTORATION_AUDIT")"
+    ACTUAL_RESTORATION_SHA="$(shasum -a 256 "$RESTORATION" | awk '{print $1}')"
+    [[ "$ACTUAL_RESTORATION_SHA" == "$EXPECTED_RESTORATION_SHA" ]] ||
+        fail "restoration data checksum does not match its audit"
+else
+    [[ ! -e "$RESTORATION" ]] || fail "base build contains DinoMod restoration data"
+    if strings -a "$EXECUTABLE" | rg -q \
+        'dinomod_enhanced|Restored Adventure|Static restoration dispatch enabled|Bundled static restoration|Bundled restoration data registered'; then
+        fail "base executable contains DinoMod restoration integration"
+    fi
+fi
 
 echo "DinoPad device-app safety audit passed: $APP"
 echo "  executable: arm64, iOS 15.0+, static system dependencies only"
 echo "  test harness: absent"
 echo "  ROM/save/log/private paths: absent"
 echo "  privacy manifest: no tracking/collection; exact required-reason set"
-echo "  compiled dependency notices: standalone and inline-primary set assembled; secondary review pending"
-echo "  restoration data: sanitized audit input $ACTUAL_RESTORATION_SHA"
+echo "  compiled dependency notices: complete standalone/assembled primary set"
+if [[ "$DISTRIBUTION" == restored ]]; then
+    echo "  distribution: restored development build"
+    echo "  restoration data: sanitized audit input $ACTUAL_RESTORATION_SHA"
+else
+    echo "  distribution: base public-package input; DinoMod code/data absent"
+fi
 echo "  signing state: $([[ "$ALLOW_SIGNING" -eq 1 ]] && echo development-signed || echo unsigned)"
-echo "NOTE: DinoMod permission and complete license/notices remain separate release blockers."
+echo "NOTE: this technical audit does not itself grant redistribution rights."

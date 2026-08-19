@@ -31,7 +31,8 @@ endif()
 
 get_filename_component(DINOPAD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 set(DINO_RECOMP "${DINOPAD_ROOT}/ref/dino-recomp")
-set(DINOPAD_AOT "${DINOPAD_ROOT}/generated/aot")
+set(DINOPAD_AOT "${DINOPAD_ROOT}/generated/aot" CACHE PATH
+    "Private generated base-game AOT source directory")
 set(DINOPAD_RESTORATION "${DINOPAD_ROOT}/generated/restoration")
 
 # Reproducible builds: do not embed the builder's absolute checkout path.
@@ -257,6 +258,8 @@ set(DINOPAD_RUNTIME_SOURCES
     "${DINO_RECOMP}/src/ui/util/hsv.cpp")
 
 add_library(dinopad_runtime STATIC ${DINOPAD_RUNTIME_SOURCES})
+target_compile_definitions(dinopad_runtime PUBLIC
+    DINOPAD_ENABLE_STATIC_RESTORATION=$<BOOL:${DINOPAD_ENABLE_STATIC_RESTORATION}>)
 target_include_directories(dinopad_runtime PUBLIC
     "${DINOPAD_ROOT}/include"
     ${DINOPAD_RECOMP_INCLUDE_DIRS}

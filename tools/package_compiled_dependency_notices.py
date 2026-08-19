@@ -67,7 +67,7 @@ def expected_index(target: str) -> tuple[dict[str, object], dict[pathlib.PurePos
     index = {
         "schema_version": 1,
         "target": target,
-        "basis": "Generated from docs/COMPILED_DEPENDENCY_INVENTORY.json; inline package files are mechanically assembled primary notices and do not close secondary-notice or legal review.",
+        "basis": "Generated from docs/COMPILED_DEPENDENCY_INVENTORY.json; every target-present ownership root has a hash-bound standalone or mechanically assembled primary notice.",
         "components": records,
     }
     return index, copies

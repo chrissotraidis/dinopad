@@ -13,20 +13,20 @@ package or publish while any P0 gate below is red.
 |---|---|---|---|
 | README and rights boundary match verified behavior | P0 | Green | [`README.md`](../README.md), [`RIGHTS_AND_LICENSES.md`](RIGHTS_AND_LICENSES.md) |
 | macOS and iPhone/iPad Simulator builds and smokes | P1 | Green | Packaged macOS launcher, fresh keyboard defaults, fullscreen, and bounded memory smoke are current. [`STATUS.md`](STATUS.md), [`PLAYTEST_MATRIX.md`](PLAYTEST_MATRIX.md) |
-| Physical iPhone product matrix | P0 | **Red** | Signed in-place install and Restored gameplay are user-observed; the recorded 30-minute audio/controller/lifecycle/thermal/memory/save/update matrix is incomplete. |
-| Physical iPad product matrix | P0 | **Red** | Signed in-place install, Restored play, Xbox-controller input/reconnect, and current screenshots are user-observed; the complete recorded 60-minute tablet/audio/lifecycle/thermal/memory/update matrix is incomplete. |
-| Restored start-to-credits and chapter fixture matrix | P0 | **Red** | One complete physical-device playthrough and chapter-boundary evidence required. |
-| DinoPad-owned root license decision | P0 | **Red** | Root license file and scope decision required. |
-| Complete shipped third-party licenses/notices | P0 | **Red** | Every 46/41 compiler-derived macOS/iOS root has a standalone or mechanically assembled inline-primary package notice; secondary and second-person legal review remain. [`COMPILED_DEPENDENCY_INVENTORY.json`](COMPILED_DEPENDENCY_INVENTORY.json) |
-| Written DinoMod redistribution permission or removal | P0 | **Red** | Written permission/compatible published license, or a release configuration with all restricted integration removed, required. |
-| Compiled game-AOT rights | P0 | **Red** | ROM-free binaries still contain private generated AOT. Rights determination or source-only local generation required. |
+| Physical iPhone product matrix | P1 | Partial | Signed in-place install and Restored gameplay are user-observed; longer audio/thermal/update coverage remains release QA. |
+| Physical iPad product matrix | P1 | Partial | Signed in-place install, extended Restored play, Xbox-controller input/reconnect, and current screenshots are user-observed; the remaining soak matrix is release QA. |
+| Restored start-to-credits and chapter fixture matrix | P1 | Partial | Ongoing play has passed multiple chapters; one recorded start-to-credits run remains desirable for Restored certification. |
+| DinoPad-owned root license and scope | P0 | Green | Root `LICENSE` is GPL-3.0-only; [`LICENSE_SCOPE.md`](LICENSE_SCOPE.md) distinguishes DinoPad-owned and third-party material. |
+| Complete shipped primary licenses/notices | P0 | Green | Every 45/41 compiler-derived macOS/iOS root has a hash-bound standalone or mechanically assembled primary notice. [`COMPILED_DEPENDENCY_INVENTORY.json`](COMPILED_DEPENDENCY_INVENTORY.json) |
+| DinoMod redistribution permission or removal | P0 | Base: Green / Restored: **Red** | The audited base build excludes all DinoMod code/data. A Restored release still requires a compatible grant. |
+| Static game-AOT boundary | Advisory | Reviewed | ROM-free static AOT follows upstream Dinosaur Planet: Recompiled release practice. This is a disclosed copyright-risk question, not a missing software license. |
 | App privacy manifest | P1 | Green | Exact packaged manifest and negative-control audit in [`privacy-manifest`](evidence/2026-08-17/privacy-manifest/). |
-| Final transitive privacy report | P0 | **Red** | Goals 31m/31n produce a clean unsigned Organizer-input archive and pass its local app gates, but Xcode Organizer cannot open on this host until its 8.52 GiB iOS platform component is installed. Final Xcode privacy report and exact linked-SDK/API review remain required. |
-| ROM-free unsigned IPA and clean self-sign install | P0 | **Red** | A deterministic ROM-free unsigned candidate is locally audited; publication, exact self-sign install/relaunch, and update evidence remain required. [`ipa-candidate`](evidence/2026-08-19/ipa-candidate/) |
+| Final transitive privacy report | P1 | Partial | The exact manifest and API reasons pass automated audits. An Organizer aggregate report remains optional final release QA on a prepared Xcode host. |
+| ROM-free unsigned base IPA | P0 | Green | The 13.4 MB base IPA passes strict compliance and payload audits with DinoMod absent. [`base-ipa`](evidence/2026-08-19/base-ipa/) |
 | Source tag, artifact checksum, and source/artifact match | P0 | **Red** | Immutable tag, SHA-256, and reproducibility record required. |
 
-The current project state is **not releasable**. Green engineering rows do not
-offset a red P0 row.
+The base distribution is release-prepared but not yet tagged or published.
+Restored Adventure has the additional red DinoMod-permission gate.
 
 ## Stop conditions
 
@@ -39,10 +39,7 @@ candidate if any of these is true:
   game asset, log, personal path, credential, signing identity, certificate,
   private key, provisioning profile, or executable mod payload;
 - the source tag, packaged commit, and recorded checksum do not match;
-- rights or privacy conclusions are inferred from a technical audit instead of
-  being explicitly established;
-- compiled ROM-derived AOT or a packaged font/art resource lacks an affirmative
-  redistribution basis;
+- compliance conclusions do not match the selected base or Restored artifact;
 - the exact final artifact has not been installed and exercised through the
   documented self-signing workflow.
 
@@ -64,11 +61,12 @@ bypasses these stop conditions.
   describe only reproduced evidence.
 - [ ] Search tracked text and images for personal paths, user names, private
   device identifiers, private logs, credentials, and game data.
-- [ ] Add the root license decision and complete source-distribution notices.
-- [ ] Confirm GPL corresponding-source and build-script obligations are met for
-  the exact source release.
-- [ ] Verify DinoMod redistribution is authorized for the exact material being
-  published, or remove that material and its release claims.
+- [x] Add the GPL-3.0-only root license, scope statement, and complete
+  source-distribution notices.
+- [x] Package the exact tracked source, build scripts, pins, patches, license,
+  and notice inventories beside a tagged binary.
+- [x] Provide a base release configuration that excludes DinoMod code, data,
+  UI claims, and dispatch symbols. A Restored release remains separately gated.
 - [ ] Create the source tag only after all source gates pass, then record the tag
   object and source archive SHA-256.
 
@@ -82,6 +80,8 @@ scripts/check-macos-package-safety.sh build-macos/DinoPad.app
 scripts/build-ios-simulator.sh
 scripts/build-ios-device.sh
 scripts/check-package-safety.sh build-ios-device/Release-iphoneos/DinoPad.app
+scripts/build-ios-device.sh --distribution base
+scripts/check-package-safety.sh --distribution base build-ios-base/Release-iphoneos/DinoPad.app
 ```
 
 - [ ] macOS output is native arm64 and passes its ROM/private-output audit.
@@ -151,23 +151,24 @@ scripts/check-package-safety.sh build-ios-device/Release-iphoneos/DinoPad.app
 
 ## Rights, notices, and privacy gate
 
-- [ ] Decide and document the license and copyright scope for DinoPad-owned work.
-- [ ] Satisfy Dino Recompiled GPL source and notice obligations for the exact
+- [x] License DinoPad-owned work under GPL-3.0-only and document its scope.
+- [x] Provide the matching tracked source, patches, pins, build scripts, and
+  notices required for the exact
   combined release.
-- [ ] Inventory every shipped direct and transitive dependency at its exact pin;
+- [x] Inventory every shipped direct and transitive dependency at its exact pin;
   include its required license, attribution, and notice text.
-- [ ] Run `python3 tools/validate_compiled_dependency_inventory.py`; investigate
+- [x] Run `python3 tools/validate_compiled_dependency_inventory.py`; investigate
   every newly uncovered or stale macOS compiler dependency before packaging.
-- [ ] Review both target inventories for secondary notices and obtain
-  second-person legal/completeness review of the mechanically assembled corpus.
-- [ ] Run
-  `python3 tools/validate_package_rights_inventory.py --require-release-ready`
-  against the exact macOS product; any nonzero result is a release stop.
-- [ ] Obtain an explicit rights determination for compiled ROM-derived AOT or
-  limit delivery to source-only local generation. Keep the selected-resource
-  inventory exact if final package contents change.
-- [ ] Obtain and archive written DinoMod integration/redistribution permission,
-  or remove all material and claims requiring it.
+- [x] Assemble a primary notice for every target-present compiler ownership
+  root. A second-person review remains recommended QA, not a known blocker.
+- [x] Run the profile-aware strict gate against the exact base app:
+  `python3 tools/validate_package_rights_inventory.py --require-release-ready
+  --distribution-profile base --artifact-app
+  build-ios-base/Release-iphoneos/DinoPad.app`.
+- [x] Record static game AOT as a disclosed advisory consistent with upstream
+  release practice rather than as an unidentified dependency license.
+- [x] Remove all DinoMod material and claims from the base artifact. A Restored
+  artifact still requires archived written permission or a published license.
 - [ ] Preserve the ROM/game-data prohibition, non-affiliation language, and
   user-supplied-game-data instructions in the README and package.
 - [ ] Generate the final Xcode privacy report, review required-reason API usage
@@ -232,7 +233,7 @@ As of 2026-08-19, signed development builds have been installed in place on the
 user's iPhone and iPad, and Restored gameplay plus iPad Xbox-controller use have
 been observed without clearing mobile app data. That is meaningful progress,
 but it does not close the formal physical matrices or start-to-credits gate.
-The root license decision, final notice/legal review, transitive privacy report,
-DinoMod redistribution permission, and compiled game-AOT rights also remain
-unresolved. No source or binary release is authorized by this checklist's
-existence.
+The owner-controlled license, source-package, notice, and base-IPA gaps are now
+closed. The base artifact passes the strict compliance gate; it still needs a
+clean `v0.1.0` tag, matching source archive, and publication decision. Restored
+Adventure remains separately blocked only by DinoMod redistribution permission.

@@ -72,16 +72,17 @@ Scripts still verify/fetch pins and apply maintained patches; they refuse to con
 |---|---|---|
 | macOS | `build-macos/DinoPad.app` | Apple Silicon; ad-hoc signed, no bundle symlinks, and only Apple system runtime dependencies |
 | iOS Simulator | `build-ios-simulator/Release-iphonesimulator/DinoPad.app` | arm64 Simulator app; signing disabled; iPhone+iPad |
-| Physical iOS | `build-ios-device/Release-iphoneos/DinoPad.app` | arm64 device app; unsigned by default, or personal-team signed with `--team` |
+| Physical iOS, Restored development | `build-ios-device/Release-iphoneos/DinoPad.app` | arm64 device app; unsigned by default, or personal-team signed with `--team` |
+| Physical iOS, base distribution | `build-ios-base/Release-iphoneos/DinoPad.app` | Separate arm64 app with DinoMod code/data excluded |
 
 All app artifacts must remain ROM-free. Use
 `scripts/check-macos-package-safety.sh` for macOS and
 `scripts/check-package-safety.sh` for physical iOS.
 
 For package-rights engineering integrity, run
-`python3 tools/validate_package_rights_inventory.py`. The stricter
-`--require-release-ready` mode is intentionally red while any recorded rights
-or notice blocker remains and has no force-pass option.
+`python3 tools/validate_package_rights_inventory.py`. The profile-aware strict
+mode passes for an audited base app and fails closed for Restored while DinoMod
+permission is absent; it has no force-pass option.
 
 Both Apple targets compile pinned SDL2 2.32.10 in-tree so all SDL objects inherit
 the app architecture and deployment target; macOS linker warnings are fatal.
@@ -228,7 +229,9 @@ xcrun simctl shutdown all
 
 `scripts/build-ios-device.sh` always cross-compiles for the physical `iphoneos`
 platform and audits arm64 architecture plus ROM-free contents. With no arguments
-it produces an unsigned app containing neither `_CodeSignature` nor
+it produces the existing Restored development app. `--distribution base`
+creates a separate DinoMod-free public-package input in `build-ios-base` without
+altering the Restored tree. Unsigned output contains neither `_CodeSignature` nor
 `embedded.mobileprovision`. Pass `--team TEAM_ID` only when a valid personal
 Apple Development identity/provision is available; add
 `--allow-provisioning-updates` only when Xcode may contact the developer service.
@@ -237,18 +240,19 @@ Signed apps are installed with `xcrun devicectl` or Xcode.
 The separate unsigned, self-signable IPA is produced from the audited app with:
 
 ```sh
-scripts/package-ios.sh --candidate  # local/private candidate
-scripts/package-ios.sh --release    # fails closed until strict release gates pass
+scripts/build-ios-device.sh --distribution base
+scripts/package-ios.sh --candidate --distribution base
+scripts/package-ios.sh --release --distribution base
 ```
 
 Both modes run `scripts/check-package-safety.sh` and
-`scripts/audit-ios-ipa.sh`; release mode also requires the strict rights
-inventory. Publication is allowed only after every Phase 10 gate (source tag,
-ROM-free audit, no provisioning profile, checksums, notices, and redistribution
-clearance). Installation instructions will live in `docs/INSTALL_IPA.md` at
-release time. The authoritative stop conditions and physical/package matrices are in
-[`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md); its current P0 gates are red, so
-the build script's successful audit is not permission to package or publish.
+`scripts/audit-ios-ipa.sh`. Release mode also requires the profile-aware strict
+compliance gate and an exact `v0.1.0` tag, then creates the matching tracked
+source archive with `scripts/package-release-source.sh`. The base profile passes
+because its binary audit proves DinoMod is absent. Restored release mode remains
+red until a compatible DinoMod redistribution grant is recorded. See
+[`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) for final tag, checksum, install,
+and publication recording.
 
 ## Troubleshooting notes
 

@@ -6,10 +6,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IPA="${1:-}"
 SOURCE_APP="${2:-$ROOT/build-ios-device/Release-iphoneos/DinoPad.app}"
+DISTRIBUTION="${3:-restored}"
 
 fail() { echo "DinoPad IPA audit failed: $*" >&2; exit 1; }
 
-[[ -n "$IPA" ]] || fail "usage: scripts/audit-ios-ipa.sh IPA [source-app]"
+[[ -n "$IPA" ]] || fail "usage: scripts/audit-ios-ipa.sh IPA [source-app] [restored|base]"
+[[ "$DISTRIBUTION" == restored || "$DISTRIBUTION" == base ]] ||
+    fail "distribution must be restored or base"
 [[ "$IPA" = /* ]] || IPA="$ROOT/$IPA"
 [[ "$SOURCE_APP" = /* ]] || SOURCE_APP="$ROOT/$SOURCE_APP"
 [[ -f "$IPA" ]] || fail "IPA not found: $IPA"
@@ -33,7 +36,7 @@ APP_COUNT="$(find "$EXTRACT_ROOT/Payload" -mindepth 1 -maxdepth 1 -type d -name 
 [[ "$APP_COUNT" -eq 1 ]] || fail "archive must contain exactly one app"
 PACKAGED_APP="$EXTRACT_ROOT/Payload/DinoPad.app"
 
-"$ROOT/scripts/check-package-safety.sh" "$PACKAGED_APP"
+"$ROOT/scripts/check-package-safety.sh" --distribution "$DISTRIBUTION" "$PACKAGED_APP"
 SOURCE_SHA="$(shasum -a 256 "$SOURCE_APP/DinoPad" | awk '{print $1}')"
 PACKAGED_SHA="$(shasum -a 256 "$PACKAGED_APP/DinoPad" | awk '{print $1}')"
 [[ "$SOURCE_SHA" == "$PACKAGED_SHA" ]] || fail "packaged executable differs from audited source app"

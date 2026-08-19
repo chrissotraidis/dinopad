@@ -176,7 +176,11 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 - (void)updateControllerSelection {
     _controllerConnected = GCController.controllers.count > 0;
     _controllerHint.hidden = !_controllerConnected;
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     NSArray<UIButton*>* buttons = @[_restoredButton, _prototypeButton];
+#else
+    NSArray<UIButton*>* buttons = @[_prototypeButton];
+#endif
     for (NSInteger index = 0; index < (NSInteger)buttons.count; ++index) {
         UIButton* button = buttons[index];
         const BOOL selected = _controllerConnected && index == _controllerSelection;
@@ -190,9 +194,15 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 
 - (void)moveControllerSelection:(NSInteger)delta {
     if (self.presentedViewController != nil || self.selection >= 0) return;
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     _controllerSelection = MAX(0, MIN(1, _controllerSelection + delta));
     dinopad_diagnostics_breadcrumb("home_controller",
         _controllerSelection == 0 ? "restored_focused" : "prototype_focused");
+#else
+    (void)delta;
+    _controllerSelection = 0;
+    dinopad_diagnostics_breadcrumb("home_controller", "prototype_focused");
+#endif
     [self updateControllerSelection];
     [self setNeedsFocusUpdate];
     [self updateFocusIfNeeded];
@@ -200,10 +210,15 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 
 - (void)activateControllerSelection {
     if (self.presentedViewController != nil || self.selection >= 0) return;
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     dinopad_diagnostics_breadcrumb("home_controller",
         _controllerSelection == 0 ? "restored_activated" : "prototype_activated");
     if (_controllerSelection == 0) [self selectRestored];
     else [self showPrototypeWarning];
+#else
+    dinopad_diagnostics_breadcrumb("home_controller", "prototype_activated");
+    [self showPrototypeWarning];
+#endif
 }
 
 - (void)presentHomeMenu {
@@ -301,7 +316,11 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 
 - (NSArray<id<UIFocusEnvironment>>*)preferredFocusEnvironments {
     if (_controllerConnected) {
+#if DINOPAD_ENABLE_STATIC_RESTORATION
         return @[_controllerSelection == 0 ? _restoredButton : _prototypeButton];
+#else
+        return @[_prototypeButton];
+#endif
     }
     return [super preferredFocusEnvironments];
 }
@@ -309,8 +328,12 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 - (void)didUpdateFocusInContext:(UIFocusUpdateContext*)context
         withAnimationCoordinator:(UIFocusAnimationCoordinator*)coordinator {
     [super didUpdateFocusInContext:context withAnimationCoordinator:coordinator];
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     if (context.nextFocusedView == _restoredButton) _controllerSelection = 0;
     else if (context.nextFocusedView == _prototypeButton) _controllerSelection = 1;
+#else
+    if (context.nextFocusedView == _prototypeButton) _controllerSelection = 0;
+#endif
     [coordinator addCoordinatedAnimations:^{ [self updateControllerSelection]; }
                                   completion:nil];
 }
@@ -338,17 +361,28 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
                                            UIFontWeightHeavy)
                           color:UIColor.whiteColor];
 
-    UILabel* subtitle = [self label:@"Pick your adventure."
+    UILabel* subtitle = [self label:
+#if DINOPAD_ENABLE_STATIC_RESTORATION
+                              @"Pick your adventure."
+#else
+                              @"Explore the original adventure."
+#endif
                               font:themedFont(@"AvenirNext-Medium", tablet ? 21.0 : 17.0,
                                               UIFontWeightMedium)
                              color:[UIColor colorWithWhite:0.86 alpha:1.0]];
     subtitle.accessibilityIdentifier = @"dinopad.home.subtitle";
 
-    UILabel* choose = [self label:@"SELECT A PATH"
+    UILabel* choose = [self label:
+#if DINOPAD_ENABLE_STATIC_RESTORATION
+                            @"SELECT A PATH"
+#else
+                            @"START THE ADVENTURE"
+#endif
                             font:themedFont(@"AvenirNextCondensed-DemiBold", 16.0,
                                             UIFontWeightBold)
                            color:color(0.72, 0.88, 0.52)];
 
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     UIButton* restored = profileButton(
         @"Restored Adventure",
         @"The recommended journey",
@@ -358,36 +392,58 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
     restored.accessibilityHint = @"Starts the recommended restored adventure";
     [restored addTarget:self action:@selector(selectRestored)
        forControlEvents:UIControlEventTouchUpInside];
+#endif
 
     UIButton* prototype = profileButton(
+#if DINOPAD_ENABLE_STATIC_RESTORATION
         @"Prototype Mode",
         @"The original, unfinished build",
         @"archivebox.fill",
         NO, !tablet);
+#else
+        @"Start Dinosaur Planet",
+        @"The original December 2000 prototype",
+        @"play.fill",
+        YES, !tablet);
+#endif
     prototype.accessibilityIdentifier = @"dinopad.home.prototype";
     prototype.accessibilityHint = @"Shows an archival mode warning before starting";
     [prototype addTarget:self action:@selector(showPrototypeWarning)
         forControlEvents:UIControlEventTouchUpInside];
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     _restoredButton = restored;
+#endif
     _prototypeButton = prototype;
 
-    _controllerHint = [self label:@"D-pad  Choose    A / Start  Play    Y / View  Options"
+    _controllerHint = [self label:
+#if DINOPAD_ENABLE_STATIC_RESTORATION
+        @"D-pad  Choose    A / Start  Play    Y / View  Options"
+#else
+        @"A / Start  Play    Y / View  Options"
+#endif
         font:themedFont(@"AvenirNext-DemiBold", tablet ? 13.0 : 11.0,
                         UIFontWeightSemibold)
         color:[UIColor colorWithWhite:1.0 alpha:0.68]];
     _controllerHint.accessibilityIdentifier = @"dinopad.home.controller-hint";
     _controllerHint.hidden = YES;
 
-    UIStackView* choices = [[UIStackView alloc] initWithArrangedSubviews:@[
-        restored, prototype,
-    ]];
+#if DINOPAD_ENABLE_STATIC_RESTORATION
+    NSArray<UIView*>* profileChoices = @[restored, prototype];
+#else
+    NSArray<UIView*>* profileChoices = @[prototype];
+#endif
+    UIStackView* choices = [[UIStackView alloc] initWithArrangedSubviews:profileChoices];
     choices.axis = UILayoutConstraintAxisVertical;
     choices.alignment = UIStackViewAlignmentFill;
     choices.distribution = UIStackViewDistributionFillEqually;
     choices.spacing = 14.0;
 
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     [restored.heightAnchor constraintGreaterThanOrEqualToConstant:tablet ? 124.0 : 92.0].active = YES;
     [prototype.heightAnchor constraintEqualToAnchor:restored.heightAnchor].active = YES;
+#else
+    [prototype.heightAnchor constraintGreaterThanOrEqualToConstant:tablet ? 124.0 : 92.0].active = YES;
+#endif
 
     UIStackView* stack = [[UIStackView alloc] initWithArrangedSubviews:@[
         title, subtitle, choose, choices, _controllerHint,
@@ -496,7 +552,13 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
     }
     if ([choice isEqualToString:@"restored"]) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ [self selectRestored]; });
+                       dispatch_get_main_queue(), ^{
+#if DINOPAD_ENABLE_STATIC_RESTORATION
+                           [self selectRestored];
+#else
+                           [self confirmPrototype];
+#endif
+                       });
     } else if ([choice isEqualToString:@"prototype"]) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
@@ -512,8 +574,12 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
 }
 
 - (void)selectRestored {
+#if DINOPAD_ENABLE_STATIC_RESTORATION
     logHome("Restored selected");
     self.selection = 0;
+#else
+    [self confirmPrototype];
+#endif
 }
 
 - (void)confirmPrototype {
@@ -525,7 +591,11 @@ UIButton* profileButton(NSString* title, NSString* subtitle, NSString* symbol,
     if (self.presentedViewController != nil) return;
     UIAlertController* warning = [UIAlertController
         alertControllerWithTitle:@"Prototype Mode is archival"
+#if DINOPAD_ENABLE_STATIC_RESTORATION
                          message:@"This mode disables DinoPad’s restoration fixes. The surviving December 2000 prototype is incomplete, contains unfinished content, and may become progression-blocked. Prototype saves and settings remain separate from Restored Adventure."
+#else
+                         message:@"The surviving December 2000 prototype is incomplete, contains unfinished content, and may become progression-blocked."
+#endif
                   preferredStyle:UIAlertControllerStyleAlert];
     [warning addAction:[UIAlertAction actionWithTitle:@"Continue to Prototype Mode"
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {

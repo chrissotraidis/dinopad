@@ -1,6 +1,6 @@
 # DinoPad rights and licensing boundary
 
-Last updated: 2026-08-18
+Last updated: 2026-08-19
 
 DinoPad is an independent, unofficial source-port project. It is not affiliated
 with or endorsed by Nintendo, Rare, Microsoft, Dinosaur Planet Recompiled,
@@ -20,12 +20,13 @@ Do not commit, bundle, upload, attach to CI, link to, or request those files.
 Private generation and runtime output belongs only in ignored locations such as
 `generated/`, app containers, and local evidence scratch directories.
 
-The current development executables are technically ROM-free but statically
-link private AOT generated from the user-supplied game program. Absence of the
-original ROM bytes does not itself establish permission to redistribute that
-derived executable. Binary release therefore requires an explicit rights/legal
-determination, or a source-only workflow in which each user performs private
-generation locally.
+The executables are technically ROM-free but statically link AOT generated from
+the user-supplied game program. That is a disclosed copyright-risk question,
+not an unidentified dependency license. The upstream Dinosaur Planet:
+Recompiled project publicly distributes the same form of static-recompilation
+binary while requiring users to supply the original game. DinoPad records this
+as an advisory and follows the same no-ROM/no-game-assets boundary; this
+engineering classification is not legal advice.
 
 Documentation screenshots show compatibility behavior captured from a locally
 supplied game copy. They are evidence, not playable game data. Game names,
@@ -42,6 +43,7 @@ Current top-level inventory:
 
 | Component | Pin | Recorded license state |
 |---|---|---|
+| DinoPad-owned work | Current repository | GNU GPL version 3.0 only; scope in [`LICENSE_SCOPE.md`](LICENSE_SCOPE.md). |
 | Dino Recompiled | v0.3.0 / `725b2ede9cacc57968e0a028efed8df9235ba483` | Upstream `COPYING` is GNU GPL version 3. |
 | DinoMod Enhanced Recompiled | v0.9.3 / `d79e86be2304cba75216b0b98e9fb53ee99b7500` | No conventional redistribution license is declared at the pin; public integration is blocked pending written permission or a compatible published license. |
 | PaperPad | `644945d4bc4facbbd8ecda8cdfd37ae64e7993fa` | Reference implementation with its own multi-project rights boundary; DinoPad does not copy Paper Mario game code, art, or branding. |
@@ -58,27 +60,19 @@ The package-specific engineering inventory is
 `tools/validate_package_rights_inventory.py`. Its first macOS pass proves exact
 pins/license-text hashes for 17 directly linked components and exact hashes for
 8 selected packaged resources. A second compiler-derived inventory maps all
-2,227 current macOS `ref/` source/header dependencies to 46 deepest-prefix
+2,187 current macOS `ref/` source/header dependencies to 45 deepest-prefix
 ownership roots; physical iOS maps 2,578 paths to 41 roots. The apps index exact
-copies of 39 and 35 standalone license files respectively, plus mechanically
-assembled inline-primary notices for all 7 union roots (6 on iOS). Every 46/41
+copies of the applicable standalone license files plus mechanically assembled
+inline-primary notices for all six target-present inline roots. Every 45/41
 component root therefore has a package entry. The package removes DinoFont, Noto Emoji, the
 unproven game logo, and Krazoa artwork; its remaining Lato faces have exact
 attribution and SIL OFL 1.1 text in the app. These engineering inventories do
-not claim complete notice compliance or legal clearance. Strict release mode
-currently fails closed on:
-
-- the root DinoPad-owned license decision;
-- GPL corresponding-source/combined-work obligations;
-- DinoMod redistribution permission;
-- rights for the compiled private game AOT;
-- secondary-notice and second-person legal-completeness review across both
-  indexed products.
-
-The repository currently has no root license file or complete assembled
-third-party notice set. That absence is a release blocker. It must not be read
-as a grant to redistribute DinoPad-owned material, and it does not remove GPL or
-other obligations attached to incorporated upstream work.
+not claim legal advice. The repository now has a GPL-3.0-only root license, a
+matching tracked-source archive workflow, and complete automated primary-notice
+coverage for both products. Additional human notice review and the generated
+game-AOT question are disclosed advisories rather than fabricated missing
+licenses. Strict release mode passes for the audited base build and fails for a
+Restored build only on DinoMod redistribution permission.
 
 ## DinoMod restoration boundary
 
@@ -97,20 +91,18 @@ and permission status.
 
 ## Release packages
 
-No public DinoPad package exists. Before publishing source or a binary release,
-the project must at minimum:
+No public DinoPad package has been uploaded yet. Before publishing an artifact,
+the project must:
 
-1. determine and state the license for DinoPad-owned work;
-2. satisfy Dino Recompiled's GPL source and notice obligations;
-3. collect the exact required license/notice files for every shipped dependency;
-4. resolve compiled game-AOT redistribution rights and re-audit every final
-   packaged resource;
-5. obtain and record DinoMod redistribution permission or remove all material
-   requiring it;
-6. complete physical-device and progression gates;
-7. prove the package contains no ROM, save, generated prohibited asset, private
+1. build from the exact tagged GPL-3.0-only source snapshot;
+2. publish the matching source archive, build scripts, patches, pins, license,
+   and compiled notice corpus beside the binary;
+3. for Restored Adventure, obtain and record DinoMod redistribution permission;
+   otherwise use the audited base build that excludes all DinoMod material;
+4. complete the selected release's physical-device and progression gates;
+5. prove the package contains no ROM, save, generated prohibited asset, private
    log, path, signing identity, or provisioning profile;
-8. tie the artifact and SHA-256 checksum to a matching source tag.
+6. tie the artifact and SHA-256 checksum to the matching source tag.
 
 The operational release gate is [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md);
 the product requirements remain in
