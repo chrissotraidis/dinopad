@@ -40,18 +40,24 @@ diff --git a/src/runtime/gfx.cpp b/src/runtime/gfx.cpp
  
      fprintf(stdout, "SDL Video Driver: %s\n", SDL_GetCurrentVideoDriver());
  
-@@ -86,6 +103,10 @@ bool SetImageAsIcon(const char* filename, SDL_Window* window)
+@@ -86,6 +103,16 @@ bool SetImageAsIcon(const char* filename, SDL_Window* window)
  ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::gfx_data_t, int width, int height) {
      uint32_t flags = SDL_WINDOW_RESIZABLE;
  
 +#if defined(__APPLE__)
 +    flags |= SDL_WINDOW_METAL;
++#if TARGET_OS_IPHONE
++    // SDL owns the CAMetalLayer and will recompute its drawable size during
++    // UIKit layout. Match that layer to the device's native pixel scale so
++    // RT64 never caches a 2x viewport for a later 1x drawable.
++    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
++#endif
 +#endif
 +
  #if defined(RT64_SDL_WINDOW_VULKAN)
      flags |= SDL_WINDOW_VULKAN;
  #endif
-@@ -112,6 +134,29 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
+@@ -112,6 +140,37 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
      return ultramodern::renderer::WindowHandle{ wmInfo.info.win.window, GetCurrentThreadId() };
  #elif defined(__linux__) || defined(__ANDROID__)
      return ultramodern::renderer::WindowHandle{ window };
@@ -66,12 +72,20 @@ diff --git a/src/runtime/gfx.cpp b/src/runtime/gfx.cpp
 +    SDL_SetWindowTitle(window, "DinoPad");
 +#if TARGET_OS_IPHONE
 +    dinopad_prepare_gameplay_window(wmInfo.info.uikit.window);
++    int point_width = 0;
++    int point_height = 0;
 +    int pixel_width = 0;
 +    int pixel_height = 0;
++    int drawable_width = 0;
++    int drawable_height = 0;
++    SDL_GetWindowSize(window, &point_width, &point_height);
 +    SDL_GetWindowSizeInPixels(window, &pixel_width, &pixel_height);
++    SDL_Metal_GetDrawableSize(window, &drawable_width, &drawable_height);
 +    std::fprintf(stderr,
-+        "[dinopad-gfx] window created logical=%dx%d pixels=%dx%d\n",
-+        width, height, pixel_width, pixel_height);
++        "[dinopad-gfx] window created requested=%dx%d points=%dx%d "
++        "pixels=%dx%d drawable=%dx%d\n",
++        width, height, point_width, point_height, pixel_width, pixel_height,
++        drawable_width, drawable_height);
 +    std::fflush(stderr);
 +    dinopad_touch_attach(wmInfo.info.uikit.window);
 +    return ultramodern::renderer::WindowHandle{ wmInfo.info.uikit.window, SDL_Metal_GetLayer(metal_view) };
@@ -81,7 +95,7 @@ diff --git a/src/runtime/gfx.cpp b/src/runtime/gfx.cpp
  #else
      static_assert(false && "Unimplemented");
  #endif
-@@ -121,6 +163,38 @@ SDL_Window *get_window() {
+@@ -121,6 +177,38 @@ SDL_Window *get_window() {
      return window;
  }
  

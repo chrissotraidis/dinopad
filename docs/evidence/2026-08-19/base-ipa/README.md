@@ -51,3 +51,23 @@ three disclosures and still proves that DinoMod code/data is absent.
 
 This refreshed file is a local candidate, not a claim that the existing hosted
 release asset has already been replaced.
+
+## Second-session render correction
+
+DinoPad 0.1.2 build 3 aligns SDL's iOS Metal view and RT64's swap chain at the
+same native pixel scale. The iPad-class regression launches Restored, returns
+to DinoPad Home, and launches Prototype in the same process. Both sessions
+report `points=1376x1032 pixels=2752x2064 drawable=2752x2064`; the test fails
+if SDL pixels and the Metal drawable diverge.
+
+- Candidate: `DinoPad-0.1.2-build.3-prototype-only-unsigned-candidate.ipa`
+- Executable SHA-256:
+  `7a1e765bc9c9b48ad334064fbb0b393a7dffda90aed2827e7361d8cbe575e08c`
+- Candidate IPA SHA-256:
+  `c3042e9b121586112061a8856c8dcece6eba7090df951bc3c012e4f31c155153`
+
+The signed Restored development build was installed in place on the physical
+iPad as 0.1.2 build 3. Readback proved the private ROM, Restored and Prototype
+saves, profile settings/controller layouts, and preference plist remained
+byte-identical. Physical visual confirmation of the exact second-session flow
+remains the final publication gate for this candidate.

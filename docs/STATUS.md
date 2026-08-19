@@ -1,12 +1,17 @@
 # DinoPad Status
 
 Last updated: 2026-08-19
-Current snapshot: DinoPad 0.1.1 Prototype-only release and continued Restored development
+Current snapshot: DinoPad 0.1.2 Prototype-only release and continued Restored development
 Current phase: public setup refresh and Restored development
 Active goal: DinoMod permission for Restored distribution
 
 ## Green
 
+- DinoPad 0.1.2 render-lifecycle correction (2026-08-19): iOS SDL now owns a
+  native-scale Metal drawable and RT64 reads that drawable as the authoritative
+  swap-chain size. The iPad-class regression passes Restored -> Home ->
+  Prototype in one process with identical 2x pixel/drawable dimensions in both
+  sessions, preventing the second-session zoom/crop seen on physical iPad.
 - DinoPad 0.1.1 setup and lifecycle refresh (2026-08-19): the public app
   identifies itself as Prototype Mode only, states that DinoMod Enhanced is not
   included, links directly to the private Restored self-build guide, and names
