@@ -69,5 +69,6 @@ if SDL pixels and the Metal drawable diverge.
 The signed Restored development build was installed in place on the physical
 iPad as 0.1.2 build 3. Readback proved the private ROM, Restored and Prototype
 saves, profile settings/controller layouts, and preference plist remained
-byte-identical. Physical visual confirmation of the exact second-session flow
-remains the final publication gate for this candidate.
+byte-identical. The user then exercised the exact mode -> Home -> mode flow on
+that iPad and confirmed the second session rendered at the normal scale. This
+closed the candidate's final physical visual publication gate.

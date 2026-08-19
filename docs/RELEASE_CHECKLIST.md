@@ -14,7 +14,7 @@ package or publish while any P0 gate below is red.
 | README and rights boundary match verified behavior | P0 | Green | [`README.md`](../README.md), [`RIGHTS_AND_LICENSES.md`](RIGHTS_AND_LICENSES.md) |
 | macOS and iPhone/iPad Simulator builds and smokes | P1 | Green | Packaged macOS launcher, fresh keyboard defaults, fullscreen, and bounded memory smoke are current. [`STATUS.md`](STATUS.md), [`PLAYTEST_MATRIX.md`](PLAYTEST_MATRIX.md) |
 | Physical iPhone product matrix | P1 | Partial | Signed in-place install and Restored gameplay are user-observed; longer audio/thermal/update coverage remains release QA. |
-| Physical iPad product matrix | P1 | Partial | Signed in-place install, extended Restored play, Xbox-controller input/reconnect, and current screenshots are user-observed; the remaining soak matrix is release QA. |
+| Physical iPad product matrix | P1 | Partial | Signed in-place install, extended Restored play, Xbox-controller input/reconnect, and the 0.1.2 mode → Home → second-mode visual regression are user-observed; the remaining soak matrix is release QA. |
 | Restored start-to-credits and chapter fixture matrix | P1 | Partial | Ongoing play has passed multiple chapters; one recorded start-to-credits run remains desirable for Restored certification. |
 | DinoPad-owned root license and scope | P0 | Green | Root `LICENSE` is GPL-3.0-only; [`LICENSE_SCOPE.md`](LICENSE_SCOPE.md) distinguishes DinoPad-owned and third-party material. |
 | Complete shipped primary licenses/notices | P0 | Green | Every 45/41 compiler-derived macOS/iOS root has a hash-bound standalone or mechanically assembled primary notice. [`COMPILED_DEPENDENCY_INVENTORY.json`](COMPILED_DEPENDENCY_INVENTORY.json) |

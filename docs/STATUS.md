@@ -11,7 +11,10 @@ Active goal: DinoMod permission for Restored distribution
   native-scale Metal drawable and RT64 reads that drawable as the authoritative
   swap-chain size. The iPad-class regression passes Restored -> Home ->
   Prototype in one process with identical 2x pixel/drawable dimensions in both
-  sessions, preventing the second-session zoom/crop seen on physical iPad.
+  sessions. After an in-place physical-iPad update, the user repeated the exact
+  mode -> Home -> mode flow and confirmed the second session renders normally.
+  The private ROM, both saves, all profile settings/controller layouts, and the
+  preference plist remained byte-identical across that update.
 - DinoPad 0.1.1 setup and lifecycle refresh (2026-08-19): the public app
   identifies itself as Prototype Mode only, states that DinoMod Enhanced is not
   included, links directly to the private Restored self-build guide, and names

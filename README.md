@@ -159,7 +159,7 @@ same mode policy with a native launcher plus keyboard and controller support.
 | macOS arm64 | Native app bundle, RT64 Metal rendering, audio, native launcher and ROM import, isolated modes/saves, controller support, desktop keyboard/mouse defaults, windowed/fullscreen switching, and clean shutdown. |
 | iPhone Simulator arm64 | Native launcher/importer, complete touch shell, Restored gameplay, save-preserving relaunch, and a bounded 600-second run. |
 | iPad Simulator arm64 | Tablet launcher, independent layout persistence, complete product matrix, save relaunch, and a bounded 600-second run. |
-| Physical iPhone/iPad | Signed arm64 builds installed in place with private ROMs, saves, and settings preserved. Restored Adventure has been exercised on both form factors; physical-iPad controller play and reconnect are working. The full duration/audio/thermal/update matrix is still open. |
+| Physical iPhone/iPad | Signed arm64 builds installed in place with private ROMs, saves, and settings preserved. Restored Adventure has been exercised on both form factors; physical-iPad controller play and reconnect are working. The 0.1.2 iPad build also passed the exact mode → Home → second-mode visual regression that previously produced a zoomed/cropped Metal surface. The full duration/audio/thermal/update matrix is still open. |
 
 These are engineering results beyond the narrower public base build. See
 [Status](docs/STATUS.md), [UI parity](docs/UI_PARITY.md), and the
