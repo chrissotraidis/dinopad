@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "id": "dinopad",
+  "name": "DinoPad",
+  "game": "Dinosaur Planet (N64, December 2000 prototype) via dino-recomp",
+  "kind": "disc-translation",
+  "status": "draft-untested",
+  "inputs": [
+    {
+      "type": "n64-rom",
+      "formats": [
+        "z64",
+        "v64",
+        "n64"
+      ],
+      "when": "build",
+      "description": "Your own unmodified December 2000 Dinosaur Planet prototype ROM (MD5 49f7bb346ade39d1915c22e090ffd748), normalized and translated privately during the build."
+    }
+  ],
+  "targets": {
+    "ios": {
+      "hosts": {
+        "macos-arm64": "experimental"
+      },
+      "output": "ipa",
+      "check": "ipa",
+      "steps": [
+        {
+          "stage": "preflight",
+          "command": [
+            "/bin/bash",
+            "{repo}/scripts/check-repo-safety.sh"
+          ]
+        },
+        {
+          "stage": "translate",
+          "command": [
+            "/bin/bash",
+            "{repo}/scripts/build-macos-app.sh",
+            "--rom",
+            "{disc}"
+          ]
+        },
+        {
+          "stage": "compile",
+          "command": [
+            "/bin/bash",
+            "{repo}/scripts/build-ios-device.sh",
+            "--distribution",
+            "base"
+          ]
+        },
+        {
+          "stage": "package",
+          "command": [
+            "/bin/bash",
+            "{repo}/scripts/package-ios.sh",
+            "--candidate",
+            "--distribution",
+            "base",
+            "--output",
+            "{output}"
+          ]
+        }
+      ]
+    },
+    "macos": {
+      "hosts": {
+        "macos-arm64": "planned"
+      }
+    }
+  },
+  "requirements": {
+    "disk_gb": 25,
+    "tools": [
+      {
+        "name": "git",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "cmake",
+        "version_args": [
+          "--version"
+        ],
+        "min_version": "3.20"
+      },
+      {
+        "name": "ninja",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "python3",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "make",
+        "version_args": [
+          "--version"
+        ]
+      },
+      {
+        "name": "xcodebuild",
+        "version_args": [
+          "-version"
+        ],
+        "note": "Install Xcode and its iOS platform"
+      }
+    ]
+  },
+  "notes": "Builds the base (Prototype Mode) edition. The Restored edition needs DinoMod's private asset environment and permission terms and is not driven by PadForge. A MIPS-targeting Clang is required for the recompiled patch library (PATCHES_C_COMPILER; see docs/BUILDING.md).",
+  "publication": {
+    "public_binaries": false,
+    "reason": "Personal builds contain game code translated from the player's ROM; public releases are source only."
+  }
+}
