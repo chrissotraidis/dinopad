@@ -26,25 +26,22 @@
       "check": "ipa",
       "steps": [
         {
-          "stage": "preflight",
-          "command": [
-            "/bin/bash",
-            "{repo}/scripts/check-repo-safety.sh"
-          ]
-        },
-        {
           "stage": "translate",
           "command": [
-            "/bin/bash",
             "{repo}/scripts/build-macos-app.sh",
             "--rom",
             "{disc}"
           ]
         },
         {
+          "stage": "verify-sources",
+          "command": [
+            "{repo}/scripts/check-repo-safety.sh"
+          ]
+        },
+        {
           "stage": "compile",
           "command": [
-            "/bin/bash",
             "{repo}/scripts/build-ios-device.sh",
             "--distribution",
             "base"
@@ -53,7 +50,6 @@
         {
           "stage": "package",
           "command": [
-            "/bin/bash",
             "{repo}/scripts/package-ios.sh",
             "--candidate",
             "--distribution",
