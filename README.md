@@ -166,19 +166,11 @@ These are engineering results beyond the narrower public base build. See
 [playtest matrix](docs/PLAYTEST_MATRIX.md) for the evidence behind each claim.
 
 > [!NOTE]
-> **[DinoPad 0.1.2](https://github.com/chrissotraidis/dinopad/releases/tag/v0.1.2)
-> publishes the audited DinoMod-free base IPA.** It contains Prototype Mode
-> only, is unsigned, and must be re-signed before installation. Publishing
-> Restored Adventure still requires a redistribution grant from DinoMod's
-> rightsholders.
+> Previous builds have been retired; a new version is in progress.
 
-## Playing the public 0.1.2 IPA
+## Playing DinoPad
 
-The release download is named **`DinoPad-0.1.2-prototype-only-unsigned.ipa`**.
-It is ROM-free and unsigned: it cannot be installed by tapping the file. Before
-installation, use your own Apple signing method to sign the IPA, then install
-the signed result on an iPhone or iPad running iOS/iPadOS 15 or later. DinoPad
-does not provide certificates, provisioning profiles, or a signing service.
+Previous builds have been retired; a new version is in progress.
 
 After installation:
 
@@ -395,11 +387,7 @@ data and passes the repository's compliance gate.
 
 ### Can I download an app or IPA?
 
-Yes. The [latest DinoPad release](https://github.com/chrissotraidis/dinopad/releases/latest)
-contains the ROM-free unsigned base IPA and its matching source archive. The
-IPA must be re-signed before installation and contains Prototype Mode only.
-The feature-complete Restored development build is not a public artifact while
-DinoMod permission remains open.
+Previous builds have been retired; a new version is in progress.
 
 ## Repository guide
 
