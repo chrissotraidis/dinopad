@@ -83,8 +83,8 @@ Nested upstream patches applied by checkout basename:
 | `patches/N64ModernRuntime/0007-static-extended-imports.patch` | librecomp static import binding | Lets a static code handle bind extended exports directly when runtime shim generation is disabled | Yes (opt-in static binding; dynamic/live handles unchanged) |
 | `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
-The twenty-eight-file patch set is locked in `dependencies.lock.json` at SHA-256
-`80e0d9c1bdb7bfc6deae859c7a9a383db745df7a9fd759864b4e092a6dc17999`.
+The twenty-nine-file patch set is locked in `dependencies.lock.json` at SHA-256
+`549d184f8b7bc73ecd8dcc29e2dad20db118a46ddb44e96a670f4e1fe56ff90e`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested
