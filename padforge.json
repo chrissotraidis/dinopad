@@ -26,17 +26,52 @@
       "check": "ipa",
       "steps": [
         {
+          "stage": "dependencies",
+          "command": [
+            "{repo}/scripts/bootstrap.sh"
+          ]
+        },
+        {
+          "stage": "preflight",
+          "command": [
+            "{repo}/scripts/check-repo-safety.sh"
+          ]
+        },
+        {
+          "stage": "tools",
+          "command": [
+            "{repo}/scripts/build-tools.sh"
+          ]
+        },
+        {
           "stage": "translate",
           "command": [
-            "{repo}/scripts/build-macos-app.sh",
+            "{repo}/scripts/generate-base.sh",
             "--rom",
             "{disc}"
           ]
         },
         {
-          "stage": "verify-sources",
+          "stage": "host-shaders",
           "command": [
-            "{repo}/scripts/check-repo-safety.sh"
+            "cmake",
+            "-S",
+            "{repo}",
+            "-B",
+            "{repo}/build-macos",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Release"
+          ]
+        },
+        {
+          "stage": "host-build",
+          "command": [
+            "cmake",
+            "--build",
+            "{repo}/build-macos",
+            "--target",
+            "DinoPad"
           ]
         },
         {
@@ -109,7 +144,7 @@
       }
     ]
   },
-  "notes": "Builds the base (Prototype Mode) edition. The Restored edition needs DinoMod's private asset environment and permission terms and is not driven by PadForge. A MIPS-targeting Clang is required for the recompiled patch library (PATCHES_C_COMPILER; see docs/BUILDING.md).",
+  "notes": "Builds the base (Prototype Mode) edition following README: bootstrap, tools, generate-base from the player's ROM, native host shader tools, device build, candidate package. The Restored edition needs DinoMod's private asset environment and permission terms and is not driven by PadForge. A MIPS-targeting Clang is required (PATCHES_C_COMPILER; see docs/BUILDING.md).",
   "publication": {
     "public_binaries": false,
     "reason": "Personal builds contain game code translated from the player's ROM; public releases are source only."
