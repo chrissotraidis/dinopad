@@ -61,7 +61,8 @@
             "{repo}/build-macos",
             "-G",
             "Ninja",
-            "-DCMAKE_BUILD_TYPE=Release"
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DDINOPAD_ENABLE_STATIC_RESTORATION=OFF"
           ]
         },
         {
@@ -71,7 +72,8 @@
             "--build",
             "{repo}/build-macos",
             "--target",
-            "DinoPad"
+            "file_to_c",
+            "spirv_cross_msl"
           ]
         },
         {
