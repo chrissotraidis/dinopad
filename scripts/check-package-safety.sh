@@ -66,8 +66,8 @@ plist_value() {
     /usr/libexec/PlistBuddy -c "Print :$1" "$INFO"
 }
 
-EXPECTED_VERSION="$(sed -n 's/^set(DINOPAD_VERSION "\([0-9][0-9.]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
-EXPECTED_BUILD_NUMBER="$(sed -n 's/^set(DINOPAD_BUILD_NUMBER "\([1-9][0-9]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
+EXPECTED_VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/version.json")"
+EXPECTED_BUILD_NUMBER="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["build"])' "$ROOT/version.json")"
 
 EXECUTABLE_NAME="$(plist_value CFBundleExecutable)"
 EXECUTABLE="$APP/$EXECUTABLE_NAME"

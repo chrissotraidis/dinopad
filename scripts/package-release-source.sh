@@ -45,7 +45,7 @@ git -C "$ROOT" diff --cached --quiet --ignore-submodules -- || {
     exit 1
 }
 
-VERSION="$(sed -n 's/^set(DINOPAD_VERSION "\([0-9][0-9.]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
+VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/version.json")"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
     echo "ERROR: could not read DinoPad version" >&2
     exit 1

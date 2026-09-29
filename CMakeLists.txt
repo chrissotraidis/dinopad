@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 
 project(DinoPad LANGUAGES C CXX)
 
-set(DINOPAD_VERSION "0.1.2")
-set(DINOPAD_BUILD_NUMBER "3")
+# One version for the app, its release and PadForge: version.json.
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/version.json" DINOPAD_VERSION_JSON)
+string(JSON DINOPAD_VERSION GET "${DINOPAD_VERSION_JSON}" version)
+string(JSON DINOPAD_BUILD_NUMBER GET "${DINOPAD_VERSION_JSON}" build)
 
 option(DINOPAD_ENABLE_TEST_HARNESS
     "Compile environment-driven iOS Simulator automation" OFF)
