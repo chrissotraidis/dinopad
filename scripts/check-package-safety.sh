@@ -56,8 +56,10 @@ PRIVACY_MANIFEST="$APP/PrivacyInfo.xcprivacy"
 [[ -f "$PRIVACY_MANIFEST" ]] || fail "PrivacyInfo.xcprivacy is missing"
 cmp -s "$ROOT/apple/app/PrivacyInfo.xcprivacy" "$PRIVACY_MANIFEST" ||
     fail "bundled privacy manifest differs from the tracked declaration"
+inventory_args=(--target ios-device)
+[[ "$DISTRIBUTION" != base ]] || inventory_args+=(--build-dir build-ios-base/build)
 python3 "$ROOT/tools/validate_compiled_dependency_inventory.py" \
-    --target ios-device || fail "iOS compiled dependency inventory is invalid"
+    "${inventory_args[@]}" || fail "iOS compiled dependency inventory is invalid"
 python3 "$ROOT/tools/package_compiled_dependency_notices.py" \
     --target ios-device --app "$APP" --verify || \
     fail "iOS compiled dependency notice set is invalid"
@@ -66,8 +68,8 @@ plist_value() {
     /usr/libexec/PlistBuddy -c "Print :$1" "$INFO"
 }
 
-EXPECTED_VERSION="$(sed -n 's/^set(DINOPAD_VERSION "\([0-9][0-9.]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
-EXPECTED_BUILD_NUMBER="$(sed -n 's/^set(DINOPAD_BUILD_NUMBER "\([1-9][0-9]*\)")$/\1/p' "$ROOT/CMakeLists.txt")"
+EXPECTED_VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/version.json")"
+EXPECTED_BUILD_NUMBER="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["build"])' "$ROOT/version.json")"
 
 EXECUTABLE_NAME="$(plist_value CFBundleExecutable)"
 EXECUTABLE="$APP/$EXECUTABLE_NAME"

@@ -71,6 +71,7 @@ Nested upstream patches applied by checkout basename:
 | `patches/rt64/0002-ios-renderer-foundation.patch` | RT64 renderer/shader configuration | Uses mobile-safe sampler limits, iOS Metal SDK settings, and Simulator pipeline behavior | Yes (iOS-only portability) |
 | `patches/rt64/0003-cross-compile-host-tools.patch` | RT64 CMake host-tool path | Uses pinned native shader/file conversion tools while cross-compiling | Yes (cross-build only) |
 | `patches/rt64/0004-foundation-home-directory.patch` | RT64 Apple path helper | Replaces the AppKit-only home lookup with Foundation | Yes (Apple portability) |
+| `patches/rt64/0005-ios-deployment-target.patch` | RT64 CMake | Keeps RT64's 10.15 deployment target for macOS only; Xcode 27 rejects it for iOS configure checks | Yes (iOS build only) |
 | `patches/plume/0001-metal-ownership-balance.patch` | `plume_metal.cpp` | Balances Metal encoder ownership and avoids over-releasing autoreleased Objective-C objects | Yes (Metal ownership fix) |
 | `patches/plume/0002-ios-metal-platform.patch` | Plume Apple/Metal backend | Adds UIKit window metrics, mobile device metadata, main-thread layer access, nil timestamp-query handling, and synchronous cached iOS metrics so queued blocks cannot outlive a destroyed window | Yes (iOS/Simulator portability and lifetime fix) |
 | `patches/N64ModernRuntime/0001-static-mod-code-factories.patch` | librecomp mod API/loader | Lets an application register a build-time `ModCodeHandle` factory by manifest ID, before offline-library/live-recompiler fallback | Yes (opt-in generic API) |
@@ -82,8 +83,8 @@ Nested upstream patches applied by checkout basename:
 | `patches/N64ModernRuntime/0007-static-extended-imports.patch` | librecomp static import binding | Lets a static code handle bind extended exports directly when runtime shim generation is disabled | Yes (opt-in static binding; dynamic/live handles unchanged) |
 | `patches/nativefiledialog-extended/0001-ios-null-backend.patch` | NFD platform selection | Provides an inert backend while the native UIKit document picker is implemented by DinoPad | Yes (iOS-only boundary) |
 
-The twenty-eight-file patch set is locked in `dependencies.lock.json` at SHA-256
-`80e0d9c1bdb7bfc6deae859c7a9a383db745df7a9fd759864b4e092a6dc17999`.
+The twenty-nine-file patch set is locked in `dependencies.lock.json` at SHA-256
+`549d184f8b7bc73ecd8dcc29e2dad20db118a46ddb44e96a670f4e1fe56ff90e`.
 `scripts/check-repo-safety.sh` recomputes and verifies it.
 
 ## 4. How patches are tested

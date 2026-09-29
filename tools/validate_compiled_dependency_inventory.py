@@ -76,7 +76,7 @@ def compiler_dependencies(build_dir: pathlib.Path, dependency_format: str) -> se
     return dependencies
 
 
-def validate(manifest_path: pathlib.Path, selected_target: str | None) -> None:
+def validate(manifest_path: pathlib.Path, selected_target: str | None, build_dir_override: str | None = None) -> None:
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     expected_top = {
         "schema_version", "targets", "target_exclusions", "inline_notice_assemblies",
@@ -174,6 +174,9 @@ def validate(manifest_path: pathlib.Path, selected_target: str | None) -> None:
         if not isinstance(target, dict) or set(target) != {"build_dir", "dependency_format"}:
             fail(f"{target_name}: target schema mismatch")
         build_value = target["build_dir"]
+        if build_dir_override is not None:
+            # The base edition builds the same components into its own folder.
+            build_value = build_dir_override
         dependency_format = target["dependency_format"]
         if not isinstance(build_value, str) or not isinstance(dependency_format, str):
             fail(f"{target_name}: build_dir and dependency_format must be strings")
@@ -223,8 +226,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=pathlib.Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--target", choices=("macos", "ios-device"))
+    parser.add_argument("--build-dir", help="repository-relative build folder for --target (base edition)")
     args = parser.parse_args()
-    validate(args.manifest.resolve(), args.target)
+    if args.build_dir is not None and args.target is None:
+        parser.error("--build-dir needs --target")
+    validate(args.manifest.resolve(), args.target, args.build_dir)
     return 0
 
 
