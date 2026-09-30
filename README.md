@@ -171,7 +171,7 @@ These are engineering results beyond the narrower public base build. See
 
 ## Playing DinoPad
 
-On an Apple Silicon Mac with Xcode and `brew install cmake ninja xdelta`, download
+On an Apple Silicon Mac with Xcode and `brew install cmake ninja xdelta ripgrep`, download
 [PadMint](https://github.com/chrissotraidis/padmint/releases/latest), unzip it,
 double-click `PadMint.command`, choose DinoPad and pick your supported
 *Dinosaur Planet* dump. PadMint builds the DinoPad base edition from this
