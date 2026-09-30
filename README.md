@@ -167,14 +167,14 @@ These are engineering results beyond the narrower public base build. See
 
 > [!NOTE]
 > Releases publish no app: DinoPad contains code translated from the game, so
-> everyone makes their own base build with PadForge. See [Playing DinoPad](#playing-dinopad).
+> everyone makes their own base build with PadMint. See [Playing DinoPad](#playing-dinopad).
 
 ## Playing DinoPad
 
 On an Apple Silicon Mac with Xcode and `brew install cmake ninja xdelta`, download
-[PadForge](https://github.com/chrissotraidis/padforge/releases/latest), unzip it,
-double-click `PadForge.command`, choose DinoPad and pick your supported
-*Dinosaur Planet* dump. PadForge builds the DinoPad base edition from this
+[PadMint](https://github.com/chrissotraidis/padmint/releases/latest), unzip it,
+double-click `PadMint.command`, choose DinoPad and pick your supported
+*Dinosaur Planet* dump. PadMint builds the DinoPad base edition from this
 repository's [latest release](https://github.com/chrissotraidis/dinopad/releases/latest)
 and saves an unsigned IPA in the folder you choose. Install it with AltStore
 Classic, SideStore or Sideloadly. The IPA contains code translated from your
@@ -395,7 +395,7 @@ data and passes the repository's compliance gate.
 
 ### Can I download an app or IPA?
 
-No. The app contains code translated from the game, so PadForge builds your own
+No. The app contains code translated from the game, so PadMint builds your own
 base edition from your dump on an Apple Silicon Mac. See
 [Playing DinoPad](#playing-dinopad).
 

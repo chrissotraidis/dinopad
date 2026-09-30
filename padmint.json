@@ -146,7 +146,7 @@
       }
     ]
   },
-  "notes": "Builds the base (Prototype Mode) edition following README: bootstrap, tools, generate-base from the player's ROM, native host shader tools, device build, candidate package. The Restored edition needs DinoMod's private asset environment and permission terms and is not driven by PadForge. A MIPS-targeting Clang is required (PATCHES_C_COMPILER; see docs/BUILDING.md).",
+  "notes": "Builds the base (Prototype Mode) edition following README: bootstrap, tools, generate-base from the player's ROM, native host shader tools, device build, candidate package. The Restored edition needs DinoMod's private asset environment and permission terms and is not driven by PadMint. A MIPS-targeting Clang is required (PATCHES_C_COMPILER; see docs/BUILDING.md).",
   "publication": {
     "public_binaries": false,
     "reason": "Personal builds contain game code translated from the player's ROM; public releases are source only."
