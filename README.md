@@ -176,7 +176,7 @@ On an Apple Silicon Mac with Xcode and `brew install cmake ninja xdelta ripgrep`
 double-click `PadMint.command`, choose DinoPad and pick your supported
 *Dinosaur Planet* dump. PadMint builds the DinoPad base edition from this
 repository's [latest release](https://github.com/chrissotraidis/dinopad/releases/latest)
-and saves an unsigned IPA in the folder you choose. Install it with AltStore
+and saves an unsigned IPA in your Downloads folder. Install it with AltStore
 Classic, SideStore or Sideloadly. The IPA contains code translated from your
 dump: it is yours alone; never share it.
 
