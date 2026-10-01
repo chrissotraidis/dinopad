@@ -20,7 +20,8 @@ MIPS_CLANG_VERSION="release-22.1.8"
 MIPS_CLANG_ASSET="Darwin-arm64-ClangEssentialsAndN64Recomp-ClangVersion22.1.8-MipsOnly.tar.xz"
 MIPS_CLANG_URL="https://github.com/LT-Schmiddy/n64recomp-clang/releases/download/${MIPS_CLANG_VERSION}/${MIPS_CLANG_ASSET}"
 
-JOBS="${DINOPAD_MAX_JOBS:-4}"
+source "$ROOT/scripts/build-jobs.sh"
+JOBS="$(dinopad_build_jobs)"
 
 echo "== Building N64Recomp host tools from pinned source =="
 cmake -S "$N64RECOMP_SRC" -B "$HOST_TOOLS" -G Ninja -DCMAKE_BUILD_TYPE=Release

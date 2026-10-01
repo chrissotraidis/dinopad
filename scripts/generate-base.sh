@@ -27,6 +27,9 @@ while (($#)); do
   esac
 done
 
+source "$ROOT/scripts/build-jobs.sh"
+JOBS="$(dinopad_build_jobs)"
+
 PY=""
 for p in python3.13 python3.12 python3.11 python3.10 python3.9 python3; do
   if command -v "$p" >/dev/null 2>&1 &&
@@ -97,7 +100,7 @@ if [ ! -e generated/lib ]; then
 fi
 
 echo "== 5. Build MIPS patch library ELF =="
-make -C generated/patches -j "${DINOPAD_MAX_JOBS:-4}" \
+make -C generated/patches -j "$JOBS" \
   CC="$MIPS_BIN/clang" LD="$MIPS_BIN/ld.lld"
 test -s generated/patches/build/patches.elf
 echo "OK: patches.elf built"

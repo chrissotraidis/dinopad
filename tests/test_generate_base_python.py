@@ -17,7 +17,8 @@ class GenerateBasePythonTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         (self.root / "scripts").mkdir()
-        shutil.copy2(SCRIPT, self.root / "scripts" / SCRIPT.name)
+        for name in (SCRIPT.name, "build-jobs.sh"):
+            shutil.copy2(SCRIPT.parent / name, self.root / "scripts" / name)
         self.bin = self.root / "bin"
         self.bin.mkdir()
         self.log = self.root / "python-probes"
@@ -43,6 +44,8 @@ class GenerateBasePythonTests(unittest.TestCase):
     def run_script(self, candidates=(), arguments=()):
         env = dict(os.environ, PATH=str(self.bin), PROBE_LOG=str(self.log),
                    TEST_PYTHON=sys.executable)
+        for variable in ("DINOPAD_MAX_JOBS", "CMAKE_BUILD_PARALLEL_LEVEL", "BASH_ENV"):
+            env.pop(variable, None)
         for name, version, failure in candidates:
             code = self.interpreter(name, version, failure)
             if code is not None:
