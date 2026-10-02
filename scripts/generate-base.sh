@@ -27,9 +27,16 @@ while (($#)); do
   esac
 done
 
+source "$ROOT/scripts/build-jobs.sh"
+JOBS="$(dinopad_build_jobs)"
+
 PY=""
-for p in python3.13 python3.12 python3.11 python3.10 python3.9; do
-  if command -v "$p" >/dev/null 2>&1; then PY=$p; break; fi
+for p in python3.13 python3.12 python3.11 python3.10 python3.9 python3; do
+  if command -v "$p" >/dev/null 2>&1 &&
+      "$p" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' >/dev/null 2>&1; then
+    PY=$p
+    break
+  fi
 done
 if [ -z "$PY" ]; then
   echo "ERROR: need Python >= 3.9 (recomp_rom_patcher.py uses subscriptable generics)" >&2
@@ -93,7 +100,7 @@ if [ ! -e generated/lib ]; then
 fi
 
 echo "== 5. Build MIPS patch library ELF =="
-make -C generated/patches -j "${DINOPAD_MAX_JOBS:-4}" \
+make -C generated/patches -j "$JOBS" \
   CC="$MIPS_BIN/clang" LD="$MIPS_BIN/ld.lld"
 test -s generated/patches/build/patches.elf
 echo "OK: patches.elf built"

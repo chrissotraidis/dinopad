@@ -117,13 +117,17 @@
         "version_args": [
           "--version"
         ],
-        "min_version": "3.20"
+        "min_version": "3.24",
+        "player": true,
+        "note": "Install CMake 3.24 or newer: brew install cmake. DinoPad's pinned SDL2 Apple build requires it."
       },
       {
         "name": "ninja",
         "version_args": [
           "--version"
-        ]
+        ],
+        "player": true,
+        "note": "Install Ninja before building DinoPad: brew install ninja."
       },
       {
         "name": "python3",
