@@ -18,6 +18,10 @@
     <key>UIApplicationSupportsIndirectInputEvents</key><true/>
     <key>ITSAppUsesNonExemptEncryption</key><false/>
     <key>UILaunchScreen</key><dict/>
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key><false/>
+    </dict>
     <key>UIRequiredDeviceCapabilities</key>
     <array><string>arm64</string><string>metal</string></array>
     <key>UIRequiresFullScreen</key><true/>
