@@ -30,6 +30,8 @@
 ![Renderer: RT64 Metal](https://img.shields.io/badge/renderer-RT64%20Metal-555555)
 ![Status: development](https://img.shields.io/badge/status-development-b91c1c)
 ![Game data: user supplied](https://img.shields.io/badge/game%20data-user--supplied%20ROM-d97706)
+[![Build DinoPad with PadMint](https://img.shields.io/badge/PadMint-build%20your%20own-3EB489)](https://github.com/chrissotraidis/padmint)
+[![Join the DinoPad Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/xwHfUD2bxW)
 
 DinoPad turns the existing *Dinosaur Planet* static-recompilation stack into a
 native Apple app for Apple Silicon Mac, iPhone, and iPad. Private development
@@ -38,6 +40,13 @@ Prototype Mode only. DinoPad includes a ROM-import flow, a UIKit/AppKit home scr
 complete N64 touch controls, settings and diagnostics, save isolation, and
 Apple-specific runtime hardening. It is not an emulator, does not use JIT
 compilation, and does not download or execute game or mod code at runtime.
+
+> [!NOTE]
+> **AI disclosure:** DinoPad uses substantial AI assistance for code, tests,
+> documentation, debugging and maintenance. Some support replies and maintenance
+> tasks are automated. There is no audited percentage of AI-generated code.
+> Build, test and device records describe what was checked. This disclosure
+> concerns DinoPad's workflow, not the authorship of its upstream projects.
 
 ## Gameplay
 
@@ -411,6 +420,16 @@ base edition from your dump on an Apple Silicon Mac. See
 | [`scripts/`](scripts/) | Bootstrap, build, smoke-test, runtime-guard, and package-safety automation. |
 | [`docs/`](docs/) | Architecture, implementation status, upstream inventory, rights analysis, testing, and release gates. |
 | [`docs/evidence/`](docs/evidence/) | Curated outputs that support platform and feature claims. |
+
+## Community and support
+
+[Join the Discord](https://discord.gg/xwHfUD2bxW) for help and news. It is one
+community for DinoPad and its sibling projects, such as KartPad, BlueWake and
+MeleePad: ask about setup, building with PadMint, and installing, share how it
+runs on your device, and hear about new releases first.
+
+Found a bug? [Open an issue](https://github.com/chrissotraidis/dinopad/issues)
+with your device, its OS version, and the steps that led to it.
 
 ## Rights, licenses, and distribution
 
