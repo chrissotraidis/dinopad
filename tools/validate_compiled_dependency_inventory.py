@@ -68,9 +68,22 @@ def compiler_dependencies(build_dir: pathlib.Path, dependency_format: str) -> se
         )
     else:
         fail(f"unsupported dependency format: {dependency_format}")
+    # Compilers record paths as they were given, which may run through a
+    # symlink (macOS temp folders live under /var -> /private/var). Match
+    # on the real location of the folder that holds ref/.
+    real_prefix: dict[str, bool] = {}
     for candidate in candidates:
         if candidate.startswith(ref_root):
             dependencies.add(pathlib.Path(candidate).relative_to(ROOT).as_posix())
+            continue
+        cut = candidate.find("/ref/")
+        if cut <= 0 or not candidate.startswith("/"):
+            continue
+        prefix = candidate[:cut]
+        if prefix not in real_prefix:
+            real_prefix[prefix] = pathlib.Path(prefix).resolve() == ROOT
+        if real_prefix[prefix]:
+            dependencies.add("ref/" + candidate[cut + len("/ref/"):])
     if not dependencies:
         fail("Ninja dependency database contains no repository ref/ dependencies")
     return dependencies
