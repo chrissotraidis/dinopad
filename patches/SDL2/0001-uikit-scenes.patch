@@ -1,3 +1,4 @@
+diff --git a/src/video/uikit/SDL_uikitappdelegate.h b/src/video/uikit/SDL_uikitappdelegate.h
 --- a/src/video/uikit/SDL_uikitappdelegate.h
 +++ b/src/video/uikit/SDL_uikitappdelegate.h
 @@ -35,6 +35,7 @@
@@ -18,6 +19,7 @@
 +@end
 +
  /* vi: set ts=4 sw=4 expandtab: */
+diff --git a/src/video/uikit/SDL_uikitappdelegate.m b/src/video/uikit/SDL_uikitappdelegate.m
 --- a/src/video/uikit/SDL_uikitappdelegate.m
 +++ b/src/video/uikit/SDL_uikitappdelegate.m
 @@ -28,6 +28,7 @@
@@ -134,6 +136,7 @@
  #endif /* SDL_VIDEO_DRIVER_UIKIT */
  
  /* vi: set ts=4 sw=4 expandtab: */
+diff --git a/src/video/uikit/SDL_uikitwindow.m b/src/video/uikit/SDL_uikitwindow.m
 --- a/src/video/uikit/SDL_uikitwindow.m
 +++ b/src/video/uikit/SDL_uikitwindow.m
 @@ -207,7 +207,24 @@
@@ -162,6 +165,7 @@
  
          /* put the window on an external display if appropriate. */
          if (data.uiscreen != [UIScreen mainScreen]) {
+diff --git a/src/video/uikit/SDL_uikitmessagebox.m b/src/video/uikit/SDL_uikitmessagebox.m
 --- a/src/video/uikit/SDL_uikitmessagebox.m
 +++ b/src/video/uikit/SDL_uikitmessagebox.m
 @@ -99,7 +99,22 @@
@@ -188,6 +192,7 @@
          alertwindow.rootViewController = [UIViewController new];
          alertwindow.windowLevel = UIWindowLevelAlert;
  
+diff --git a/src/video/uikit/SDL_uikitvideo.h b/src/video/uikit/SDL_uikitvideo.h
 --- a/src/video/uikit/SDL_uikitvideo.h
 +++ b/src/video/uikit/SDL_uikitvideo.h
 @@ -33,6 +33,11 @@
@@ -202,6 +207,7 @@
  CGRect UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen);
  
  #endif /* __OBJC__ */
+diff --git a/src/video/uikit/SDL_uikitvideo.m b/src/video/uikit/SDL_uikitvideo.m
 --- a/src/video/uikit/SDL_uikitvideo.m
 +++ b/src/video/uikit/SDL_uikitvideo.m
 @@ -194,6 +194,24 @@
@@ -238,6 +244,7 @@
      landscape = UIInterfaceOrientationIsLandscape(orient) ||
                      !(UIKit_GetSupportedOrientations(window) & (UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown));
      fullscreen = CGRectEqualToRect(screen.bounds, frame);
+diff --git a/src/video/uikit/SDL_uikitmodes.m b/src/video/uikit/SDL_uikitmodes.m
 --- a/src/video/uikit/SDL_uikitmodes.m
 +++ b/src/video/uikit/SDL_uikitmodes.m
 @@ -355,7 +355,7 @@
