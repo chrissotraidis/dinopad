@@ -8,11 +8,11 @@
 > prototype, built directly on the work of the recompilation community.
 
 > [!WARNING]
-> **Public DinoPad IPAs, including 0.1.0, 0.1.1, and 0.1.2, contain Prototype Mode only.** They do not
+> **The DinoPad base edition that PadMint builds contains Prototype Mode only.** It does not
 > contain DinoMod Enhanced or Restored Adventure because DinoMod redistribution
 > permission has not been granted. Screenshots of Restored Adventure on this
-> page document private development work; they are not features of the public
-> downloads.
+> page document private development work; they are not features of the base
+> edition.
 
 > [!IMPORTANT]
 > **DinoPad is an Apple-platform integration of
@@ -35,7 +35,7 @@
 
 DinoPad turns the existing *Dinosaur Planet* static-recompilation stack into a
 native Apple app for Apple Silicon Mac, iPhone, and iPad. Private development
-builds provide two clearly separated play modes; public IPAs provide
+builds provide two clearly separated play modes; the base edition provides
 Prototype Mode only. DinoPad includes a ROM-import flow, a UIKit/AppKit home screen,
 complete N64 touch controls, settings and diagnostics, save isolation, and
 Apple-specific runtime hardening. It is not an emulator, does not use JIT
@@ -154,7 +154,7 @@ The private Restored build presents two isolated ways to explore the prototype:
 - **Prototype Mode** is the archival path. It preserves the original incomplete
   experience and requires an explicit warning before launch.
 
-Public IPAs expose only Prototype Mode. In a private Restored build,
+The base edition exposes only Prototype Mode. In a private Restored build,
 both modes keep separate saves and settings. On iPhone and iPad, DinoPad opens
 with a native launcher and Files-based ROM importer, then provides touch
 controls, controller handoff, a persistent `•••` menu, layout editing,
@@ -208,7 +208,7 @@ important before removing it.
 
 ### Restored Adventure: private self-build
 
-The public IPA cannot be converted to Restored Adventure by importing an
+The base edition cannot be converted to Restored Adventure by importing an
 `.nrm` file. DinoPad's iOS/iPadOS port uses ahead-of-time native code and does
 not permit JIT or runtime executable mod loading. DinoMod Enhanced must
 therefore be compiled into a separate app and signed by the person building it.
