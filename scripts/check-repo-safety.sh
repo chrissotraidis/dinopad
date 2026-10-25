@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT" || exit 1
 
 module_sources=0
-module_args=()
+module_args=(--verify "$ROOT/ref/dino-recomp")
 case "${1:-}" in
   --module) module_sources=1; shift ;;
   --module-shell) module_sources=1; module_args+=(--shell); shift ;;
@@ -159,7 +159,7 @@ check_ref_repo() {
 if [[ "$module_sources" -eq 1 ]]; then
   # This route has no PaperPad, FreeType or DinoMod build dependency. Verify
   # its complete selected source graph and exact patch bytes read-only.
-  if python3 "$ROOT/scripts/setup-module-source.py" --verify "$ROOT/ref/dino-recomp" "${module_args[@]}"; then
+  if python3 "$ROOT/scripts/setup-module-source.py" "${module_args[@]}"; then
     pass "module source pins and exact patch contents verified"
   else
     fail "module source verification failed"
