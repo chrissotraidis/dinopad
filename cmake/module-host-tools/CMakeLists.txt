@@ -44,3 +44,10 @@ set_property(TARGET N64Recomp PROPERTY SOURCES ${core_sources} "${CMAKE_CURRENT_
 add_executable(DinoPadGeneratorTest "${DINOPAD_ROOT}/tests/module_generator_test.cpp")
 target_link_libraries(DinoPadGeneratorTest PRIVATE N64Recomp)
 target_compile_features(DinoPadGeneratorTest PRIVATE cxx_std_20)
+
+# Narrow UTF-8 paths to these processes; do not change the machine code page.
+if(MSVC)
+    foreach(target N64RecompCLI RSPRecomp)
+        target_sources(${target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/windows-utf8.manifest")
+    endforeach()
+endif()

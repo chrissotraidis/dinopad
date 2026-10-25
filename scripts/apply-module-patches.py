@@ -27,7 +27,7 @@ def apply(checkout, stack, verify_only=False):
             while not parent.exists():
                 parent = parent.parent
             repo = Path(subprocess.check_output(['git', '-C', str(parent),
-                                                 'rev-parse', '--show-toplevel'], text=True).strip())
+                                                 'rev-parse', '--show-toplevel'], text=True, encoding='utf-8').strip())
             result = subprocess.run(['git', '-C', str(repo), 'show',
                                      'HEAD:' + path.relative_to(repo).as_posix()], capture_output=True)
             originals[relative] = result.stdout if result.returncode == 0 else None

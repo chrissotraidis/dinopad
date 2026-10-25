@@ -69,6 +69,9 @@ select an installation with x64 tools; ARM64 hosts retain native ARM preference
 and x64 fallback. Native CMake link commands require a local work directory.
 These prerequisites describe the implementation, not a completed Windows game
 validation or an advertised Windows route.
+Host generators carry a process-local UTF-8 manifest, and Visual Studio discovery,
+environment output, Git repository paths and Python helpers use explicit encodings.
+No Windows code-page setting changes are required for non-English folder names.
 
 ## Validation and maintenance
 
@@ -92,6 +95,14 @@ cases, the real pinned host generators and the unsigned iOS 15 shell passed.
 The shell's package audit covered 2,569 compiled source/header dependencies and
 41 notice components, with no translated game symbols or restoration content.
 The module helper tests also passed under PadMint's bundled Windows Python.
+The Unicode follow-up passed 36 Apple Python tests and 14 portable Windows tests
+(one expected symlink-privilege skip). Fresh Mac and native Windows ARM64 builds
+executed public CPU/RSP fixtures from non-English working, config, input and output
+paths. The Windows build also used non-English build and temporary directories;
+manifest readback verified UTF-8 and `asInvoker`. Bundled x64 Python started with
+UTF-8 mode off. A Unicode source-patch fixture caught Git output being decoded with
+the Windows default encoding; explicit UTF-8 decoding fixed it while retaining
+the preservation checks. Existing tools and verified public source were reused.
 The available ROM did not match the supported fingerprint and was not used;
 complete original-ROM generation, module compilation and Windows game packaging
 remain unverified.

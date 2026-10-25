@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from module_build import ROOT, check_patch_tools, generate, generator_environment, normalize_rom, run
+from module_build import ROOT, check_patch_tools, configure_output, generate, generator_environment, normalize_rom, run
 
 
 def main():
@@ -51,6 +51,7 @@ def main():
 
 
 if __name__ == '__main__':
+    configure_output()
     try:
         main()
     except (OSError, ValueError, subprocess.CalledProcessError) as error:

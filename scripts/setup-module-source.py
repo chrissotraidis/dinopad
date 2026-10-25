@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from module_build import configure_output
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULES = ('lib/N64Recomp', 'lib/N64ModernRuntime', 'lib/dino-recomp-decomp-bridge', 'lib/rt64')
@@ -145,6 +147,7 @@ def select_source(source=None):
 
 
 if __name__ == '__main__':
+    configure_output()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--verify', type=Path, help='Verify an existing public source cache read-only')
     parser.add_argument('--shell', action='store_true', help='Include public iOS app dependencies; no restoration sources')

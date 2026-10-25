@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -26,7 +27,7 @@ setup = load('dino_module_setup_tests', ROOT / 'scripts/setup-module-source.py')
 
 class SourceTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='DinoPad source test ')
+        self.temp = tempfile.TemporaryDirectory(prefix='DinoPad source 雪 test ')
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.source = self.root / 'upstream'
@@ -127,7 +128,7 @@ class GenerationTests(unittest.TestCase):
             installer = programs / 'Microsoft Visual Studio/Installer/vswhere.exe'
             installer.parent.mkdir(parents=True)
             installer.touch()
-            x64, arm = programs / 'older x64', programs / 'newer ARM only'
+            x64, arm = programs / 'older x64 雪', programs / 'newer ARM only 雪'
             x64_cl = x64 / 'VC/Tools/MSVC/14.44/bin/Hostx64/x64/cl.exe'
             arm_cl = arm / 'VC/Tools/MSVC/14.45/bin/Hostarm64/arm64/cl.exe'
             for path in (x64_cl, arm_cl):
@@ -138,26 +139,47 @@ class GenerationTests(unittest.TestCase):
                                                       ('ARM64', False, x64_cl)):
                 with self.subTest(machine=machine, available_arm=available_arm):
                     def installations(command, **kwargs):
+                        self.assertEqual(command[-1], '-utf8')
+                        self.assertEqual(kwargs['encoding'], 'utf-8')
                         return str(arm if available_arm and '-requiresAny' in command else x64)
-                    env = {'ProgramFiles(x86)': str(programs), 'PATH': 'original'}
+                    env = {'ProgramFiles(x86)': str(programs), 'PATH': 'original', 'TEMP': 'private 雪 folder'}
                     with mock.patch.object(build, 'os', SimpleNamespace(name='nt', environ=env)), \
                             mock.patch.object(build.platform, 'machine', return_value=machine), \
                             mock.patch.object(build.subprocess, 'check_output', side_effect=installations), \
-                            mock.patch.object(build.subprocess, 'run', return_value=SimpleNamespace(stdout='Path=prepared\n')) as run, \
+                            mock.patch.object(build.subprocess, 'run', return_value=SimpleNamespace(stdout='Path=prepared\nTEMP=private 雪 folder\n')) as run, \
                             mock.patch.object(build.shutil, 'which', side_effect=[None, str(expected)]):
                         prepared = build.generator_environment()
                     self.assertIn(str(arm if expected == arm_cl else x64), run.call_args.args[0])
                     self.assertIn('" arm64 >nul' if expected == arm_cl else '" x64 >nul', run.call_args.args[0])
                     self.assertEqual(prepared['PATH'], 'prepared')
+                    self.assertEqual(prepared['TEMP'], 'private 雪 folder')
+                    self.assertEqual(env['PATH'], 'original')
+                    self.assertIn(' /d /u /s /c ', run.call_args.args[0])
+                    self.assertEqual(run.call_args.kwargs['encoding'], 'utf-16-le')
+
+    def test_redirected_isolated_python_logs_unicode(self):
+        code = """import importlib.util,sys,types
+spec=importlib.util.spec_from_file_location('build',sys.argv[1])
+build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
+build.os=types.SimpleNamespace(name='nt')
+sys.stdout.reconfigure(encoding='cp1252');sys.stderr.reconfigure(encoding='cp1252')
+build.configure_output()
+print('private \\u96ea folder');print('private \\u96ea error',file=sys.stderr)
+"""
+        result = subprocess.run([sys.executable, '-I', '-c', code, str(ROOT / 'scripts/module_build.py')],
+                                capture_output=True, check=True)
+        self.assertEqual(result.stdout.decode('utf-8').strip(), 'private 雪 folder')
+        self.assertEqual(result.stderr.decode('utf-8').strip(), 'private 雪 error')
 
     def test_pinned_python_helper_has_sibling_imports_and_preserves_arguments(self):
         with tempfile.TemporaryDirectory(prefix='DinoPad Python helper ') as temporary:
             folder = Path(temporary)
-            helper = folder / 'helper folder'
+            helper = folder / 'helper 雪 folder'
             helper.mkdir()
             (helper / 'sibling.py').write_text('VALUE = "sibling imported"\n')
             script = helper / 'patcher.py'
             script.write_text('import json,sys\nfrom pathlib import Path\nfrom sibling import VALUE\n'
+                              'assert sys.flags.utf8_mode == 1\n'
                               'Path("result.json").write_text(json.dumps([VALUE, sys.argv]))\n')
             build.run_python_script(script, 'input with spaces.z64', '--output', 'out.z64', cwd=folder, env=os.environ)
             self.assertEqual(json.loads((folder / 'result.json').read_text()),

@@ -8,6 +8,7 @@ function(dinopad_module_identity root output)
         "${root}/scripts/module_build.py" "${root}/scripts/build-game-module.py"
         "${root}/scripts/setup-module-source.py" "${root}/scripts/module-identity.py"
         "${root}/scripts/apply-module-patches.py"
+        "${root}/cmake/module-host-tools/windows-utf8.manifest"
         "${root}/tools/normalize_rom.py")
     execute_process(COMMAND "${Python3_EXECUTABLE}" "${root}/scripts/module-identity.py"
         OUTPUT_VARIABLE identity OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)

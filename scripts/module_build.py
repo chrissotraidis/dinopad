@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def identity():
     paths = [ROOT / 'dependencies.lock.json', ROOT / 'CMakeLists.txt', ROOT / 'tools/normalize_rom.py']
     for folder, suffixes in (('apple/module', ('.h', '.cpp')), ('patches', ('.patch',)),
-                             ('cmake', ('.cmake', '.txt'))):
+                             ('cmake', ('.cmake', '.txt', '.manifest'))):
         paths.extend(path for path in (ROOT / folder).rglob('*') if path.suffix in suffixes)
     paths.extend(ROOT / 'scripts' / name for name in (
         'module_build.py', 'module-identity.py', 'build-game-module.py',
@@ -69,7 +69,7 @@ def export_files(source, destination, paths):
 def run_python_script(script, *args, cwd, env):
     # PadMint's embedded Python isolates the script directory. Add only this
     # pinned helper's sibling directory; don't inherit user Python packages.
-    run(sys.executable, '-I', '-B', '-c',
+    run(sys.executable, '-I', '-X', 'utf8', '-B', '-c',
         'import os,runpy,sys;p=sys.argv.pop(1);sys.path.insert(0,os.path.dirname(p));'
         'runpy.run_path(p,run_name="__main__")', script, *args, cwd=cwd, env=env)
 
@@ -186,6 +186,15 @@ def run(*args, cwd=ROOT, env=None):
     subprocess.run([str(arg) for arg in args], cwd=cwd, env=env, check=True)
 
 
+def configure_output():
+    # The bundled interpreter ignores PYTHONUTF8; redirected logs still need
+    # to accept non-English player paths without turning success into failure.
+    if os.name == 'nt':
+        for stream in (sys.stdout, sys.stderr):
+            if hasattr(stream, 'reconfigure'):
+                stream.reconfigure(encoding='utf-8')
+
+
 def sha256(path):
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -207,7 +216,7 @@ def generator_environment():
         components.append("Microsoft.VisualStudio.Component.VC.Tools.ARM64")
     installation = subprocess.check_output([str(installer), "-latest", "-products", "*",
                                             *(["-requiresAny"] if native_arm else []), "-requires", *components,
-                                            "-property", "installationPath"], text=True).strip()
+                                            "-property", "installationPath", "-utf8"], text=True, encoding="utf-8").strip()
     versions = sorted((Path(installation) / "VC/Tools/MSVC").glob("*"), reverse=True)
     arm = native_arm and any(
         (version / "bin/Hostarm64/arm64/cl.exe").is_file() for version in versions)
@@ -215,8 +224,8 @@ def generator_environment():
     if not any((version / f"bin/Host{arch}/{arch}/cl.exe").is_file() for version in versions):
         raise ValueError(f"Visual Studio is missing its {arch} C++ compiler; add Desktop development with C++ and a Windows SDK.")
     script = Path(installation) / "VC/Auxiliary/Build/vcvarsall.bat"
-    command = subprocess.list2cmdline([env.get("COMSPEC", "cmd.exe")]) + f' /d /s /c ""{script}" {arch} >nul && set"'
-    result = subprocess.run(command, capture_output=True, text=True, check=True, env=env)
+    command = subprocess.list2cmdline([env.get("COMSPEC", "cmd.exe")]) + f' /d /u /s /c ""{script}" {arch} >nul && set"'
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-16-le", check=True, env=env)
     for line in result.stdout.splitlines():
         key, separator, value = line.partition("=")
         if separator and key:
