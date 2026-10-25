@@ -318,6 +318,10 @@ profiles keep their saved bindings until **Reset Keyboard Bindings** is used.
 
 ## Building for local development
 
+The unreleased [base-game module preparation](docs/PORTABLE_MODULE.md) can build
+an empty iOS shell without a ROM. Its portable game module still needs validation
+with the supported original input before it is offered through PadMint.
+
 Follow [the complete build guide](docs/BUILDING.md) for toolchain setup, pinned
 dependency bootstrap, private generation, safety audits, outputs, and Simulator
 smoke tests.

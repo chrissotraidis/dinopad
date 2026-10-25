@@ -6,6 +6,14 @@ set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT" || exit 1
 
+module_sources=0
+module_args=()
+case "${1:-}" in
+  --module) module_sources=1; shift ;;
+  --module-shell) module_sources=1; module_args+=(--shell); shift ;;
+esac
+[[ $# -eq 0 ]] || { echo "usage: scripts/check-repo-safety.sh [--module|--module-shell]" >&2; exit 2; }
+
 failures=0
 
 fail() { echo "FAIL: $*"; failures=$((failures + 1)); }
@@ -148,13 +156,28 @@ check_ref_repo() {
   echo "OK:   reference checkout verified: $repo_dir"
 }
 
-check_ref_repo ref/paperpad
-check_ref_repo ref/SDL2
-check_ref_repo ref/freetype
-while IFS= read -r gitdir; do
-  check_ref_repo "$(dirname "$gitdir")"
-done < <(find ref/dino-recomp ref/dinomod-enhanced-recompiled -name .git \( -type d -o -type f \) 2>/dev/null | sort)
-pass "reference checkouts verified (patches applied, push-disabled)"
+if [[ "$module_sources" -eq 1 ]]; then
+  # This route has no PaperPad, FreeType or DinoMod build dependency. Verify
+  # its complete selected source graph and exact patch bytes read-only.
+  if python3 "$ROOT/scripts/setup-module-source.py" --verify "$ROOT/ref/dino-recomp" "${module_args[@]}"; then
+    pass "module source pins and exact patch contents verified"
+  else
+    fail "module source verification failed"
+  fi
+  while IFS= read -r gitdir; do
+    repo_dir="$(dirname "$gitdir")"
+    [[ "$(git -C "$repo_dir" remote get-url --push origin 2>/dev/null)" == DISABLED ]] ||
+      fail "reference push URL not disabled: $repo_dir"
+  done < <(find ref/dino-recomp ref/SDL2 -name .git \( -type d -o -type f \) 2>/dev/null | sort)
+else
+  check_ref_repo ref/paperpad
+  check_ref_repo ref/SDL2
+  check_ref_repo ref/freetype
+  while IFS= read -r gitdir; do
+    check_ref_repo "$(dirname "$gitdir")"
+  done < <(find ref/dino-recomp ref/dinomod-enhanced-recompiled -name .git \( -type d -o -type f \) 2>/dev/null | sort)
+  pass "reference checkouts verified (patches applied, push-disabled)"
+fi
 
 if [ "$failures" -eq 0 ]; then
   echo "RESULT: repository safety checks clean"

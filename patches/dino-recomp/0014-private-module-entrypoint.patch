@@ -1,0 +1,14 @@
+diff --git a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -226,6 +226,10 @@
+     // Register supported games
+     for (const auto& game : supported_games) {
++#if DINOPAD_MODULE_SHELL
++        // The loader returns zero during global initialization, before dlopen.
++        supported_games[0].entrypoint_address = get_entrypoint_address();
++#endif
+         recomp::register_game(game);
+     }
+ 
+     recompui::register_ui_exports();

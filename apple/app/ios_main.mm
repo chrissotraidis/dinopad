@@ -23,6 +23,9 @@
 #include "ultramodern/ultramodern.hpp"
 
 extern "C" int dinopad_recomp_main(int argc, char **argv);
+#if DINOPAD_MODULE_SHELL
+#include "game_module.h"
+#endif
 extern "C" void dinopad_touch_snapshot(uint16_t* buttons, float* x, float* y);
 extern "C" void dinopad_set_physical_controller_connected(int connected);
 
@@ -2497,6 +2500,14 @@ extern "C" int SDL_main(int, char **) {
     SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "1");
     dinopad_start_diagnostics_log();
     dinopad_diagnostics_breadcrumb("session", "shell_started");
+#if DINOPAD_MODULE_SHELL
+    NSString* modulePath = [[NSBundle mainBundle] pathForResource:@"DinoPadGame" ofType:@"dylib"];
+    if (const char* error = dinopad_load_game_module(modulePath.fileSystemRepresentation)) {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "DinoPad", error, nullptr);
+        dinopad_finish_diagnostics_log();
+        return EXIT_FAILURE;
+    }
+#endif
 
     // Phase 5 (Goal 27a): verify the private supported ROM via UIKit before
     // entering the runtime. Missing/invalid ROM presents an in-app Files

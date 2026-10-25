@@ -46,19 +46,19 @@ def detect_byte_order(data: bytes) -> str:
 
 def swap16(data: bytes) -> bytes:
     # Swap each 16-bit word; preserve any trailing odd byte unchanged.
-    swapped = b"".join(data[i : i + 2][::-1] for i in range(0, len(data) - 1, 2))
-    if len(data) % 2:
-        swapped += data[-1:]
-    return swapped
+    end = len(data) - len(data) % 2
+    swapped = bytearray(data)
+    swapped[0:end:2], swapped[1:end:2] = data[1:end:2], data[0:end:2]
+    return bytes(swapped)
 
 
 def swap32(data: bytes) -> bytes:
     # Reverse each 32-bit word; preserve any trailing 1-3 bytes unchanged.
-    swapped = b"".join(data[i : i + 4][::-1] for i in range(0, len(data) - 3, 4))
-    remainder = len(data) % 4
-    if remainder:
-        swapped += data[-remainder:]
-    return swapped
+    end = len(data) - len(data) % 4
+    swapped = bytearray(data)
+    for index in range(4):
+        swapped[index:end:4] = data[3 - index:end:4]
+    return bytes(swapped)
 
 
 def normalize(data: bytes) -> bytes:

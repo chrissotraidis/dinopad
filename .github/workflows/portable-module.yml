@@ -1,0 +1,66 @@
+name: Portable module preparation
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: portable-module-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  public-generators:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, windows-11-arm, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Check portable preparation with synthetic inputs
+        run: |
+          python tests/test_module_build.py
+          python tests/test_compiled_inventory.py
+          python tools/normalize_rom.py --self-test
+      - name: Prepare pinned public module sources
+        run: python scripts/setup-module-source.py
+      - name: Check pinned patcher imports without a ROM
+        run: >-
+          python -c "import os,sys; from pathlib import Path; sys.path.insert(0,'scripts');
+          import module_build as b; b.run_python_script(Path('ref/dino-recomp/lib/dino-recomp-decomp-bridge/dinosaur-planet/tools/recomp_rom_patcher.py').resolve(),
+          '--help',cwd=Path.cwd(),env=os.environ)"
+      - name: Compile and exercise the actual host generators
+        run: >-
+          python -c "import sys; from pathlib import Path; sys.path.insert(0,'scripts');
+          import module_build as b; b.build_generators(Path('ref/dino-recomp').resolve(),
+          Path('tmp/generator-check').resolve(),2,b.generator_environment())"
+      - name: Verify public sources stayed unchanged
+        run: python scripts/setup-module-source.py --verify ref/dino-recomp
+      - name: Check native loader and full Python suite
+        if: runner.os == 'macOS'
+        run: |
+          python scripts/check-module-loader.py
+          python -m unittest discover -s tests -p 'test_*.py'
+          scripts/check-repo-safety.sh --module
+  empty-ios-shell:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install build tools
+        run: brew install cmake ninja ripgrep
+      - name: Build and audit the unsigned iOS shell without private inputs
+        env:
+          DINOPAD_MAX_JOBS: '3'
+        run: scripts/build-module-shell.sh
+      - name: Verify pinned source and artifact boundaries
+        run: scripts/check-repo-safety.sh --module-shell
