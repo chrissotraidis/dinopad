@@ -5,10 +5,14 @@ public iOS app. The existing Mac/static builds and their restoration default are
 unchanged. The new shell explicitly disables restoration and does not fetch or
 compile DinoMod. It retains the existing iOS 15 minimum.
 
-The route is still under validation. It is not offered by `padmint.json`, and the
-existing published app is not a matching module shell. A supported original ROM
-and a matching shell/module build are required before adding a host claim. The
-release pause in `AGENTS.md` still applies.
+`padmint.json` (schema 2) now declares Windows x64 and ARM64 as experimental: on
+Windows, PadMint runs `scripts/build-game-module.py` and inserts
+`DinoPadGame.dylib` into the published `DinoPad-v{version}-ios-shell.ipa`; Macs
+keep the existing static build. No such shell has been published yet, so the
+Windows route cannot run until a release adds it. The supported ROM completed
+this module build on Windows 11 ARM64 and Mac on 31 October 2026 (see the pull
+request). Device launch and gameplay are still untested, and the release pause in
+`AGENTS.md` still applies.
 
 ## Build boundary
 
@@ -67,8 +71,7 @@ target iOS 15 to match this app; an iOS 16 module must not be inserted into it.
 Windows requires Visual Studio 2022 C++ Build Tools and a Windows SDK. x64 hosts
 select an installation with x64 tools; ARM64 hosts retain native ARM preference
 and x64 fallback. Native CMake link commands require a local work directory.
-These prerequisites describe the implementation, not a completed Windows game
-validation or an advertised Windows route.
+PadMint checks for them before a Windows build starts.
 Host generators carry a process-local UTF-8 manifest, and Visual Studio discovery,
 environment output, Git repository paths and Python helpers use explicit encodings.
 No Windows code-page setting changes are required for non-English folder names.
