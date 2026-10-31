@@ -1,4 +1,5 @@
 """Run required build entrypoints with synthetic files and logged tool stubs."""
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -17,9 +18,7 @@ name = pathlib.Path(sys.argv[0]).name
 args = sys.argv[1:]
 with open(os.environ["TEST_LOG"], "a") as log:
     log.write(json.dumps([name] + args) + "\n")
-if name == "md5":
-    print(os.environ.get("TEST_MD5", "49f7bb346ade39d1915c22e090ffd748"))
-elif name == "make" or (name == "cmake" and "--build" in args):
+if name == "make" or (name == "cmake" and "--build" in args):
     sys.exit(73)  # Stop before compiling anything or reaching downstream tools.
 else:
     sys.exit(0)
@@ -38,7 +37,7 @@ class BuildJobsTests(unittest.TestCase):
                 shutil.copy2(source, self.root / "scripts" / name)
         self.bin = self.root / "bin"
         self.bin.mkdir()
-        for name in ("cmake", "make", "md5", "curl", "tar"):
+        for name in ("cmake", "make", "curl", "tar"):
             target = self.bin / name
             target.write_text("#!" + sys.executable + "\n" + TOOL)
             target.chmod(0o755)
@@ -61,6 +60,12 @@ class BuildJobsTests(unittest.TestCase):
             file.parent.mkdir(parents=True, exist_ok=True)
             file.write_text("synthetic fixture\n")
             file.chmod(0o755)
+        rom = b'\x80\x37\x12\x40' + b'synthetic fixture'
+        (self.root / 'generated/rom/baserom.z64').write_bytes(rom)
+        (self.root / 'tools').mkdir(exist_ok=True)
+        (self.root / 'tools/normalize_rom.py').write_text(
+            (ROOT / 'tools/normalize_rom.py').read_text().replace(
+                '49f7bb346ade39d1915c22e090ffd748', hashlib.md5(rom).hexdigest()))
 
     def run_script(self, name, **overrides):
         return subprocess.run(["/bin/bash", str(self.root / "scripts" / name)],
@@ -155,11 +160,11 @@ class BuildJobsTests(unittest.TestCase):
 
     def test_rom_fingerprint_failure_still_prevents_make(self):
         self.generation_fixture()
-        result = self.run_script("generate-base.sh", CMAKE_BUILD_PARALLEL_LEVEL="2",
-                                 TEST_MD5="unsupported synthetic fingerprint")
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("ROM fingerprint mismatch", result.stderr)
-        self.assertEqual([c[0] for c in self.calls()], ["md5"])
+        (self.root / 'generated/rom/baserom.z64').write_bytes(b'\x80\x37\x12\x40wrong revision')
+        result = self.run_script("generate-base.sh", CMAKE_BUILD_PARALLEL_LEVEL="2")
+        self.assertEqual(result.returncode, 4)
+        self.assertIn("UNSUPPORTED-REVISION", result.stdout)
+        self.assertEqual(self.calls(), [])
 
     def test_missing_toolchain_still_prevents_rom_setup(self):
         result = self.run_script("generate-base.sh", CMAKE_BUILD_PARALLEL_LEVEL="2")

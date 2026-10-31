@@ -17,7 +17,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-SUPPORTED_MD5="49f7bb346ade39d1915c22e090ffd748"
 DINO_RECOMP="ref/dino-recomp"
 ROM_ARG=""
 while (($#)); do
@@ -51,17 +50,15 @@ mkdir -p generated/rom generated/aot/rsp generated/patches
 
 echo "== 1. Private ROM =="
 if [ -n "$ROM_ARG" ]; then
-  cp "$ROM_ARG" generated/rom/baserom.z64
+  ROM_SOURCE="$ROM_ARG"
+else
+  ROM_SOURCE=generated/rom/baserom.z64
 fi
-if [ ! -f generated/rom/baserom.z64 ]; then
+if [ ! -f "$ROM_SOURCE" ]; then
   echo "ERROR: generated/rom/baserom.z64 missing; pass --rom" >&2
   exit 1
 fi
-got_md5="$(md5 -q generated/rom/baserom.z64)"
-if [ "$got_md5" != "$SUPPORTED_MD5" ]; then
-  echo "ERROR: ROM fingerprint mismatch: $got_md5 (expected $SUPPORTED_MD5)" >&2
-  exit 1
-fi
+"$PY" "$ROOT/tools/normalize_rom.py" "$ROM_SOURCE" --out generated/rom/baserom.z64
 echo "OK: private ROM fingerprint verified (not logged further)"
 
 echo "== 2. Patch ROM for the recompiler =="

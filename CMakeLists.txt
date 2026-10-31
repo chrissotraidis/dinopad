@@ -36,6 +36,10 @@ set(DINO_RECOMP "${DINOPAD_ROOT}/ref/dino-recomp")
 set(DINOPAD_AOT "${DINOPAD_ROOT}/generated/aot" CACHE PATH
     "Private generated base-game AOT source directory")
 set(DINOPAD_RESTORATION "${DINOPAD_ROOT}/generated/restoration")
+option(DINOPAD_MODULE_SHELL "Build the iOS app without private translated game code" OFF)
+if(DINOPAD_MODULE_SHELL AND NOT DINOPAD_IOS)
+    message(FATAL_ERROR "The private module shell currently targets iOS only")
+endif()
 
 # Reproducible builds: do not embed the builder's absolute checkout path.
 add_compile_options(
@@ -51,7 +55,7 @@ set(DINOPAD_RECOMP_INCLUDE_DIRS
     # sse2neon provides <sse2neon.h> used by librecomp rsp_vu on aarch64.
     "${DINO_RECOMP}/lib/N64ModernRuntime/thirdparty/sse2neon")
 
-if (NOT EXISTS "${DINOPAD_AOT}/RecompiledFuncs/funcs.h")
+if (NOT DINOPAD_MODULE_SHELL AND NOT EXISTS "${DINOPAD_AOT}/RecompiledFuncs/funcs.h")
     message(FATAL_ERROR
         "Generated base AOT missing at ${DINOPAD_AOT}. "
         "Run scripts/generate-base.sh --rom <path> first.")
@@ -64,6 +68,9 @@ set(DINOPAD_AOT_COMPILE_OPTIONS
     -Wno-shorten-64-to-32)
 
 # Base recompiled game code (N64Recomp output, ROM-derived, private).
+set(DINOPAD_PRIVATE_LIBRARIES "")
+if(NOT DINOPAD_MODULE_SHELL)
+set(DINOPAD_PRIVATE_LIBRARIES dinopad_patches dinopad_base dinopad_rsp)
 file(GLOB DINOPAD_FUNC_C_SOURCES "${DINOPAD_AOT}/RecompiledFuncs/*.c")
 file(GLOB DINOPAD_FUNC_CXX_SOURCES "${DINOPAD_AOT}/RecompiledFuncs/*.cpp")
 add_library(dinopad_base STATIC ${DINOPAD_FUNC_C_SOURCES} ${DINOPAD_FUNC_CXX_SOURCES})
@@ -90,6 +97,7 @@ target_include_directories(dinopad_rsp PRIVATE
 target_compile_options(dinopad_rsp PRIVATE
     -fno-strict-aliasing
     -Wno-shorten-64-to-32)
+endif()
 
 # ---- SDL2 -----------------------------------------------------------------
 if (APPLE)
@@ -167,6 +175,9 @@ add_subdirectory("${DINO_RECOMP}/lib/N64ModernRuntime")
 # ---- Statically linked restoration module ---------------------------------
 option(DINOPAD_ENABLE_STATIC_RESTORATION
     "Link the privately generated DinoMod restoration code" ON)
+if(DINOPAD_MODULE_SHELL AND DINOPAD_ENABLE_STATIC_RESTORATION)
+    message(FATAL_ERROR "The module shell is base-only; set DINOPAD_ENABLE_STATIC_RESTORATION=OFF")
+endif()
 if (DINOPAD_ENABLE_STATIC_RESTORATION)
     foreach(required_file
             dinomod_enhanced.c
@@ -259,9 +270,15 @@ set(DINOPAD_RUNTIME_SOURCES
     "${DINO_RECOMP}/src/ui/elements/ui_toggle.cpp"
     "${DINO_RECOMP}/src/ui/util/hsv.cpp")
 
+if(DINOPAD_MODULE_SHELL)
+    list(REMOVE_ITEM DINOPAD_RUNTIME_SOURCES
+        "${DINO_RECOMP}/src/runtime/overlays.cpp"
+        "${DINO_RECOMP}/src/runtime/patches.cpp")
+endif()
 add_library(dinopad_runtime STATIC ${DINOPAD_RUNTIME_SOURCES})
 target_compile_definitions(dinopad_runtime PUBLIC
-    DINOPAD_ENABLE_STATIC_RESTORATION=$<BOOL:${DINOPAD_ENABLE_STATIC_RESTORATION}>)
+    DINOPAD_ENABLE_STATIC_RESTORATION=$<BOOL:${DINOPAD_ENABLE_STATIC_RESTORATION}>
+    DINOPAD_MODULE_SHELL=$<BOOL:${DINOPAD_MODULE_SHELL}>)
 target_include_directories(dinopad_runtime PUBLIC
     "${DINOPAD_ROOT}/include"
     ${DINOPAD_RECOMP_INCLUDE_DIRS}
@@ -324,9 +341,7 @@ target_link_libraries(dinopad_runtime PUBLIC
     # the first definition. The recompiled patch library must precede the base
     # game code so that patched functions (e.g. dll_load, init_dll_system)
     # replace their base counterparts (upstream links PatchesLib first).
-    dinopad_patches
-    dinopad_base
-    dinopad_rsp
+    ${DINOPAD_PRIVATE_LIBRARIES}
     dinopad_sdl2)
 
 if (APPLE AND NOT DINOPAD_IOS)
@@ -364,6 +379,10 @@ else()
 endif()
 
 add_executable(DinoPad ${DINOPAD_APP_SOURCES})
+if(DINOPAD_MODULE_SHELL)
+    include("${DINOPAD_ROOT}/cmake/ModuleShell.cmake")
+    dinopad_module_shell(DinoPad)
+endif()
 
 set_source_files_properties("${DINOPAD_ROOT}/src/app/dinopad_home.mm"
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
