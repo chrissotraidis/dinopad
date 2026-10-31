@@ -137,8 +137,10 @@ def generate(source, rom, work, llvm, jobs, env):
             pass
     with tempfile.TemporaryDirectory(prefix='generation-', dir=work) as temporary:
         stage = Path(temporary) / 'source'
+        # The two runtime sources include their headers by quoted name, so the headers travel with them.
         export_files(source, stage, ['dino.toml', 'aspMain.toml', 'patches.toml', 'patches', 'include',
-                                    'src/runtime/overlays.cpp', 'src/runtime/patches.cpp'])
+                                    'src/runtime/overlays.cpp', 'src/runtime/overlays.hpp',
+                                    'src/runtime/patches.cpp', 'src/runtime/patches.hpp'])
         bridge = source / 'lib/dino-recomp-decomp-bridge'
         export_files(bridge, stage / 'lib/dino-recomp-decomp-bridge', ['.'])
         decomp = bridge / 'dinosaur-planet'
