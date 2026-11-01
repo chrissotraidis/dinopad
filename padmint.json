@@ -170,6 +170,9 @@
         "name": "git",
         "version_args": [
           "--version"
+        ],
+        "hosts": [
+          "macos-arm64"
         ]
       },
       {
@@ -179,7 +182,10 @@
         ],
         "min_version": "3.24",
         "player": true,
-        "note": "Install CMake 3.24 or newer: brew install cmake. DinoPad's pinned SDL2 Apple build requires it."
+        "note": "Install CMake 3.24 or newer: brew install cmake. DinoPad's pinned SDL2 Apple build requires it.",
+        "hosts": [
+          "macos-arm64"
+        ]
       },
       {
         "name": "ninja",
@@ -187,18 +193,27 @@
           "--version"
         ],
         "player": true,
-        "note": "Install Ninja before building DinoPad: brew install ninja."
+        "note": "Install Ninja before building DinoPad: brew install ninja.",
+        "hosts": [
+          "macos-arm64"
+        ]
       },
       {
         "name": "python3",
         "version_args": [
           "--version"
+        ],
+        "hosts": [
+          "macos-arm64"
         ]
       },
       {
         "name": "make",
         "version_args": [
           "--version"
+        ],
+        "hosts": [
+          "macos-arm64"
         ]
       },
       {
@@ -206,7 +221,10 @@
         "version_args": [
           "-version"
         ],
-        "note": "Install Xcode and its iOS platform"
+        "note": "Install Xcode and its iOS platform",
+        "hosts": [
+          "macos-arm64"
+        ]
       },
       {
         "name": "xcrun",
@@ -216,14 +234,20 @@
           "--version"
         ],
         "player": true,
-        "note": "Install Xcode's Metal Toolchain: xcodebuild -downloadComponent MetalToolchain"
+        "note": "Install Xcode's Metal Toolchain: xcodebuild -downloadComponent MetalToolchain",
+        "hosts": [
+          "macos-arm64"
+        ]
       },
       {
         "name": "rg",
         "version_args": [
           "--version"
         ],
-        "note": "ripgrep, used by the packaging checks: brew install ripgrep"
+        "note": "ripgrep, used by the packaging checks: brew install ripgrep",
+        "hosts": [
+          "macos-arm64"
+        ]
       },
       {
         "name": "%ProgramFiles(x86)%/Microsoft Visual Studio/Installer/vswhere.exe",
