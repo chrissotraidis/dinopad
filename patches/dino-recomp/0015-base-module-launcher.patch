@@ -1,0 +1,23 @@
+diff --git a/src/ui/ui_launcher.cpp b/src/ui/ui_launcher.cpp
+--- a/src/ui/ui_launcher.cpp
++++ b/src/ui/ui_launcher.cpp
+@@ -81,6 +81,11 @@
+ }
+ 
+ void start_game_check_dinomod() {
++#if DINOPAD_MODULE_SHELL
++    // The public module shell contains only the base prototype. It never
++    // discovers or requires restoration mods from the desktop launcher.
++    start_game();
++#else
+     if (dino::config::get_dinomod_check() && !recomp::mods::is_mod_enabled("dinomod_enhanced")) {
+         recompui::open_choice_prompt("Missing Dinomod Enhanced", 
+             "Warning: The mod 'Dinomod Enhanced' is not installed and enabled! "
+@@ -98,6 +103,7 @@
+     } else {
+         start_game_check_asset_repacker();
+     }
++#endif
+ }
+ 
+ void start_game_preflight() {

@@ -30,12 +30,12 @@ def fail(message: str) -> None:
     raise ValueError(message)
 
 
-def repo_path(value: str, label: str) -> pathlib.Path:
+def repo_path(value: str, label: str, required: bool = True) -> pathlib.Path:
     pure = pathlib.PurePosixPath(value)
     if pure.is_absolute() or ".." in pure.parts or value.startswith(("~/", "file://")):
         fail(f"{label}: path must be repository-relative: {value}")
     resolved = (ROOT / pure).resolve()
-    if ROOT not in resolved.parents or not resolved.exists():
+    if ROOT not in resolved.parents or (required and not resolved.exists()):
         fail(f"{label}: missing or outside repository: {value}")
     return resolved
 
@@ -109,6 +109,10 @@ def validate(manifest_path: pathlib.Path, selected_target: str | None, build_dir
         fail("target_exclusions must match targets")
     if selected_target is not None and selected_target not in targets:
         fail(f"unknown target: {selected_target}")
+    for target_name, excluded in exclusions.items():
+        if not isinstance(excluded, list) or any(not isinstance(item, str) for item in excluded):
+            fail(f"{target_name}: invalid target exclusions")
+    inactive = set(exclusions[selected_target]) if selected_target else set()
 
     components = data["components"]
     if not isinstance(components, list) or not components:
@@ -132,8 +136,9 @@ def validate(manifest_path: pathlib.Path, selected_target: str | None, build_dir
         prefix = entry["coverage_prefix"]
         if not isinstance(prefix, str):
             fail(f"{component_id}: coverage_prefix must be a string")
-        prefix_path = repo_path(prefix, f"{component_id}.coverage_prefix")
-        if not prefix_path.is_dir() or not prefix.startswith("ref/"):
+        required = component_id not in inactive
+        prefix_path = repo_path(prefix, f"{component_id}.coverage_prefix", required)
+        if (required and not prefix_path.is_dir()) or not prefix.startswith("ref/"):
             fail(f"{component_id}: coverage_prefix must be a ref/ directory")
         prefix = pathlib.PurePosixPath(prefix).as_posix()
         if prefix in seen_prefixes:
@@ -144,8 +149,8 @@ def validate(manifest_path: pathlib.Path, selected_target: str | None, build_dir
         source = entry["notice_source"]
         if not isinstance(source, str):
             fail(f"{component_id}: notice_source must be a string")
-        source_path = repo_path(source, f"{component_id}.notice_source")
-        if not source_path.is_file():
+        source_path = repo_path(source, f"{component_id}.notice_source", required)
+        if required and not source_path.is_file():
             fail(f"{component_id}: notice_source must be a file")
         kind = entry["notice_kind"]
         if kind not in NOTICE_KINDS:
@@ -154,7 +159,7 @@ def validate(manifest_path: pathlib.Path, selected_target: str | None, build_dir
         expected = entry["sha256"]
         if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
             fail(f"{component_id}: invalid SHA-256")
-        if digest(source_path) != expected:
+        if required and digest(source_path) != expected:
             fail(f"{component_id}: notice source hash mismatch")
 
     assemblies = data["inline_notice_assemblies"]
@@ -172,11 +177,12 @@ def validate(manifest_path: pathlib.Path, selected_target: str | None, build_dir
         path = assembly["path"]
         if not isinstance(path, str):
             fail(f"{assembly_id}: assembly path must be a string")
-        notice = repo_path(path, f"{assembly_id}.assembly")
+        required = assembly_id not in inactive
+        notice = repo_path(path, f"{assembly_id}.assembly", required)
         expected = assembly["sha256"]
         if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
             fail(f"{assembly_id}: invalid assembly SHA-256")
-        if digest(notice) != expected:
+        if required and digest(notice) != expected:
             fail(f"{assembly_id}: assembled notice hash mismatch")
     if assembly_ids != inline_ids:
         fail(f"inline assembly set mismatch: {sorted(inline_ids - assembly_ids)}")

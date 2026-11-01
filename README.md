@@ -180,13 +180,15 @@ These are engineering results beyond the narrower public base build. See
 
 ## Playing DinoPad
 
-**No Mac?** Building DinoPad for iPhone or iPad needs an Apple Silicon Mac
-today. DinoPad reads your own ROM while it builds, so it can't use [GitHub's
-Mac](https://github.com/chrissotraidis/padmint#no-mac-build-on-githubs-mac) the
-way some other ports do: that would mean uploading your game file. A Windows
-build is planned; [PadMint's Windows
-list](https://github.com/chrissotraidis/padmint/blob/main/docs/WINDOWS.md) shows
-where it stands.
+**No Mac? Build it on a Windows PC (experimental).** PadMint 0.5.27 or newer
+builds DinoPad for iPhone or iPad on Windows 11 (x64 or ARM64) from your own
+Dinosaur Planet ROM. Install Visual Studio 2022 Build Tools with **Desktop development with
+C++**, then choose DinoPad in PadMint. PadMint downloads the game-free DinoPad app
+from this release and adds the game code it builds from your file on your PC;
+nothing of yours is uploaded. The Mac build is unchanged. This Windows route is
+new: builds pass on Windows 11 ARM64, but a Windows-built copy has not yet been
+played on a device. GitHub's Mac can't build DinoPad, because that would mean
+uploading your game file. Details: [portable module](docs/PORTABLE_MODULE.md).
 
 On an Apple Silicon Mac with Xcode and `brew install cmake ninja xdelta ripgrep`, download
 [PadMint](https://github.com/chrissotraidis/padmint/releases/latest), unzip it,
@@ -325,6 +327,10 @@ Bindings remain editable in the in-game controls screen. Existing development
 profiles keep their saved bindings until **Reset Keyboard Bindings** is used.
 
 ## Building for local development
+
+The unreleased [base-game module preparation](docs/PORTABLE_MODULE.md) can build
+an empty iOS shell without a ROM. Its portable game module still needs validation
+with the supported original input before it is offered through PadMint.
 
 Follow [the complete build guide](docs/BUILDING.md) for toolchain setup, pinned
 dependency bootstrap, private generation, safety audits, outputs, and Simulator

@@ -7,13 +7,19 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/build-ios-device/Release-iphoneos/DinoPad.app"
 ALLOW_SIGNING=0
 DISTRIBUTION="restored"
+INVENTORY_BUILD=""
 
 usage() {
-    echo "usage: scripts/check-package-safety.sh [--distribution restored|base] [--allow-signing] [DinoPad.app]" >&2
+    echo "usage: scripts/check-package-safety.sh [--distribution restored|base] [--build-dir relative/build] [--allow-signing] [DinoPad.app]" >&2
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --build-dir)
+            [[ $# -ge 2 ]] || { usage; exit 2; }
+            INVENTORY_BUILD="$2"
+            shift 2
+            ;;
         --allow-signing)
             ALLOW_SIGNING=1
             shift
@@ -57,7 +63,11 @@ PRIVACY_MANIFEST="$APP/PrivacyInfo.xcprivacy"
 cmp -s "$ROOT/apple/app/PrivacyInfo.xcprivacy" "$PRIVACY_MANIFEST" ||
     fail "bundled privacy manifest differs from the tracked declaration"
 inventory_args=(--target ios-device)
-[[ "$DISTRIBUTION" != base ]] || inventory_args+=(--build-dir build-ios-base/build)
+if [[ -n "$INVENTORY_BUILD" ]]; then
+    inventory_args+=(--build-dir "$INVENTORY_BUILD")
+elif [[ "$DISTRIBUTION" == base ]]; then
+    inventory_args+=(--build-dir build-ios-base/build)
+fi
 python3 "$ROOT/tools/validate_compiled_dependency_inventory.py" \
     "${inventory_args[@]}" || fail "iOS compiled dependency inventory is invalid"
 python3 "$ROOT/tools/package_compiled_dependency_notices.py" \
