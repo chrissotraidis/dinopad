@@ -180,6 +180,14 @@ These are engineering results beyond the narrower public base build. See
 
 ## Playing DinoPad
 
+**No Mac?** Building DinoPad for iPhone or iPad needs an Apple Silicon Mac
+today. DinoPad reads your own ROM while it builds, so it can't use [GitHub's
+Mac](https://github.com/chrissotraidis/padmint#no-mac-build-on-githubs-mac) the
+way some other ports do: that would mean uploading your game file. A Windows
+build is planned; [PadMint's Windows
+list](https://github.com/chrissotraidis/padmint/blob/main/docs/WINDOWS.md) shows
+where it stands.
+
 On an Apple Silicon Mac with Xcode and `brew install cmake ninja xdelta ripgrep`, download
 [PadMint](https://github.com/chrissotraidis/padmint/releases/latest), unzip it,
 double-click `PadMint.command`, choose DinoPad and pick your supported
