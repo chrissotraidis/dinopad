@@ -16,6 +16,7 @@
 #import "settings.h"
 #import "test_harness.h"
 #import <UIKit/UIKit.h>
+#include "touch_visibility.h"
 
 #include "config/config.hpp"
 #include "runtime/audio.hpp"
@@ -196,6 +197,7 @@ std::atomic<int32_t> g_touchY{0};
 std::atomic<int32_t> g_touchFlickX{0};
 std::atomic<int32_t> g_touchFlickY{0};
 std::atomic<uint8_t> g_touchFlickPolls{0};
+// True when a usable physical controller drives Player 1, the player touch drives.
 std::atomic_bool g_controllerConnected{false};
 std::atomic_bool g_quitToHome{false};
 std::atomic<int> g_currentProfile{0};
@@ -227,6 +229,8 @@ void drainUIKitQueue() {
 - (void)resetLayoutForIdiom:(UIUserInterfaceIdiom)idiom;
 - (void)setControlsEnabled:(BOOL)enabled;
 - (void)setControlsEnabled:(BOOL)enabled opacity:(CGFloat)opacity;
+- (void)setAutoHideWithController:(BOOL)enabled;
+- (void)showTouchControls;
 - (void)setModalControlsHidden:(BOOL)hidden;
 - (void)setPhysicalControllerConnected:(BOOL)connected;
 - (void)presentUtilityMenu;
@@ -295,8 +299,7 @@ void drainUIKitQueue() {
     BOOL _editingStartDPadLinked;
     BOOL _editingStartCButtonsLinked;
     NSInteger _selected;
-    BOOL _controlsEnabled;
-    BOOL _controllerConnected;
+    DinoPadTouchVisibility _visibility;
     BOOL _modalControlsHidden;
     BOOL _zHoldToLockEnabled;
     BOOL _zLatched;
@@ -320,15 +323,17 @@ void drainUIKitQueue() {
         _simulatedTouchPoints = [NSMutableDictionary dictionary];
 #endif
         _selected = 9;
-        _controlsEnabled = YES;
         _zHoldToLockEnabled = YES;
         _globalOpacity = 0.70;
 
         NSDictionary* saved = [NSUserDefaults.standardUserDefaults
             dictionaryForKey:@"dinopad.touch.settings.v1"];
         if ([saved[@"enabled"] isKindOfClass:NSNumber.class]) {
-            _controlsEnabled = [saved[@"enabled"] boolValue];
+            _visibility.enabled = [saved[@"enabled"] boolValue];
         }
+        _visibility.autoHide = DinoPadSavedAutoHide(
+            [saved[@"autoHideWithController"] isKindOfClass:NSNumber.class],
+            [saved[@"autoHideWithController"] boolValue]);
         if ([saved[@"opacity"] isKindOfClass:NSNumber.class]) {
             const double opacity = [saved[@"opacity"] doubleValue];
             if (std::isfinite(opacity)) {
@@ -600,7 +605,7 @@ void drainUIKitQueue() {
 
     for (NSInteger index = 0; index < static_cast<NSInteger>(kControlCount); ++index) {
         const TouchControl& control = _controls[index];
-        if (!_editing && (!_controlsEnabled || _controllerConnected || _modalControlsHidden)) continue;
+        if (!_editing && ![self gameplayControlsLive]) continue;
         if (!control.visible && !_editing) continue;
         CGFloat radius = [self radiusForControl:control];
         CGRect frame = [self frameForControl:control];
@@ -687,7 +692,7 @@ void drainUIKitQueue() {
 }
 
 - (NSInteger)controlAtPoint:(CGPoint)point includeHidden:(BOOL)includeHidden {
-    if (!_editing && (!_controlsEnabled || _controllerConnected || _modalControlsHidden)) return NSNotFound;
+    if (!_editing && ![self gameplayControlsLive]) return NSNotFound;
     NSInteger nearest = NSNotFound;
     CGFloat nearestDistance = CGFLOAT_MAX;
     for (NSInteger index = 0; index < static_cast<NSInteger>(kControlCount); ++index) {
@@ -905,27 +910,54 @@ void drainUIKitQueue() {
 }
 
 - (void)setControlsEnabled:(BOOL)enabled opacity:(CGFloat)opacity {
-    _controlsEnabled = enabled;
     _globalOpacity = std::isfinite(opacity)
         ? MAX(0.20, MIN(1.0, opacity)) : 0.70;
     _utilityButton.alpha = MAX(0.55, _globalOpacity);
-    if (!enabled) [self clearInput];
+    DinoPadTouchVisibility next = _visibility;
+    next.enabled = enabled;
+    [self applyVisibility:next];
+    [self saveTouchSettings];
+}
+
+- (void)saveTouchSettings {
     [NSUserDefaults.standardUserDefaults setObject:@{
-        @"enabled": @(_controlsEnabled),
+        @"enabled": @(_visibility.enabled),
         @"opacity": @(_globalOpacity),
         @"zHoldToLock": @(_zHoldToLockEnabled),
+        @"autoHideWithController": @(_visibility.autoHide),
     } forKey:@"dinopad.touch.settings.v1"];
+}
+
+- (BOOL)gameplayControlsLive {
+    return _visibility.gameplayVisible() && !_modalControlsHidden;
+}
+
+- (void)applyVisibility:(DinoPadTouchVisibility)visibility {
+    const bool wasVisible = _visibility.gameplayVisible();
+    _visibility = visibility;
+    // Hidden controls must not keep a held button, stick, Z lock or tap alive.
+    if (wasVisible && !_visibility.gameplayVisible() && !_editing) [self clearInput];
     [self setNeedsDisplay];
+}
+
+- (void)setAutoHideWithController:(BOOL)enabled {
+    DinoPadTouchVisibility next = _visibility;
+    next.autoHide = enabled;
+    [self applyVisibility:next];
+    [self saveTouchSettings];
+}
+
+- (void)showTouchControls {
+    DinoPadTouchVisibility next = _visibility;
+    next.show();
+    [self applyVisibility:next];
+    [self saveTouchSettings];
 }
 
 - (void)setZHoldToLockEnabled:(BOOL)enabled {
     _zHoldToLockEnabled = enabled;
     if (!enabled) [self clearInput];
-    [NSUserDefaults.standardUserDefaults setObject:@{
-        @"enabled": @(_controlsEnabled),
-        @"opacity": @(_globalOpacity),
-        @"zHoldToLock": @(_zHoldToLockEnabled),
-    } forKey:@"dinopad.touch.settings.v1"];
+    [self saveTouchSettings];
     [self setNeedsDisplay];
 }
 
@@ -956,14 +988,18 @@ void drainUIKitQueue() {
         return;
     }
 
-    NSString* controllerStatus = _controllerConnected ? @"Connected" : @"Not Connected";
+    NSString* controllerStatus = _visibility.controllerReady ? @"Connected" : @"Not Connected";
 #if DINOPAD_ENABLE_STATIC_RESTORATION
     NSString* profileTitle = g_currentProfile.load(std::memory_order_relaxed) == 0
         ? @"Restored Adventure" : @"Prototype Mode";
 #else
     NSString* profileTitle = @"Prototype Mode";
 #endif
-    NSString* touchTitle = _controlsEnabled ? @"Disable Touch Controls" : @"Enable Touch Controls";
+    const BOOL controlsVisible = _visibility.gameplayVisible();
+    NSString* touchTitle = controlsVisible ? @"Hide Touch Controls" : @"Show Touch Controls";
+    NSString* autoHideTitle = _visibility.autoHide
+        ? @"Auto-hide Touch Controls with Controller: On"
+        : @"Auto-hide Touch Controls with Controller: Off";
     UIAlertController* menu = [UIAlertController
         alertControllerWithTitle:@"DinoPad"
                          message:[NSString stringWithFormat:
@@ -976,9 +1012,18 @@ void drainUIKitQueue() {
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:touchTitle
         style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
-            dinopad_diagnostics_breadcrumb("menu", self->_controlsEnabled
+            dinopad_diagnostics_breadcrumb("menu", controlsVisible
                 ? "touch_controls_disabled" : "touch_controls_enabled");
-            [self setControlsEnabled:!self->_controlsEnabled];
+            if (controlsVisible) {
+                [self setControlsEnabled:NO];
+            } else {
+                [self showTouchControls];
+            }
+            [self setModalControlsHidden:NO];
+        }]];
+    [menu addAction:[UIAlertAction actionWithTitle:autoHideTitle
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction* action) {
+            [self setAutoHideWithController:!self->_visibility.autoHide];
             [self setModalControlsHidden:NO];
         }]];
     [menu addAction:[UIAlertAction actionWithTitle:@"Settings & Status"
@@ -1239,7 +1284,7 @@ void drainUIKitQueue() {
         DinoPadTouchOverlayView* strongSelf = weakSelf;
         if (strongSelf == nil || strongSelf->_zHoldGeneration != generation ||
             !strongSelf->_zHoldToLockEnabled || strongSelf->_editing ||
-            strongSelf->_controllerConnected || strongSelf->_modalControlsHidden ||
+            ![strongSelf gameplayControlsLive] ||
             ![strongSelf isControlHeld:control]) {
             return;
         }
@@ -1268,9 +1313,9 @@ void drainUIKitQueue() {
 }
 
 - (void)setPhysicalControllerConnected:(BOOL)connected {
-    _controllerConnected = connected;
-    if (connected) [self clearInput];
-    [self setNeedsDisplay];
+    DinoPadTouchVisibility next = _visibility;
+    next.controllerReady = connected;
+    [self applyVisibility:next];
 }
 
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
@@ -1279,7 +1324,9 @@ void drainUIKitQueue() {
         if ([self handleToolbarPoint:point]) continue;
         NSInteger control = [self controlAtPoint:point includeHidden:_editing];
         CGRect usable = [self usableBounds];
-        if (!_editing && control == NSNotFound &&
+        // The floating stick zone is a gameplay target; it must not work while
+        // the controls are hidden.
+        if (!_editing && [self gameplayControlsLive] && control == NSNotFound &&
             point.x <= CGRectGetMinX(usable) + usable.size.width * 0.47) {
             control = 0;
         }
@@ -1366,7 +1413,8 @@ void drainUIKitQueue() {
 - (void)beginSimulatedTouchWithID:(NSInteger)touchID atPoint:(CGPoint)point {
     NSInteger control = [self controlAtPoint:point];
     CGRect usable = [self usableBounds];
-    if (control == NSNotFound && point.x <= CGRectGetMinX(usable) + usable.size.width * 0.47) {
+    if ((_editing || [self gameplayControlsLive]) && control == NSNotFound &&
+        point.x <= CGRectGetMinX(usable) + usable.size.width * 0.47) {
         control = 0;
     }
     if (control == NSNotFound) return;
@@ -1995,8 +2043,13 @@ void drainUIKitQueue() {
 
     // Suite 6: Controller Handoff & Simulator Exception
     if (_suite == 6) {
-        NSInteger stickIdx = [_overlay controlIndexForKey:"stick"];
-        CGPoint stickCenter = [_overlay centerForControlIndex:stickIdx];
+        CGPoint aCenter = [_overlay centerForControlIndex:[_overlay controlIndexForKey:"a"]];
+        CGPoint stickCenter = [_overlay centerForControlIndex:[_overlay controlIndexForKey:"stick"]];
+        NSDictionary* touchSettings = [NSUserDefaults.standardUserDefaults
+            dictionaryForKey:@"dinopad.touch.settings.v1"];
+        const BOOL originalAutoHide = DinoPadSavedAutoHide(
+            [touchSettings[@"autoHideWithController"] isKindOfClass:NSNumber.class],
+            [touchSettings[@"autoHideWithController"] boolValue]);
 
         dinopad_set_physical_controller_connected(1);
         // On Simulator, g_controllerConnected remains false due to synthetic gamepad exception
@@ -2006,9 +2059,13 @@ void drainUIKitQueue() {
             fprintf(stderr, "[dinopad-touch-test] FAIL: simulator synthetic controller exception failed\n");
         }
 
-        // Test explicit overlay controller hiding
+        // Auto-hide disables touch input while a usable controller is connected,
+        // including the floating stick zone.
+        [_overlay setAutoHideWithController:YES];
         [_overlay setPhysicalControllerConnected:YES];
-        [_overlay beginSimulatedTouchWithID:1 atPoint:stickCenter];
+        [_overlay beginSimulatedTouchWithID:1 atPoint:aCenter];
+        [_overlay beginSimulatedTouchWithID:2
+                                    atPoint:CGPointMake(stickCenter.x + 40.0, stickCenter.y)];
         uint16_t sb = 0; float sx = 0, sy = 0;
         dinopad_touch_snapshot(&sb, &sx, &sy);
         if (sb == 0x0000 && sx == 0.0f && sy == 0.0f) {
@@ -2016,6 +2073,21 @@ void drainUIKitQueue() {
         } else {
             fprintf(stderr, "[dinopad-touch-test] FAIL: controller connected state did not suppress touch input (buttons=0x%04X)\n", sb);
         }
+        [_overlay endSimulatedTouchWithID:1];
+        [_overlay endSimulatedTouchWithID:2];
+
+        // Show Touch Controls restores working input with the controller still connected.
+        [_overlay showTouchControls];
+        [_overlay beginSimulatedTouchWithID:3 atPoint:aCenter];
+        dinopad_touch_snapshot(&sb, &sx, &sy);
+        if ((sb & 0x8000) != 0) {
+            fprintf(stderr, "[dinopad-touch-test] PASS: Show Touch Controls restored input with controller connected\n");
+        } else {
+            fprintf(stderr, "[dinopad-touch-test] FAIL: Show Touch Controls did not restore input (buttons=0x%04X)\n", sb);
+        }
+        [_overlay endSimulatedTouchWithID:3];
+        [_overlay clearInput];
+        [_overlay setAutoHideWithController:originalAutoHide];
 
         [_overlay setPhysicalControllerConnected:NO];
         fprintf(stderr, "[dinopad-touch-test] PASS: controller disconnected state restored touch controls\n");

@@ -17,28 +17,54 @@ index b9ae5e3..e5bd025 100644
  
  constexpr float axis_threshold = 0.5f;
  
-@@ -151,6 +158,9 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+@@ -103,6 +111,26 @@
+     return false;        
+ }
+ 
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++// Every attached controller drives Player 1, the player touch input drives.
++// Touch auto-hides only while one of them has the stick and buttons gameplay
++// needs, so removing one of several controllers keeps the others counted.
++static int dinopad_controller_can_play() {
++    for (const auto& [id, state] : InputState.controller_states) {
++        SDL_GameController* pad = state.controller;
++        if (pad != nullptr && SDL_GameControllerGetAttached(pad) &&
++            SDL_GameControllerHasAxis(pad, SDL_CONTROLLER_AXIS_LEFTX) &&
++            SDL_GameControllerHasAxis(pad, SDL_CONTROLLER_AXIS_LEFTY) &&
++            SDL_GameControllerHasButton(pad, SDL_CONTROLLER_BUTTON_A) &&
++            SDL_GameControllerHasButton(pad, SDL_CONTROLLER_BUTTON_B) &&
++            SDL_GameControllerHasButton(pad, SDL_CONTROLLER_BUTTON_START)) {
++            return 1;
++        }
++    }
++    return 0;
++}
++#endif
++
+ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+     switch (event->type) {
+     case SDL_EventType::SDL_KEYDOWN:
+@@ -151,6 +179,9 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
                      SDL_GameControllerSetSensorEnabled(controller, SDL_SensorType::SDL_SENSOR_GYRO, SDL_TRUE);
                      SDL_GameControllerSetSensorEnabled(controller, SDL_SensorType::SDL_SENSOR_ACCEL, SDL_TRUE);
                  }
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
-+                dinopad_set_physical_controller_connected(1);
++                dinopad_set_physical_controller_connected(dinopad_controller_can_play());
 +#endif
              }
          }
          break;
-@@ -160,6 +170,10 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+@@ -160,6 +191,9 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
              SDL_ControllerDeviceEvent* controller_event = &event->cdevice;
              printf("Controller removed: %d\n", controller_event->which);
              InputState.controller_states.erase(controller_event->which);
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
-+            dinopad_set_physical_controller_connected(
-+                InputState.controller_states.empty() ? 0 : 1);
++            dinopad_set_physical_controller_connected(dinopad_controller_can_play());
 +#endif
          }
          break;
      case SDL_EventType::SDL_QUIT: {
-@@ -178,8 +193,11 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+@@ -178,8 +212,11 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
          }
          queue_if_enabled(event);
          break;
@@ -52,7 +78,7 @@ index b9ae5e3..e5bd025 100644
              auto menuToggleBinding0 = dino::input::get_input_binding(dino::input::GameInput::TOGGLE_MENU, 0, dino::input::InputDevice::Controller);
              auto menuToggleBinding1 = dino::input::get_input_binding(dino::input::GameInput::TOGGLE_MENU, 1, dino::input::InputDevice::Controller);
              // note - magic number: 0 is InputType::None
-@@ -294,8 +312,11 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+@@ -294,10 +331,21 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
      case SDL_EventType::SDL_DROPCOMPLETE:
          recompui::drop_files(DropState.files_dropped);
          break;
@@ -65,4 +91,14 @@ index b9ae5e3..e5bd025 100644
 +        // Always queue button up events to avoid missing them during binding.
          recompui::queue_event(*event);
          break;
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++    case SDL_EventType::SDL_APP_DIDENTERFOREGROUND:
++        // A controller can change while DinoPad is in the background; re-report
++        // Player 1's state from the controllers SDL still has attached.
++        dinopad_set_physical_controller_connected(dinopad_controller_can_play());
++        queue_if_enabled(event);
++        break;
++#endif
      default:
+         queue_if_enabled(event);
+         break;
