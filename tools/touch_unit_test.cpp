@@ -7,6 +7,8 @@
 #include <cstdio>
 #include <algorithm>
 
+#include "../apple/app/touch_visibility.h"
+
 class TouchTapLatch {
 public:
     void extend(uint16_t mask, uint8_t polls) {
@@ -171,6 +173,31 @@ int main() {
     // Clamp beyond radius
     compute_analog(100.0f, 0.0f, 50.0f, &x, &y);
     check(x == 1.0f && y == 0.0f, "analog input beyond radius clamps magnitude to 1.0");
+
+    // 5. Touch visibility with a physical controller
+    DinoPadTouchVisibility visibility;
+    visibility.autoHide = DinoPadSavedAutoHide(false, false);
+    check(visibility.autoHide, "auto-hide defaults on without a saved choice");
+    visibility.controllerReady = true;
+    check(!visibility.gameplayVisible(), "controller present before launch hides touch");
+    visibility.controllerReady = false;
+    check(visibility.gameplayVisible(), "last usable controller removed restores touch");
+    visibility.controllerReady = true;
+    visibility.autoHide = false;
+    check(visibility.gameplayVisible(), "auto-hide off restores touch while connected");
+    visibility.autoHide = true;
+    check(!visibility.gameplayVisible(), "auto-hide on hides touch while connected");
+    visibility.enabled = false;
+    visibility.show();
+    check(visibility.gameplayVisible() && visibility.enabled && !visibility.autoHide,
+          "Show restores touch with the controller connected and turns auto-hide off");
+    DinoPadTouchVisibility saved;
+    saved.autoHide = DinoPadSavedAutoHide(true, false);
+    saved.controllerReady = true;
+    check(saved.gameplayVisible(), "saved auto-hide opt-out survives relaunch");
+    DinoPadTouchVisibility manual;
+    manual.enabled = false;
+    check(!manual.gameplayVisible(), "manual hide holds without a controller");
 
     printf("\ntouch_unit_test: %d checks, %d failures\n", checks, failures);
     return failures == 0 ? 0 : 1;

@@ -305,7 +305,10 @@ Xbox-style controllers use the ordinary N64 layout: left stick moves, the
 south face button is A, the west face button is B, the triggers provide Z/R,
 the left bumper is L, the right stick provides the C buttons, and Menu is
 Start. iPhone and iPad additionally provide independent, editable touch
-layouts that disappear automatically while a controller is active.
+layouts that hide automatically while a usable controller is connected. The
+three-dot menu keeps **Show Touch Controls**, which brings them back with the
+controller still connected, and **Auto-hide Touch Controls with Controller**,
+which is on until you turn it off.
 On touch screens, holding Z for half a second locks targeting until the next Z
 tap; **Settings & Status > Hold Z to Lock Targeting** can disable that behavior.
 
