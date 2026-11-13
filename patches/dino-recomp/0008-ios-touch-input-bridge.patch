@@ -78,7 +78,7 @@ index b9ae5e3..e5bd025 100644
              auto menuToggleBinding0 = dino::input::get_input_binding(dino::input::GameInput::TOGGLE_MENU, 0, dino::input::InputDevice::Controller);
              auto menuToggleBinding1 = dino::input::get_input_binding(dino::input::GameInput::TOGGLE_MENU, 1, dino::input::InputDevice::Controller);
              // note - magic number: 0 is InputType::None
-@@ -294,8 +331,11 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
+@@ -294,10 +331,21 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
      case SDL_EventType::SDL_DROPCOMPLETE:
          recompui::drop_files(DropState.files_dropped);
          break;
@@ -91,4 +91,14 @@ index b9ae5e3..e5bd025 100644
 +        // Always queue button up events to avoid missing them during binding.
          recompui::queue_event(*event);
          break;
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++    case SDL_EventType::SDL_APP_DIDENTERFOREGROUND:
++        // A controller can change while DinoPad is in the background; re-report
++        // Player 1's state from the controllers SDL still has attached.
++        dinopad_set_physical_controller_connected(dinopad_controller_can_play());
++        queue_if_enabled(event);
++        break;
++#endif
      default:
+         queue_if_enabled(event);
+         break;
