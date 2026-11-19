@@ -2568,7 +2568,10 @@ extern "C" void dinopad_log_controller_button(int button, int pressed) {
 }
 
 extern "C" int SDL_main(int, char **) {
-    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+    SDL_SetHint(SDL_HINT_ORIENTATIONS,
+                UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad
+                    ? "Portrait PortraitUpsideDown LandscapeLeft LandscapeRight"
+                    : "LandscapeLeft LandscapeRight");
     SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "1");
     dinopad_start_diagnostics_log();
     dinopad_diagnostics_breadcrumb("session", "shell_started");
